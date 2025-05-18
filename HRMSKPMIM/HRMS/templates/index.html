@@ -1,0 +1,203 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KOOP-KPMIM HRMS</title>
+    <style>
+        /* Global Styles */
+        :root {
+            --main-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--main-color);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #0053ED;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        .login-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            transition: color 0.3s;
+        }
+
+        .login-link:hover {
+            color:var(--accent-color);
+            text-decoration: underline;
+        }
+        
+        
+        /* Main Content Styles */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .welcome-container {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s forwards;
+        }
+        
+        .welcome-title {
+            color: var(--secondary-color);
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+        
+        .welcome-subtitle {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+        
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .info-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 24px;
+            width: 300px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            border-top: 4px solid var(--secondary-color);
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .info-card:nth-child(2) {
+            border-top-color: var(--accent-color);
+            animation: fadeInUp 1s forwards 0.2s;
+        }
+        
+        .info-card:nth-child(1) {
+            animation: fadeInUp 1s forwards 0.1s;
+        }
+        
+        .info-card:nth-child(3) {
+            animation: fadeInUp 1s forwards 0.3s;
+        }
+        
+        .info-card h3 {
+            color: var(--secondary-color);
+            margin-top: 0;
+        }
+        
+        /* Footer Styles */
+        .footer {
+            background-color: #4A4A4A;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: auto;
+        }
+        
+        /* Animation Keyframes */
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px;
+            }
+            
+            .logo {
+                width: 100px;
+            }
+            
+            .welcome-title {
+                font-size: 1.8rem;
+            }
+            
+            .welcome-subtitle {
+                font-size: 1rem;
+            }
+            
+            .card-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .info-card {
+                width: 100%;
+                max-width: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Logo and Login Button -->
+    <header class="header">
+        <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        <a href="{% url 'login' %}" class="login-link">Login</a>
+    </header>
+    
+    <!-- Main Content with Welcome Message -->
+    <main class="main-container">
+        <div class="welcome-container">
+            <h1 class="welcome-title">Welcome to Human Resources Management System (HRMS)</h1>
+            <p class="welcome-subtitle">Streamlining HR operations for KOOP-KPMIM</p>
+        </div>
+        
+        <div class="card-container">
+            <div class="info-card">
+                <h3>Employee Portal</h3>
+                <p>Access your personal information, view pay slips, submit time-off requests and submit review to the HR.</p>
+            </div>
+            
+            <div class="info-card">
+                <h3>Manager Portal</h3>
+                <p>Approve leave requests, set team goals and request new hires.</p>
+            </div>
+            
+            <div class="info-card">
+                <h3>HR Administration</h3>
+                <p>Manage employee records, process payroll, update policies, oversee recruitment and handle reviews.</p>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2025 KOOP-KPMIM HRMS | AMANAH • PROGRESIF • PROFESIONAL</p>
+    </footer>
+</body>
+</html>
