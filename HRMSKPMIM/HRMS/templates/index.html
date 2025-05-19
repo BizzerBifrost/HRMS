@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KOOP-KPMIM HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="64x64">
     <style>
         /* Global Styles */
         :root {
@@ -166,7 +167,7 @@
 <body>
     <!-- Header with Logo and Login Button -->
     <header class="header">
-        <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        <a href="{%url 'index' %}"><img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo"></a>
         <a href="{% url 'login' %}" class="login-link">Login</a>
     </header>
     

@@ -1,0 +1,260 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <title>Login</title>
+    <style>
+        /* Global Styles */
+        :root {
+            --main-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--main-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--secondary-color);
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        /* Login Form Styles */
+        .login-container {
+            max-width: 400px;
+            margin: 60px auto;
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-top: 4px solid var(--secondary-color);
+            animation: popup 0.8s ease-out forwards;
+        }
+        
+        .login-title {
+            color: var(--secondary-color);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 83, 237, 0.1);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background-color: #0045c7;
+        }
+        
+        .forgot-password {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: var(--accent-color);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        /* Footer Styles */
+        .footer {
+            background-color: var(--text-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: auto;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes popup {
+            0% {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            45% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+            80% {
+                transform: scale(0.95);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px;
+            }
+            
+            .logo {
+                width: 100px;
+            }
+            
+            .login-container {
+                margin: 40px 20px;
+                padding: 20px;
+            }
+            
+            .login-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Logo and Home Button -->
+    <header class="header">
+        <a href="{% url 'index' %}"><img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo"></a>
+    </header>
+    
+    <!-- Login Form Container -->
+    <main>
+        <div class="login-container">
+            <h2 class="login-title">Login to HRMS</h2>
+            
+            <form action="{% url 'login_process' %}" method="post">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+                
+                {% if error_message %}
+                <div class="error-message" style="display: block; margin-bottom: 15px;">
+                    {{ error_message }}
+                </div>
+                {% endif %}
+                
+                <button type="submit" class="submit-btn">Login</button>
+                
+                <a href="{% url 'forgot_password' %}" class="forgot-password">Forgot password?</a>
+            </form>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2025 KOOP-KPMIM HRMS | AMANAH • PROGRESIF • PROFESIONAL</p>
+    </footer>
+    
+    <script>
+        // Simple form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            let isValid = true;
+            
+            // Reset error messages
+            document.getElementById('username-error').style.display = 'none';
+            document.getElementById('password-error').style.display = 'none';
+            
+            // Validate username
+            if (username.trim() === '') {
+                document.getElementById('username-error').style.display = 'block';
+                document.getElementById('username-error').textContent = 'Username is required';
+                isValid = false;
+            }
+            
+            // Validate password
+            if (password.trim() === '') {
+                document.getElementById('password-error').style.display = 'block';
+                document.getElementById('password-error').textContent = 'Password is required';
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
