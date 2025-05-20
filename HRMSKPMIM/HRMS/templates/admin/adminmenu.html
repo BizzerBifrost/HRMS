@@ -1,0 +1,328 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Home | HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            margin-right: 15px;
+            text-align: right;
+        }
+        
+        /* User dropdown styling */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        /* Arrow for dropdown */
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        /* Old styles continued */
+        main {
+            flex: 1;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .dashboard-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+        
+        .dashboard-card h3 {
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+        
+        .dashboard-card p {
+            color: #777;
+            margin-bottom: 15px;
+        }
+        
+        .card-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+        }
+        
+        .card-btn:hover {
+            opacity: 0.9;
+        }
+        
+        footer {
+            background-color: var(--text-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+        
+        /* Popup Animation */
+        .popup-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .popup-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: scaleIn 0.3s ease-in-out;
+        }
+        
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Popup Animation (shown once when page loads) -->
+    <div class="popup-container" id="welcomePopup">
+        <div class="popup-content">
+            <span class="popup-close" onclick="closePopup()">&times;</span>
+            <h2 style="color: var(--secondary-color); margin-bottom: 15px;">Welcome to Admin Dashboard</h2>
+            <p>You are logged in as an Administrator.</p>
+            <button class="card-btn" style="margin-top: 20px;" onclick="closePopup()">Get Started</button>
+        </div>
+    </div>
+
+    <header>
+        <a href="{% url 'adminmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ admin.name }}</strong></div>
+                <div>Administrator</div>
+            </div>
+            <!-- User image dropdown -->
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{% url 'admin_profile' %}">Profile</a>
+                    <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <h1>Admin Dashboard</h1>
+        <p>Welcome to the Human Resources Management System administration panel.</p>
+        
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <div class="card-icon">👥</div>
+                <h3>User Management</h3>
+                <p>Create, edit, and manage all system users including staff, managers and HR personnel.</p>
+                <a href="{% url 'user_management' %}" class="card-btn">Manage Users</a>
+            </div>
+            
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Popup functionality
+        function closePopup() {
+            document.getElementById('welcomePopup').style.display = 'none';
+            // Set a flag in localStorage to indicate popup has been shown
+            localStorage.setItem('adminPopupShown', 'true');
+        }
+        
+        // Reset popup state when logging out
+        function resetPopupState() {
+            localStorage.removeItem('adminPopupShown');
+        }
+        
+        // Toggle dropdown menu
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        
+        // Check if user has seen popup before
+        window.onload = function() {
+            // Only show the popup if it hasn't been shown before
+            if (localStorage.getItem('adminPopupShown') !== 'true') {
+                document.getElementById('welcomePopup').style.display = 'flex';
+            } else {
+                document.getElementById('welcomePopup').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

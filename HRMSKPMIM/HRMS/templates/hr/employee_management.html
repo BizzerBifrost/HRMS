@@ -1,0 +1,937 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management | HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            margin-right: 15px;
+            text-align: right;
+        }
+        
+        /* User dropdown styling */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        /* Arrow for dropdown */
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        main {
+            flex: 1;
+            padding: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .tab-nav {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab-link {
+            padding: 12px 25px;
+            background-color: #f5f5f5;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            position: relative;
+            top: 1px;
+        }
+        
+        .tab-link.active {
+            background-color: white;
+            color: var(--secondary-color);
+            border-bottom: 1px solid white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Select User Type Section */
+        .user-type-selection {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .user-type-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            width: 150px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .user-type-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: var(--secondary-color);
+        }
+        
+        .user-type-card.selected {
+            border-color: var(--secondary-color);
+            box-shadow: 0 5px 15px rgba(0, 83, 237, 0.2);
+        }
+        
+        .user-type-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+        
+        .user-type-card.selected .user-type-icon {
+            color: var(--secondary-color);
+        }
+        
+        /* User List Table */
+        .user-list {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .user-table th, .user-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .user-table th {
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .user-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .user-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .delete-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .delete-btn:hover {
+            opacity: 0.9;
+        }
+        
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
+        }
+        
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234A4A4A' d='M6 9l6-6H0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
+        }
+        
+        .btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #0045c4;
+        }
+        
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        /* Alert Messages */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Add User Forms */
+        .add-user-form {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        footer {
+            background-color: var(--text-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+        
+        /* Popup Animation for delete confirmation */
+        .popup-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .popup-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: scaleIn 0.3s ease-in-out;
+        }
+        
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        .popup-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Delete Confirmation Popup -->
+    <div class="popup-container" id="deleteConfirmPopup">
+        <div class="popup-content">
+            <span class="popup-close" onclick="closePopup()">&times;</span>
+            <h2 style="color: var(--accent-color); margin-bottom: 15px;">Confirm Deletion</h2>
+            <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+            <div class="popup-actions">
+                <button class="btn" style="background-color: #6c757d;" onclick="closePopup()">Cancel</button>
+                <button class="btn" style="background-color: var(--accent-color);" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <a href="{% url 'hrmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ hr.name }}</strong></div>
+                <div>HR Personnel</div>
+            </div>
+            <!-- User image dropdown -->
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{% url 'hr_profile' %}">Profile</a>
+                    <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <h1>Employee Management</h1>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="container">
+            <div class="tab-nav">
+                <a class="tab-link active" onclick="openTab(event, 'view-users')">View Users</a>
+                <a class="tab-link" onclick="openTab(event, 'add-user')">Add User</a>
+            </div>
+            
+            <div id="view-users" class="tab-content active">
+                <h2>Select Employee Type</h2>
+                <div class="user-type-selection">
+                    <div class="user-type-card" onclick="selectUserType('staff', this)">
+                        <div class="user-type-icon">👨‍💼</div>
+                        <h3>Staff</h3>
+                    </div>
+                    <div class="user-type-card" onclick="selectUserType('manager', this)">
+                        <div class="user-type-icon">👩‍💼</div>
+                        <h3>Manager</h3>
+                    </div>
+                    <div class="user-type-card" onclick="selectUserType('hr', this)">
+                        <div class="user-type-icon">👥</div>
+                        <h3>HR</h3>
+                    </div>
+                </div>
+                <style>
+                    .clear-search {
+                    display: none;
+                    position: absolute;
+                    right: 15px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    cursor: pointer;
+                    color: var(--text-color);
+                    font-size: 18px;
+                    transition: color 0.2s;
+                }
+
+                .no-results {
+                    text-align: center;
+                    padding: 20px;
+                    font-size: 16px;
+                    color: var(--text-color);
+                    background-color: #f9f9f9;
+                    border-radius: 5px;
+                    margin-top: 15px;
+                    display: none;
+                }
+                </style>
+                
+                <!-- Staff Users List -->
+                <div id="staff-users" class="user-list">
+                    <h3>Staff Employees</h3>
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for staff in staffs %}
+                            <tr>
+                                <td>{{ staff.id }}</td>
+                                <td>{{ staff.name }}</td>
+                                <td>
+                                    <button class="delete-btn" onclick="confirmDelete('staff', '{{ staff.id }}')">Delete</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" style="text-align: center;">No staff employees found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Manager Users List -->
+                <div id="manager-users" class="user-list">
+                    <h3>Manager Employees</h3>
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for manager in managers %}
+                            <tr>
+                                <td>{{ manager.id }}</td>
+                                <td>{{ manager.name }}</td>
+                                <td>
+                                    <button class="delete-btn" onclick="confirmDelete('manager', '{{ manager.id }}')">Delete</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" style="text-align: center;">No manager employees found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- HR Users List -->
+                <div id="hr-users" class="user-list">
+                    <h3>HR Employees</h3>
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hr in hrs %}
+                            <tr>
+                                <td>{{ hr.id }}</td>
+                                <td>{{ hr.name }}</td>
+                                <td>
+                                    <button class="delete-btn" onclick="confirmDelete('hr', '{{ hr.id }}')">Delete</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" style="text-align: center;">No HR employees found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="add-user" class="tab-content">
+                <h2>Add New Employee</h2>
+                <div class="form-group">
+                    <label for="user-type">Employee Type</label>
+                    <select id="user-type" class="form-control" onchange="toggleAddUserForm()">
+                        <option value="">-- Select Employee Type --</option>
+                        <option value="staff">Staff</option>
+                        <option value="manager">Manager</option>
+                        <option value="hr">HR</option>
+                    </select>
+                </div>
+                
+                <!-- Add Staff Form -->
+                <form id="add-staff-form" class="add-user-form" method="POST" action="{% url 'add_employee' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_type" value="staff">
+                    
+                    <div class="form-group">
+                        <label for="staff-id">Employee ID</label>
+                        <input type="text" id="staff-id" name="id" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="staff-name">Name</label>
+                        <input type="text" id="staff-name" name="name" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="staff-dob">Date of Birth</label>
+                        <input type="date" id="staff-dob" name="date_of_birth" class="form-control" required>
+                        <small class="form-text text-muted">Select your birth date from the calendar</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="staff-password">Password</label>
+                        <input type="password" id="staff-password" name="password" class="form-control" required oninput="checkPasswordStrength('staff-password', 'staff-password-strength')">
+                        <div id="staff-password-strength" class="password-strength"></div>
+                        <small class="form-text text-muted">Password must be at least 8 characters with a capital letter, number, and symbol.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="staff-confirm-password">Confirm Password</label>
+                        <input type="password" id="staff-confirm-password" name="confirm_password" class="form-control" required>
+                    </div>
+                    
+                    <button type="submit" class="btn">Add Staff</button>
+                </form>
+
+                <!-- Add Manager Form -->
+                <form id="add-manager-form" class="add-user-form" method="POST" action="{% url 'add_employee' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_type" value="manager">
+                    
+                    <div class="form-group">
+                        <label for="manager-id">Login ID</label>
+                        <input type="text" id="manager-id" name="id" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="manager-staff-id">Staff ID</label>
+                        <input type="text" id="manager-staff-id" name="staff_id" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="manager-name">Name</label>
+                        <input type="text" id="manager-name" name="name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="manager-password">Password</label>
+                        <input type="password" id="manager-password" name="password" class="form-control" required oninput="checkPasswordStrength('manager-password', 'manager-password-strength')">
+                        <div id="manager-password-strength" class="password-strength"></div>
+                        <small class="form-text text-muted">Password must be at least 8 characters with a capital letter, number, and symbol.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="manager-confirm-password">Confirm Password</label>
+                        <input type="password" id="manager-confirm-password" name="confirm_password" class="form-control" required>
+                    </div>
+                    
+                    <button type="submit" class="btn">Add Manager</button>
+                </form>
+
+                <!-- Add HR Form -->
+                <form id="add-hr-form" class="add-user-form" method="POST" action="{% url 'add_employee' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_type" value="hr">
+                    
+                    <div class="form-group">
+                        <label for="hr-id">Login ID</label>
+                        <input type="text" id="hr-id" name="id" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hr-staff-id">Staff ID</label>
+                        <input type="text" id="hr-staff-id" name="staff_id" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hr-name">Name</label>
+                        <input type="text" id="hr-name" name="name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hr-password">Password</label>
+                        <input type="password" id="hr-password" name="password" class="form-control" required oninput="checkPasswordStrength('hr-password', 'hr-password-strength')">
+                        <div id="hr-password-strength" class="password-strength"></div>
+                        <small class="form-text text-muted">Password must be at least 8 characters with a capital letter, number, and symbol.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hr-confirm-password">Confirm Password</label>
+                        <input type="password" id="hr-confirm-password" name="confirm_password" class="form-control" required>
+                    </div>
+                    
+                    <button type="submit" class="btn">Add HR</button>
+                </form>
+
+                <script>
+                    // Password strength checker
+                    function checkPasswordStrength(passwordId, strengthId) {
+                        const password = document.getElementById(passwordId).value;
+                        const strengthDiv = document.getElementById(strengthId);
+                        
+                        // Clear the div
+                        strengthDiv.className = 'password-strength';
+                        
+                        if (password.length === 0) {
+                            strengthDiv.textContent = '';
+                            return;
+                        }
+                        
+                        // Check password strength
+                        let strength = 0;
+                        
+                        // Length check
+                        if (password.length >= 8) {
+                            strength += 1;
+                        }
+                        
+                        // Character variety check
+                        if (/[A-Z]/.test(password)) {
+                            strength += 1;
+                        }
+                        
+                        if (/[0-9]/.test(password)) {
+                            strength += 1;
+                        }
+                        
+                        if (/[^A-Za-z0-9]/.test(password)) {
+                            strength += 1;
+                        }
+                        
+                        // Update the strength indicator
+                        switch (strength) {
+                            case 0:
+                            case 1:
+                                strengthDiv.textContent = 'Weak password';
+                                strengthDiv.classList.add('strength-weak');
+                                break;
+                            case 2:
+                            case 3:
+                                strengthDiv.textContent = 'Medium password';
+                                strengthDiv.classList.add('strength-medium');
+                                break;
+                            case 4:
+                                strengthDiv.textContent = 'Strong password';
+                                strengthDiv.classList.add('strength-strong');
+                                break;
+                        }
+                    }
+
+                    // Form validation
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const forms = [
+                            document.getElementById('add-staff-form'),
+                            document.getElementById('add-manager-form'),
+                            document.getElementById('add-hr-form')
+                        ];
+                        
+                        forms.forEach(form => {
+                            if (form) {
+                                form.addEventListener('submit', function(event) {
+                                    const userType = form.id.split('-')[1]; // staff, manager, or hr
+                                    const password = document.getElementById(userType + '-password').value;
+                                    const confirmPassword = document.getElementById(userType + '-confirm-password').value;
+                                    
+                                    // Check password requirements
+                                    const lengthValid = password.length >= 8;
+                                    const hasCapital = /[A-Z]/.test(password);
+                                    const hasNumber = /[0-9]/.test(password);
+                                    const hasSymbol = /[^A-Za-z0-9]/.test(password);
+                                    
+                                    let isValid = true;
+                                    let errorMessage = '';
+                                    
+                                    if (!lengthValid || !hasCapital || !hasNumber || !hasSymbol) {
+                                        errorMessage = 'Password must be at least 8 characters with a capital letter, number, and symbol.';
+                                        isValid = false;
+                                    }
+                                    
+                                    if (password !== confirmPassword) {
+                                        errorMessage += ' Passwords do not match.';
+                                        isValid = false;
+                                    }
+                                    
+                                    if (!isValid) {
+                                        alert(errorMessage);
+                                        event.preventDefault();
+                                    }
+                                });
+                            }
+                        });
+                    });
+                </script>
+
+                <style>
+                    .password-strength {
+                        margin-top: 5px;
+                        font-size: 14px;
+                    }
+                    
+                    .strength-weak {
+                        color: #dc3545;
+                    }
+                    
+                    .strength-medium {
+                        color: #ffc107;
+                    }
+                    
+                    .strength-strong {
+                        color: #28a745;
+                    }
+                    
+                    .form-text {
+                        font-size: 12px;
+                        margin-top: 5px;
+                    }
+                </style>
+            </div>
+        </div>
+        
+    </main>
+
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Toggle dropdown menu
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+        
+        // Reset popup state when logging out
+        function resetPopupState() {
+            localStorage.removeItem('hrPopupShown');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        
+        // Tab functionality
+        function openTab(evt, tabName) {
+            var i, tabContent, tabLinks;
+            
+            // Hide all tab content
+            tabContent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabContent.length; i++) {
+                tabContent[i].className = tabContent[i].className.replace(" active", "");
+            }
+            
+            // Remove active class from tab links
+            tabLinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tabLinks.length; i++) {
+                tabLinks[i].className = tabLinks[i].className.replace(" active", "");
+            }
+            
+            // Show current tab and add active class to the button
+            document.getElementById(tabName).className += " active";
+            evt.currentTarget.className += " active";
+        }
+        
+        // Select user type for viewing
+        function selectUserType(type, element) {
+            // Update selected card styling
+            var cards = document.getElementsByClassName('user-type-card');
+            for (var i = 0; i < cards.length; i++) {
+                cards[i].classList.remove('selected');
+            }
+            element.classList.add('selected');
+            
+            // Hide all user lists
+            var lists = document.getElementsByClassName('user-list');
+            for (var i = 0; i < lists.length; i++) {
+                lists[i].style.display = 'none';
+            }
+            
+            // Show selected user list
+            document.getElementById(type + '-users').style.display = 'block';
+        }
+        
+        // Toggle add user form based on selected type
+        function toggleAddUserForm() {
+            var selectedType = document.getElementById('user-type').value;
+            
+            // Hide all forms
+            var forms = document.getElementsByClassName('add-user-form');
+            for (var i = 0; i < forms.length; i++) {
+                forms[i].style.display = 'none';
+            }
+            
+            // Show selected form
+            if (selectedType) {
+                document.getElementById('add-' + selectedType + '-form').style.display = 'block';
+            }
+        }
+        
+        // Show delete confirmation popup
+        function confirmDelete(userType, userId) {
+            var popup = document.getElementById('deleteConfirmPopup');
+            popup.style.display = 'flex';
+            
+            // Set up delete action
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                window.location.href = "{% url 'delete_employee' %}?type=" + userType + "&id=" + userId;
+            };
+        }
+        
+        // Close popup
+        function closePopup() {
+            document.getElementById('deleteConfirmPopup').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -15,25 +15,27 @@ class STAFF(models.Model):
     email = models.EmailField(default='')
     password = models.TextField(default='')
     STATUS = [ 
+        ('',''),
         ('Married','married'),
         ('Single','single'),
     ]
-    status = models.TextField(choices=STATUS)
+    status = models.TextField(choices=STATUS, default='')
     GENDER = [
+        ('',''),
         ('Male', 'male'),
         ('Female', 'female'),
     ]
-    gender = models.TextField(choices=GENDER)
+    gender = models.TextField(choices=GENDER, default='')
     date_of_birth = models.DateField()
     @property
     def age(self):
         today = date.today()
         return today.year - self.date_of_birth.year
     
-    bank_number = models.TextField()
-    emergency_contact = models.TextField()
+    bank_number = models.TextField(default='')
+    emergency_contact = models.TextField(default='')
 
-class EDUCATON(models.Model):
+class EDUCATION(models.Model):
     id = models.AutoField(primary_key=True)
     certification = models.TextField()
     date_received = models.DateField()
@@ -172,6 +174,7 @@ class MANAGER(models.Model):
     id = models.TextField(primary_key=True)
     name = models.TextField(default='')
     password = models.TextField(default='')
+    staffid = models.ForeignKey(STAFF, on_delete=models.CASCADE)
 
 class RECRUITMENT(models.Model):
     id = models.AutoField(primary_key=True)
@@ -183,7 +186,7 @@ class RECRUITMENT(models.Model):
 class TEAM(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.TextField(default='')
-    goals = models.TextField()
+    goals = models.TextField(default='')
     managerid = models.ForeignKey('MANAGER', on_delete=models.CASCADE)
 
 class TEAM_MEMBERSHIP(models.Model):
@@ -200,10 +203,17 @@ class TEAM_MEMBERSHIP(models.Model):
 # hr
 class HR(models.Model):
     id = models.TextField(primary_key=True)
-    name = models.TextField(default='')
+    name = models.TextField()
     password = models.TextField(default='')
+    staffid = models.ForeignKey(STAFF, on_delete=models.CASCADE, default='')
 
 class POLICIES(models.Model):
     id = models.AutoField(primary_key=True)
     policies = models.TextField()
     enacted = models.DateField(auto_now_add=True)
+
+# admin
+class ADMIN(models.Model):
+    id = models.TextField(primary_key=True)
+    name = models.TextField()
+    password = models.TextField()

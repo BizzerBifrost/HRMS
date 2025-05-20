@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
-    <title>Login</title>
+    <title>Login | HRMS</title>
     <style>
         /* Global Styles */
         :root {
@@ -13,6 +13,7 @@
             --secondary-color: #0053ED;
             --accent-color: #E90000;
             --text-color: #4A4A4A;
+            --success-color: #28a745;
         }
         
         body {
@@ -117,11 +118,26 @@
             text-decoration: underline;
         }
         
-        .error-message {
-            color: var(--accent-color);
+        /* Message Styles */
+        .message {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
             font-size: 14px;
-            margin-top: 5px;
-            display: none;
+            font-weight: 500;
+        }
+        
+        .error {
+            background-color: #ffe6e6;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+        }
+        
+        .success {
+            background-color: #e6ffe6;
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
         }
         
         /* Footer Styles */
@@ -195,24 +211,26 @@
         <div class="login-container">
             <h2 class="login-title">Login to HRMS</h2>
             
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
             <form action="{% url 'login_process' %}" method="post">
                 {% csrf_token %}
                 
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" class="form-control" required>
+                    <label for="id">Employee ID</label>
+                    <input type="text" id="id" name="id" class="form-control" placeholder="e.g. S2342" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" class="form-control" required>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
                 </div>
-                
-                {% if error_message %}
-                <div class="error-message" style="display: block; margin-bottom: 15px;">
-                    {{ error_message }}
-                </div>
-                {% endif %}
                 
                 <button type="submit" class="submit-btn">Login</button>
                 
@@ -225,36 +243,5 @@
     <footer class="footer">
         <p>© 2025 KOOP-KPMIM HRMS | AMANAH • PROGRESIF • PROFESIONAL</p>
     </footer>
-    
-    <script>
-        // Simple form validation
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            let isValid = true;
-            
-            // Reset error messages
-            document.getElementById('username-error').style.display = 'none';
-            document.getElementById('password-error').style.display = 'none';
-            
-            // Validate username
-            if (username.trim() === '') {
-                document.getElementById('username-error').style.display = 'block';
-                document.getElementById('username-error').textContent = 'Username is required';
-                isValid = false;
-            }
-            
-            // Validate password
-            if (password.trim() === '') {
-                document.getElementById('password-error').style.display = 'block';
-                document.getElementById('password-error').textContent = 'Password is required';
-                isValid = false;
-            }
-            
-            if (!isValid) {
-                e.preventDefault();
-            }
-        });
-    </script>
 </body>
 </html>
