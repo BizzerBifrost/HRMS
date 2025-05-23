@@ -405,6 +405,99 @@
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
+        
+        .search-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
+        }
+
+        .clear-search {
+            display: none;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 18px;
+            transition: color 0.2s;
+        }
+
+        .clear-search:hover {
+            color: var(--secondary-color);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            font-size: 16px;
+            color: var(--text-color);
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* Add this CSS to your existing employee_management.html */
+        .edit-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 5px;
+            font-size: 12px;
+        }
+
+        .edit-btn:hover {
+            background-color: #218838;
+            color: white;
+            text-decoration: none;
+        }
+
+        .delete-btn {
+            margin-left: 5px;
+        }
+
+        .password-strength {
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        .strength-weak {
+            color: #dc3545;
+        }
+        
+        .strength-medium {
+            color: #ffc107;
+        }
+        
+        .strength-strong {
+            color: #28a745;
+        }
+        
+        .form-text {
+            font-size: 12px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -427,8 +520,8 @@
         </a>
         <div class="header-right">
             <div class="user-info">
-                <div><strong>{{ hr.name }}</strong></div>
-                <div>HR Personnel</div>
+                <div><strong>{{ hr.staffid.name }}</strong></div>
+                <div>{{ hr.staffid.position }}</div>
             </div>
             <!-- User image dropdown -->
             <div class="user-dropdown">
@@ -476,40 +569,22 @@
                         <h3>HR</h3>
                     </div>
                 </div>
-                <style>
-                    .clear-search {
-                    display: none;
-                    position: absolute;
-                    right: 15px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    cursor: pointer;
-                    color: var(--text-color);
-                    font-size: 18px;
-                    transition: color 0.2s;
-                }
-
-                .no-results {
-                    text-align: center;
-                    padding: 20px;
-                    font-size: 16px;
-                    color: var(--text-color);
-                    background-color: #f9f9f9;
-                    border-radius: 5px;
-                    margin-top: 15px;
-                    display: none;
-                }
-                </style>
                 
                 <!-- Staff Users List -->
                 <div id="staff-users" class="user-list">
                     <h3>Staff Employees</h3>
-                    <table class="user-table">
+                    <!-- Enhanced Search Section -->
+                    <div class="search-container">
+                        <input type="text" id="staffSearchInput" class="search-input" placeholder="Search by Staff ID, Name, or Position..." onkeyup="searchStaffTable()">
+                        <span class="clear-search" id="staffClearSearch" onclick="clearStaffSearch()">×</span>
+                    </div>
+                    <table class="user-table" id="staffTable">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Name</th>
-                                <th>Action</th>
+                                <th>Position</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -517,13 +592,15 @@
                             <tr>
                                 <td>{{ staff.id }}</td>
                                 <td>{{ staff.name }}</td>
+                                <td>{{ staff.position }}</td>
                                 <td>
+                                    <a href="{% url 'update_staff' staff.id %}" class="edit-btn">Edit</a>
                                     <button class="delete-btn" onclick="confirmDelete('staff', '{{ staff.id }}')">Delete</button>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" style="text-align: center;">No staff employees found</td>
+                                <td colspan="4" style="text-align: center;">No staff employees found</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -533,11 +610,17 @@
                 <!-- Manager Users List -->
                 <div id="manager-users" class="user-list">
                     <h3>Manager Employees</h3>
-                    <table class="user-table">
+                    <!-- Enhanced Search Section -->
+                    <div class="search-container">
+                        <input type="text" id="managerSearchInput" class="search-input" placeholder="Search by Manager ID, Name, or Position..." onkeyup="searchManagerTable()">
+                        <span class="clear-search" id="managerClearSearch" onclick="clearManagerSearch()">×</span>
+                    </div>
+                    <table class="user-table" id="managerTable">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Name</th>
+                                <th>Position</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -545,14 +628,15 @@
                             {% for manager in managers %}
                             <tr>
                                 <td>{{ manager.id }}</td>
-                                <td>{{ manager.name }}</td>
+                                <td>{{ manager.staffid.name }}</td>
+                                <td>{{ manager.staffid.position }}</td>
                                 <td>
                                     <button class="delete-btn" onclick="confirmDelete('manager', '{{ manager.id }}')">Delete</button>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" style="text-align: center;">No manager employees found</td>
+                                <td colspan="4" style="text-align: center;">No manager employees found</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -562,11 +646,17 @@
                 <!-- HR Users List -->
                 <div id="hr-users" class="user-list">
                     <h3>HR Employees</h3>
-                    <table class="user-table">
+                    <!-- Enhanced Search Section -->
+                    <div class="search-container">
+                        <input type="text" id="hrSearchInput" class="search-input" placeholder="Search by HR ID, Name, or Position..." onkeyup="searchHrTable()">
+                        <span class="clear-search" id="hrClearSearch" onclick="clearHrSearch()">×</span>
+                    </div>
+                    <table class="user-table" id="hrTable">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Name</th>
+                                <th>Position</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -574,14 +664,15 @@
                             {% for hr in hrs %}
                             <tr>
                                 <td>{{ hr.id }}</td>
-                                <td>{{ hr.name }}</td>
+                                <td>{{ hr.staffid.name }}</td>
+                                <td>{{ hr.staffid.position }}</td>
                                 <td>
                                     <button class="delete-btn" onclick="confirmDelete('hr', '{{ hr.id }}')">Delete</button>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="3" style="text-align: center;">No HR employees found</td>
+                                <td colspan="4" style="text-align: center;">No HR employees found</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -610,7 +701,7 @@
                         <label for="staff-id">Employee ID</label>
                         <input type="text" id="staff-id" name="id" class="form-control" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="staff-name">Name</label>
                         <input type="text" id="staff-name" name="name" class="form-control" required>
@@ -653,11 +744,6 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="manager-name">Name</label>
-                        <input type="text" id="manager-name" name="name" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
                         <label for="manager-password">Password</label>
                         <input type="password" id="manager-password" name="password" class="form-control" required oninput="checkPasswordStrength('manager-password', 'manager-password-strength')">
                         <div id="manager-password-strength" class="password-strength"></div>
@@ -687,10 +773,6 @@
                         <input type="text" id="hr-staff-id" name="staff_id" class="form-control" required>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="hr-name">Name</label>
-                        <input type="text" id="hr-name" name="name" class="form-control" required>
-                    </div>
                     
                     <div class="form-group">
                         <label for="hr-password">Password</label>
@@ -706,128 +788,6 @@
                     
                     <button type="submit" class="btn">Add HR</button>
                 </form>
-
-                <script>
-                    // Password strength checker
-                    function checkPasswordStrength(passwordId, strengthId) {
-                        const password = document.getElementById(passwordId).value;
-                        const strengthDiv = document.getElementById(strengthId);
-                        
-                        // Clear the div
-                        strengthDiv.className = 'password-strength';
-                        
-                        if (password.length === 0) {
-                            strengthDiv.textContent = '';
-                            return;
-                        }
-                        
-                        // Check password strength
-                        let strength = 0;
-                        
-                        // Length check
-                        if (password.length >= 8) {
-                            strength += 1;
-                        }
-                        
-                        // Character variety check
-                        if (/[A-Z]/.test(password)) {
-                            strength += 1;
-                        }
-                        
-                        if (/[0-9]/.test(password)) {
-                            strength += 1;
-                        }
-                        
-                        if (/[^A-Za-z0-9]/.test(password)) {
-                            strength += 1;
-                        }
-                        
-                        // Update the strength indicator
-                        switch (strength) {
-                            case 0:
-                            case 1:
-                                strengthDiv.textContent = 'Weak password';
-                                strengthDiv.classList.add('strength-weak');
-                                break;
-                            case 2:
-                            case 3:
-                                strengthDiv.textContent = 'Medium password';
-                                strengthDiv.classList.add('strength-medium');
-                                break;
-                            case 4:
-                                strengthDiv.textContent = 'Strong password';
-                                strengthDiv.classList.add('strength-strong');
-                                break;
-                        }
-                    }
-
-                    // Form validation
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const forms = [
-                            document.getElementById('add-staff-form'),
-                            document.getElementById('add-manager-form'),
-                            document.getElementById('add-hr-form')
-                        ];
-                        
-                        forms.forEach(form => {
-                            if (form) {
-                                form.addEventListener('submit', function(event) {
-                                    const userType = form.id.split('-')[1]; // staff, manager, or hr
-                                    const password = document.getElementById(userType + '-password').value;
-                                    const confirmPassword = document.getElementById(userType + '-confirm-password').value;
-                                    
-                                    // Check password requirements
-                                    const lengthValid = password.length >= 8;
-                                    const hasCapital = /[A-Z]/.test(password);
-                                    const hasNumber = /[0-9]/.test(password);
-                                    const hasSymbol = /[^A-Za-z0-9]/.test(password);
-                                    
-                                    let isValid = true;
-                                    let errorMessage = '';
-                                    
-                                    if (!lengthValid || !hasCapital || !hasNumber || !hasSymbol) {
-                                        errorMessage = 'Password must be at least 8 characters with a capital letter, number, and symbol.';
-                                        isValid = false;
-                                    }
-                                    
-                                    if (password !== confirmPassword) {
-                                        errorMessage += ' Passwords do not match.';
-                                        isValid = false;
-                                    }
-                                    
-                                    if (!isValid) {
-                                        alert(errorMessage);
-                                        event.preventDefault();
-                                    }
-                                });
-                            }
-                        });
-                    });
-                </script>
-
-                <style>
-                    .password-strength {
-                        margin-top: 5px;
-                        font-size: 14px;
-                    }
-                    
-                    .strength-weak {
-                        color: #dc3545;
-                    }
-                    
-                    .strength-medium {
-                        color: #ffc107;
-                    }
-                    
-                    .strength-strong {
-                        color: #28a745;
-                    }
-                    
-                    .form-text {
-                        font-size: 12px;
-                        margin-top: 5px;
-                    }
-                </style>
             </div>
         </div>
         
@@ -932,6 +892,291 @@
         function closePopup() {
             document.getElementById('deleteConfirmPopup').style.display = 'none';
         }
+
+        // Staff Search functionality
+        function searchStaffTable() {
+            var input, filter, table, tr, td, i, j, txtValue, found;
+            input = document.getElementById("staffSearchInput");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("staffTable");
+            tr = table.getElementsByTagName("tr");
+            var clearBtn = document.getElementById("staffClearSearch");
+            var visibleRows = 0;
+
+            // Show/hide clear button
+            if (input.value.length > 0) {
+                clearBtn.style.display = "block";
+            } else {
+                clearBtn.style.display = "none";
+            }
+
+            // Loop through all table rows (skip header)
+            for (i = 1; i < tr.length; i++) {
+                tr[i].style.display = "none";
+                found = false;
+                
+                // Loop through all cells in the row (except actions column)
+                for (j = 0; j < 3; j++) { // 0-2 are searchable columns (ID, Name, Position)
+                    td = tr[i].getElementsByTagName("td")[j];
+                    if (td) {
+                        txtValue = td.textContent || td.innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (found) {
+                    tr[i].style.display = "";
+                    visibleRows++;
+                }
+            }
+
+            // Show/hide no results message for staff
+            var noResults = document.querySelector("#staff-users .no-results");
+            if (visibleRows === 0 && filter.length > 0) {
+                if (!noResults) {
+                    var noResultsDiv = document.createElement("div");
+                    noResultsDiv.className = "no-results";
+                    noResultsDiv.textContent = "No staff found matching your search criteria.";
+                    table.parentNode.appendChild(noResultsDiv);
+                } else {
+                    noResults.style.display = "block";
+                }
+            } else {
+                if (noResults) {
+                    noResults.style.display = "none";
+                }
+            }
+        }
+
+        function clearStaffSearch() {
+            document.getElementById("staffSearchInput").value = "";
+            searchStaffTable();
+        }
+
+        // Manager Search functionality
+        function searchManagerTable() {
+            var input, filter, table, tr, td, i, j, txtValue, found;
+            input = document.getElementById("managerSearchInput");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("managerTable");
+            tr = table.getElementsByTagName("tr");
+            var clearBtn = document.getElementById("managerClearSearch");
+            var visibleRows = 0;
+
+            // Show/hide clear button
+            if (input.value.length > 0) {
+                clearBtn.style.display = "block";
+            } else {
+                clearBtn.style.display = "none";
+            }
+
+            // Loop through all table rows (skip header)
+            for (i = 1; i < tr.length; i++) {
+                tr[i].style.display = "none";
+                found = false;
+                
+                // Loop through all cells in the row (except actions column)
+                for (j = 0; j < 3; j++) { // 0-2 are searchable columns (ID, Name, Position)
+                    td = tr[i].getElementsByTagName("td")[j];
+                    if (td) {
+                        txtValue = td.textContent || td.innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (found) {
+                    tr[i].style.display = "";
+                    visibleRows++;
+                }
+            }
+
+            // Show/hide no results message for manager
+            var noResults = document.querySelector("#manager-users .no-results");
+            if (visibleRows === 0 && filter.length > 0) {
+                if (!noResults) {
+                    var noResultsDiv = document.createElement("div");
+                    noResultsDiv.className = "no-results";
+                    noResultsDiv.textContent = "No managers found matching your search criteria.";
+                    table.parentNode.appendChild(noResultsDiv);
+                } else {
+                    noResults.style.display = "block";
+                }
+            } else {
+                if (noResults) {
+                    noResults.style.display = "none";
+                }
+            }
+        }
+
+        function clearManagerSearch() {
+            document.getElementById("managerSearchInput").value = "";
+            searchManagerTable();
+        }
+
+        // HR Search functionality
+        function searchHrTable() {
+            var input, filter, table, tr, td, i, j, txtValue, found;
+            input = document.getElementById("hrSearchInput");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("hrTable");
+            tr = table.getElementsByTagName("tr");
+            var clearBtn = document.getElementById("hrClearSearch");
+            var visibleRows = 0;
+
+            // Show/hide clear button
+            if (input.value.length > 0) {
+                clearBtn.style.display = "block";
+            } else {
+                clearBtn.style.display = "none";
+            }
+
+            // Loop through all table rows (skip header)
+            for (i = 1; i < tr.length; i++) {
+                tr[i].style.display = "none";
+                found = false;
+                
+                // Loop through all cells in the row (except actions column)
+                for (j = 0; j < 3; j++) { // 0-2 are searchable columns (ID, Name, Position)
+                    td = tr[i].getElementsByTagName("td")[j];
+                    if (td) {
+                        txtValue = td.textContent || td.innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (found) {
+                    tr[i].style.display = "";
+                    visibleRows++;
+                }
+            }
+
+            // Show/hide no results message for HR
+            var noResults = document.querySelector("#hr-users .no-results");
+            if (visibleRows === 0 && filter.length > 0) {
+                if (!noResults) {
+                    var noResultsDiv = document.createElement("div");
+                    noResultsDiv.className = "no-results";
+                    noResultsDiv.textContent = "No HR employees found matching your search criteria.";
+                    table.parentNode.appendChild(noResultsDiv);
+                } else {
+                    noResults.style.display = "block";
+                }
+            } else {
+                if (noResults) {
+                    noResults.style.display = "none";
+                }
+            }
+        }
+
+        function clearHrSearch() {
+            document.getElementById("hrSearchInput").value = "";
+            searchHrTable();
+        }
+
+        // Password strength checker
+        function checkPasswordStrength(passwordId, strengthId) {
+            const password = document.getElementById(passwordId).value;
+            const strengthDiv = document.getElementById(strengthId);
+            
+            // Clear the div
+            strengthDiv.className = 'password-strength';
+            
+            if (password.length === 0) {
+                strengthDiv.textContent = '';
+                return;
+            }
+            
+            // Check password strength
+            let strength = 0;
+            
+            // Length check
+            if (password.length >= 8) {
+                strength += 1;
+            }
+            
+            // Character variety check
+            if (/[A-Z]/.test(password)) {
+                strength += 1;
+            }
+            
+            if (/[0-9]/.test(password)) {
+                strength += 1;
+            }
+            
+            if (/[^A-Za-z0-9]/.test(password)) {
+                strength += 1;
+            }
+            
+            // Update the strength indicator
+            switch (strength) {
+                case 0:
+                case 1:
+                    strengthDiv.textContent = 'Weak password';
+                    strengthDiv.classList.add('strength-weak');
+                    break;
+                case 2:
+                case 3:
+                    strengthDiv.textContent = 'Medium password';
+                    strengthDiv.classList.add('strength-medium');
+                    break;
+                case 4:
+                    strengthDiv.textContent = 'Strong password';
+                    strengthDiv.classList.add('strength-strong');
+                    break;
+            }
+        }
+
+        // Form validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = [
+                document.getElementById('add-staff-form'),
+                document.getElementById('add-manager-form'),
+                document.getElementById('add-hr-form')
+            ];
+            
+            forms.forEach(form => {
+                if (form) {
+                    form.addEventListener('submit', function(event) {
+                        const userType = form.id.split('-')[1]; // staff, manager, or hr
+                        const password = document.getElementById(userType + '-password').value;
+                        const confirmPassword = document.getElementById(userType + '-confirm-password').value;
+                        
+                        // Check password requirements
+                        const lengthValid = password.length >= 8;
+                        const hasCapital = /[A-Z]/.test(password);
+                        const hasNumber = /[0-9]/.test(password);
+                        const hasSymbol = /[^A-Za-z0-9]/.test(password);
+                        
+                        let isValid = true;
+                        let errorMessage = '';
+                        
+                        if (!lengthValid || !hasCapital || !hasNumber || !hasSymbol) {
+                            errorMessage = 'Password must be at least 8 characters with a capital letter, number, and symbol.';
+                            isValid = false;
+                        }
+                        
+                        if (password !== confirmPassword) {
+                            errorMessage += ' Passwords do not match.';
+                            isValid = false;
+                        }
+                        
+                        if (!isValid) {
+                            alert(errorMessage);
+                            event.preventDefault();
+                        }
+                    });
+                }
+            });
+        });
     </script>
 </body>
 </html>

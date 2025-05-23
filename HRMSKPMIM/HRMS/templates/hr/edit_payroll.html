@@ -1,0 +1,746 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Payroll | HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            margin-right: 15px;
+            text-align: right;
+        }
+        
+        /* User dropdown styling */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        /* Arrow for dropdown */
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        main {
+            flex: 1;
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-size: 28px;
+            text-align: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* Staff Info Section */
+        .staff-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .staff-info h3 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: var(--text-color);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 16px;
+            padding: 5px 0;
+        }
+
+        /* Current Payroll Section */
+        .current-payroll {
+            background-color: #fff3cd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .current-payroll h3 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .current-values {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .current-item {
+            text-align: center;
+        }
+
+        .current-label {
+            font-size: 12px;
+            color: #856404;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .current-amount {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
+        }
+
+        .currency-input {
+            position: relative;
+        }
+
+        .currency-input::before {
+            content: 'RM';
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-color);
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        .currency-input .form-control {
+            padding-left: 45px;
+        }
+
+        /* Calculated Fields */
+        .calculated-field {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            color: var(--text-color);
+            font-weight: bold;
+        }
+
+        .calculation-note {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        /* Changes Highlight */
+        .form-control.changed {
+            border-color: #ffc107;
+            background-color: #fff3cd;
+        }
+
+        .change-indicator {
+            font-size: 12px;
+            color: #856404;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+
+        /* Button Styling */
+        .btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background-color: #0045c4;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background-color: #e0a800;
+            color: #212529;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        footer {
+            background-color: var(--text-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .info-grid, .current-values {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 200px;
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Popup Animation */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .popup-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .popup-title {
+            color: var(--secondary-color);
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .popup-message {
+            color: var(--text-color);
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .popup-close {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .popup-close:hover {
+            background-color: #003bb3;
+        }
+    </style>
+</head>
+<body>
+    
+
+    <!-- Header -->
+    <header>
+        <a href="{% url 'hrmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ hr.staffid.name }}</strong></div>
+                <div>{{ hr.staffid.position }}</div>
+            </div>
+            <!-- User image dropdown -->
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{% url 'hr_profile' %}">Profile</a>
+                    <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <h1>Edit Payroll Information</h1>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="container">
+            <!-- Staff Information Section -->
+            <div class="staff-info">
+                <h3>Employee Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Staff ID:</span>
+                        <span class="info-value">{{ staff.id }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Full Name:</span>
+                        <span class="info-value">{{ staff.name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Position:</span>
+                        <span class="info-value">{{ staff.position }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Age:</span>
+                        <span class="info-value">{{ staff.age }} years old</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Payroll Information -->
+            <div class="current-payroll">
+                <h3>Current Payroll Information</h3>
+                <div class="current-values">
+                    <div class="current-item">
+                        <div class="current-label">Base Salary</div>
+                        <div class="current-amount">RM {{ payroll.base|floatformat:2 }}</div>
+                    </div>
+                    <div class="current-item">
+                        <div class="current-label">Bonus</div>
+                        <div class="current-amount">RM {{ payroll.bonus|floatformat:2 }}</div>
+                    </div>
+                    <div class="current-item">
+                        <div class="current-label">Allowance</div>
+                        <div class="current-amount">RM {{ payroll.allowance|floatformat:2 }}</div>
+                    </div>
+                    <div class="current-item">
+                        <div class="current-label">PCB Tax</div>
+                        <div class="current-amount">RM {{ payroll.pcb|floatformat:2 }}</div>
+                    </div>
+                    <div class="current-item">
+                        <div class="current-label">Current Net Salary</div>
+                        <div class="current-amount">RM {{ payroll.net_salary|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Payroll Form -->
+            <form method="POST" action="{% url 'edit_payroll' staff.id %}">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="base_salary">Base Salary (RM)</label>
+                    <div class="currency-input">
+                        <input type="number" id="base_salary" name="base" class="form-control" 
+                               placeholder="e.g., 3500.00" step="0.01" min="0" required 
+                               value="{{ payroll.base }}" 
+                               data-original="{{ payroll.base }}"
+                               oninput="calculatePayroll(); checkChanges(this)">
+                    </div>
+                    <div id="base_change" class="change-indicator" style="display: none;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="bonus">Bonus (RM)</label>
+                    <div class="currency-input">
+                        <input type="number" id="bonus" name="bonus" class="form-control" 
+                               placeholder="e.g., 500.00" step="0.01" min="0" 
+                               value="{{ payroll.bonus }}" 
+                               data-original="{{ payroll.bonus }}"
+                               oninput="calculatePayroll(); checkChanges(this)">
+                    </div>
+                    <div id="bonus_change" class="change-indicator" style="display: none;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="allowance">Allowance (RM)</label>
+                    <div class="currency-input">
+                        <input type="number" id="allowance" name="allowance" class="form-control" 
+                               placeholder="e.g., 200.00" step="0.01" min="0" 
+                               value="{{ payroll.allowance }}" 
+                               data-original="{{ payroll.allowance }}"
+                               oninput="calculatePayroll(); checkChanges(this)">
+                    </div>
+                    <div id="allowance_change" class="change-indicator" style="display: none;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="pcb">PCB Tax (RM)</label>
+                    <div class="currency-input">
+                        <input type="number" id="pcb" name="pcb" class="form-control" 
+                               placeholder="e.g., 150.00" step="0.01" min="0" 
+                               value="{{ payroll.pcb }}" 
+                               data-original="{{ payroll.pcb }}"
+                               oninput="calculatePayroll(); checkChanges(this)">
+                    </div>
+                    <div id="pcb_change" class="change-indicator" style="display: none;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="epf_employer">EPF Employer Contribution (13%)</label>
+                    <div class="currency-input">
+                        <input type="number" id="epf_employer" name="epf_employer" class="form-control calculated-field" 
+                               readonly value="{{ payroll.epf_employer }}">
+                    </div>
+                    <div class="calculation-note">Automatically calculated as 13% of (Base + Bonus + Allowance)</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="epf_employee">EPF Employee Contribution (11%)</label>
+                    <div class="currency-input">
+                        <input type="number" id="epf_employee" name="epf_employee" class="form-control calculated-field" 
+                               readonly value="{{ payroll.epf_employee }}">
+                    </div>
+                    <div class="calculation-note">Automatically calculated as 11% of (Base + Bonus + Allowance)</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="net_salary">Net Salary</label>
+                    <div class="currency-input">
+                        <input type="number" id="net_salary" name="net_salary" class="form-control calculated-field" 
+                               readonly value="{{ payroll.net_salary }}">
+                    </div>
+                    <div class="calculation-note">Base + Bonus + Allowance - EPF Employee (11%) - PCB</div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn">Update Payroll</button>
+                    <a href="{% url 'view_payroll' staff.id %}" class="btn btn-warning">View Details</a>
+                    <a href="{% url 'payroll' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Store original values for comparison
+        const originalValues = {
+            base: parseFloat('{{ payroll.base }}'),
+            bonus: parseFloat('{{ payroll.bonus }}'),
+            allowance: parseFloat('{{ payroll.allowance }}'),
+            pcb: parseFloat('{{ payroll.pcb }}'),
+            net_salary: parseFloat('{{ payroll.net_salary }}')
+        };
+
+        // Popup functionality
+        function closePopup() {
+            document.getElementById('welcomePopup').style.display = 'none';
+        }
+
+        // Show popup on page load
+        window.addEventListener('load', function() {
+            document.getElementById('welcomePopup').style.display = 'flex';
+        });
+
+        // Toggle dropdown menu
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+        
+        // Reset popup state when logging out
+        function resetPopupState() {
+            localStorage.removeItem('hrPopupShown');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
+        // Calculate payroll automatically
+        function calculatePayroll() {
+            const base = parseFloat(document.getElementById('base_salary').value) || 0;
+            const bonus = parseFloat(document.getElementById('bonus').value) || 0;
+            const allowance = parseFloat(document.getElementById('allowance').value) || 0;
+            const pcb = parseFloat(document.getElementById('pcb').value) || 0;
+
+            // Calculate total income
+            const totalIncome = base + bonus + allowance;
+
+            // Calculate EPF contributions
+            const epfEmployer = totalIncome * 0.13;
+            const epfEmployee = totalIncome * 0.11;
+
+            // Calculate net salary (Base + Bonus + Allowance - EPF Employee - PCB)
+            // Note: EPF Employer is NOT deducted from employee's net salary
+            const netSalary = base + bonus + allowance - epfEmployee - pcb;
+
+            // Update the fields
+            document.getElementById('epf_employer').value = epfEmployer.toFixed(2);
+            document.getElementById('epf_employee').value = epfEmployee.toFixed(2);
+            document.getElementById('net_salary').value = netSalary.toFixed(2);
+
+            // Check if net salary changed
+            checkNetSalaryChange(netSalary);
+        }
+
+        // Check for changes in individual fields
+        function checkChanges(element) {
+            const fieldName = element.name;
+            const currentValue = parseFloat(element.value) || 0;
+            const originalValue = parseFloat(element.dataset.original) || 0;
+            const changeIndicator = document.getElementById(fieldName + '_change');
+
+            if (currentValue !== originalValue) {
+                element.classList.add('changed');
+                const difference = currentValue - originalValue;
+                const sign = difference > 0 ? '+' : '';
+                changeIndicator.textContent = `Change: ${sign}RM${difference.toFixed(2)}`;
+                changeIndicator.style.display = 'block';
+            } else {
+                element.classList.remove('changed');
+                changeIndicator.style.display = 'none';
+            }
+        }
+
+        // Check if net salary changed
+        function checkNetSalaryChange(newNetSalary) {
+            const netSalaryField = document.getElementById('net_salary');
+            const difference = newNetSalary - originalValues.net_salary;
+            
+            if (Math.abs(difference) > 0.01) { // Account for floating point precision
+                netSalaryField.classList.add('changed');
+            } else {
+                netSalaryField.classList.remove('changed');
+            }
+        }
+
+        // Logo click functionality
+        document.querySelector('.logo').parentElement.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Redirect based on user type (HR)
+            window.location.href = "{% url 'hrmenu' %}";
+        });
+
+        // Initialize calculations and change detection on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            calculatePayroll();
+            
+            // Add change detection to all input fields
+            const inputFields = ['base_salary', 'bonus', 'allowance', 'pcb'];
+            inputFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    checkChanges(field);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

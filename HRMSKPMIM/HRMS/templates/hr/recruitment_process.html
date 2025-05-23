@@ -1,0 +1,785 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Recruitment - HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #F0F0F0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background-color: #0053ED;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+        }
+
+        .user-details {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .user-position {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 150px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .dropdown.show {
+            display: block;
+        }
+
+        .dropdown a {
+            display: block;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: #4A4A4A;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dropdown a:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dropdown a:last-child {
+            border-bottom: none;
+        }
+
+        /* Main Content */
+        .main-container {
+            padding: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+            flex: 1;
+        }
+
+        .breadcrumb {
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: #0053ED;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            color: #4A4A4A;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* Request Summary */
+        .request-summary {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #0053ED;
+            margin-bottom: 25px;
+        }
+
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .position-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0053ED;
+        }
+
+        .request-id {
+            background: #f0f0f0;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .summary-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .summary-label {
+            font-weight: 600;
+            color: #4A4A4A;
+            font-size: 14px;
+        }
+
+        .summary-value {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .personnel-count {
+            background: #E90000;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        /* Process Form */
+        .process-form {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4A4A4A;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .action-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option-card {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .option-card:hover {
+            border-color: #0053ED;
+            transform: translateY(-2px);
+        }
+
+        .option-card.selected {
+            border-color: #0053ED;
+            background-color: #f8f9ff;
+        }
+
+        .option-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .option-title {
+            font-weight: bold;
+            color: #4A4A4A;
+            margin-bottom: 5px;
+        }
+
+        .option-description {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #4A4A4A;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #0053ED;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            min-height: 120px;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: #0053ED;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: #0053ED;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0041c7;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #4A4A4A;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #333;
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #4A4A4A;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+
+            .main-container {
+                padding: 20px;
+            }
+
+            .summary-details {
+                grid-template-columns: 1fr;
+            }
+
+            .action-options {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .summary-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .user-details {
+                display: none;
+            }
+        }
+
+        /* Popup Animation */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .popup-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: popupSlideIn 0.3s ease-out;
+        }
+
+        @keyframes popupSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .popup-title {
+            font-size: 24px;
+            color: #0053ED;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .popup-message {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .popup-btn {
+            background-color: #0053ED;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Popup Animation -->
+    <div class="popup-overlay" id="welcomePopup">
+        <div class="popup-content">
+            <div class="popup-title">Process Request</div>
+            <div class="popup-message">
+                Take action on this recruitment request and provide your feedback.
+            </div>
+            <button class="popup-btn" onclick="closePopup()">Begin Process</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <a href="{% url 'hrmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="Company Logo" class="logo">
+        </a>
+        
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name">{{ user_name }}</div>
+                <div class="user-position">Human Resources</div>
+            </div>
+            <div class="user-menu">
+                <img src="{% static 'img/user.png' %}" alt="User" class="user-image" onclick="toggleDropdown()">
+                <div class="dropdown" id="userDropdown">
+                    <a href="{% url 'hr_profile' %}">Profile</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <div class="breadcrumb">
+            <a href="{% url 'hr_recruitment' %}">Recruitment Requests</a> > 
+            <a href="{% url 'hr_recruitment_details' recruitment_request.id %}">Request Details</a> > 
+            Process Request
+        </div>
+
+        <div class="page-header">
+            <h1 class="page-title">Process Recruitment Request</h1>
+            <p class="page-subtitle">Review and take action on this hiring request</p>
+        </div>
+
+        <!-- Request Summary -->
+        <div class="request-summary">
+            <div class="summary-header">
+                <div class="position-title">{{ recruitment_request.position }}</div>
+                <div class="request-id">Request ID: #{{ recruitment_request.id }}</div>
+            </div>
+            
+            <div class="summary-details">
+                <div class="summary-item">
+                    <span class="summary-label">Requested by:</span>
+                    <span class="summary-value">{{ recruitment_request.managerid.staffid.name }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Manager ID:</span>
+                    <span class="summary-value">{{ recruitment_request.managerid.id }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Personnel Needed:</span>
+                    <span class="personnel-count">{{ recruitment_request.total_personnel }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Current Status:</span>
+                    <span class="summary-value" style="color: #E90000; font-weight: bold;">Pending</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Process Form -->
+        <form method="post" class="process-form">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <div class="section-title">
+                    <span class="section-icon">⚡</span>
+                    Select Action
+                </div>
+                <div class="action-options">
+                    <div class="option-card" onclick="selectAction('acknowledge')" id="acknowledge-option">
+                        <div class="option-icon" style="color: #28a745;">✅</div>
+                        <div class="option-title">Acknowledge Request</div>
+                        <div class="option-description">Mark as reviewed and begin processing</div>
+                    </div>
+                    <div class="option-card" onclick="selectAction('approve')" id="approve-option">
+                        <div class="option-icon" style="color: #0053ED;">👍</div>
+                        <div class="option-title">Approve & Process</div>
+                        <div class="option-description">Approve and start recruitment process</div>
+                    </div>
+                    <div class="option-card" onclick="selectAction('request_info')" id="request-info-option">
+                        <div class="option-icon" style="color: #ffc107;">❓</div>
+                        <div class="option-title">Request More Info</div>
+                        <div class="option-description">Ask manager for additional details</div>
+                    </div>
+                    <div class="option-card" onclick="selectAction('reject')" id="reject-option">
+                        <div class="option-icon" style="color: #dc3545;">❌</div>
+                        <div class="option-title">Reject Request</div>
+                        <div class="option-description">Decline this recruitment request</div>
+                    </div>
+                </div>
+                <input type="hidden" name="action" id="selected-action" required>
+            </div>
+
+            <div class="form-section">
+                <div class="section-title">
+                    <span class="section-icon">📝</span>
+                    HR Notes & Comments
+                </div>
+                <div class="form-group">
+                    <label for="hr-notes" class="form-label">Internal Notes (Optional)</label>
+                    <textarea 
+                        id="hr-notes" 
+                        name="hr_notes" 
+                        class="form-textarea" 
+                        placeholder="Add any internal notes about this request for HR records..."
+                    ></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="manager-feedback" class="form-label">Feedback to Manager</label>
+                    <textarea 
+                        id="manager-feedback" 
+                        name="manager_feedback" 
+                        class="form-textarea" 
+                        placeholder="Message that will be sent to the requesting manager..."
+                        required
+                    ></textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-title">
+                    <span class="section-icon">📅</span>
+                    Timeline & Priority
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div class="form-group">
+                        <label for="priority" class="form-label">Priority Level</label>
+                        <select id="priority" name="priority" class="form-input">
+                            <option value="standard">Standard</option>
+                            <option value="high">High Priority</option>
+                            <option value="urgent">Urgent</option>
+                            <option value="low">Low Priority</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="expected-timeline" class="form-label">Expected Timeline</label>
+                        <select id="expected-timeline" name="expected_timeline" class="form-input">
+                            <option value="1-2 weeks">1-2 weeks</option>
+                            <option value="2-4 weeks">2-4 weeks</option>
+                            <option value="1-2 months">1-2 months</option>
+                            <option value="2-3 months">2-3 months</option>
+                            <option value="3+ months">3+ months</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
+                    Process Request
+                </button>
+                <a href="{% url 'hr_recruitment_details' recruitment_request.id %}" class="btn btn-secondary">
+                    Back to Details
+                </a>
+                <a href="{% url 'hr_recruitment' %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        let selectedAction = null;
+
+        // Popup animation
+        function closePopup() {
+            document.getElementById('welcomePopup').style.display = 'none';
+        }
+
+        // Auto close popup after 3 seconds
+        setTimeout(closePopup, 3000);
+
+        // User dropdown functionality
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                const dropdown = document.getElementById('userDropdown');
+                if (dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        }
+
+        // Action selection
+        function selectAction(action) {
+            // Remove previous selection
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            document.getElementById(action + '-option').classList.add('selected');
+            
+            // Set hidden input value
+            document.getElementById('selected-action').value = action;
+            selectedAction = action;
+            
+            // Enable submit button
+            document.getElementById('submit-btn').disabled = false;
+            
+            // Update submit button text based on action
+            const submitBtn = document.getElementById('submit-btn');
+            switch(action) {
+                case 'acknowledge':
+                    submitBtn.textContent = 'Acknowledge Request';
+                    submitBtn.className = 'btn btn-success';
+                    break;
+                case 'approve':
+                    submitBtn.textContent = 'Approve & Process';
+                    submitBtn.className = 'btn btn-primary';
+                    break;
+                case 'request_info':
+                    submitBtn.textContent = 'Request Information';
+                    submitBtn.className = 'btn btn-primary';
+                    break;
+                case 'reject':
+                    submitBtn.textContent = 'Reject Request';
+                    submitBtn.className = 'btn btn-danger';
+                    break;
+            }
+            
+            // Update placeholder text for manager feedback based on action
+            const feedbackTextarea = document.getElementById('manager-feedback');
+            switch(action) {
+                case 'acknowledge':
+                    feedbackTextarea.placeholder = 'Your recruitment request has been received and is being processed...';
+                    break;
+                case 'approve':
+                    feedbackTextarea.placeholder = 'Your recruitment request has been approved. We will begin the hiring process...';
+                    break;
+                case 'request_info':
+                    feedbackTextarea.placeholder = 'We need additional information about your recruitment request...';
+                    break;
+                case 'reject':
+                    feedbackTextarea.placeholder = 'Your recruitment request cannot be approved at this time due to...';
+                    break;
+            }
+        }
+
+        // Form validation
+        document.querySelector('.process-form').addEventListener('submit', function(e) {
+            if (!selectedAction) {
+                e.preventDefault();
+                alert('Please select an action to proceed.');
+                return;
+            }
+            
+            const managerFeedback = document.getElementById('manager-feedback').value.trim();
+            if (!managerFeedback) {
+                e.preventDefault();
+                alert('Please provide feedback to the manager.');
+                return;
+            }
+            
+            // Confirm action
+            const confirmMessage = `Are you sure you want to ${selectedAction.replace('_', ' ')} this recruitment request?`;
+            if (!confirm(confirmMessage)) {
+                e.preventDefault();
+            }
+        });
+
+        // Smooth entrance animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.request-summary, .process-form');
+            sections.forEach((section, index) => {
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    section.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>

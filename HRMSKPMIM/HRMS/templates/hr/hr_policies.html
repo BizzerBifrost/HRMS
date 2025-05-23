@@ -1,0 +1,566 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Policies | HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            margin-right: 15px;
+            text-align: right;
+        }
+        
+        /* User dropdown styling */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        /* Arrow for dropdown */
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        main {
+            flex: 1;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .policies-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.2s;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #0045c4;
+        }
+        
+        .btn-danger {
+            background-color: var(--accent-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #d60000;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        hr {
+            margin: 30px 0;
+            border: 0;
+            border-top: 1px solid #ddd;
+        }
+        
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .policy-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .policy-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .policy-date {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .policy-text {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+        }
+        
+        .policy-text-truncated {
+            max-height: 120px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .policy-text-truncated::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(transparent, #f8f9fa);
+        }
+        
+        .read-more-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration:none;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            padding: 0;
+            font-size: 14px;
+        }
+        
+        .read-more-btn:hover {
+            color: #0045c4;
+        }
+        
+        .policy-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .edit-form {
+            display: none;
+            background: white;
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+        
+        .no-policies {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        footer {
+            background-color: var(--text-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+        
+        /* Popup Animation */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            animation: fadeIn 0.3s ease-in-out forwards;
+        }
+        
+        .popup-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: scale(0.7);
+            animation: popIn 0.3s ease-in-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        @keyframes popIn {
+            to { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+   
+    </div>
+
+    <header>
+        <a href="{% url 'hrmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ hr.staffid.name }}</strong></div>
+                <div>{{ hr.staffid.position }}</div>
+            </div>
+            <!-- User image dropdown -->
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{% url 'hr_profile' %}">Profile</a>
+                    <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        
+        <h1>Company Policies Management</h1>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Add New Policy Form -->
+        <div class="policies-container">
+            <h2>Add New Policy</h2>
+            <form method="POST" action="{% url 'hr_policies' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_policy">
+                
+                <div class="form-group">
+                    <label for="policy_text">Policy Content</label>
+                    <textarea id="policy_text" name="policy_text" class="form-control" required placeholder="Enter the policy content here..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn">Add Policy</button>
+            </form>
+        </div>
+        
+        <!-- Existing Policies -->
+        <div class="policies-container">
+            <h2>Current Policies</h2>
+            
+            {% if policies %}
+                {% for policy in policies %}
+                <div class="policy-item">
+                    <div class="policy-date">
+                        Enacted on: {{ policy.enacted|date:"F d, Y" }}
+                    </div>
+                    <div class="policy-text policy-text-truncated" id="policy-text-{{ policy.id }}">
+                        {{ policy.policies }}
+                    </div>
+                    <button type="button" class="read-more-btn" id="read-more-{{ policy.id }}" onclick="toggleReadMore('{{ policy.id }}')">Read More</button>
+                    <div class="policy-actions">
+                        <button type="button" class="btn btn-secondary" onclick="toggleEditForm('{{ policy.id }}')">Edit</button>
+                        <form method="POST" action="{% url 'hr_policies' %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this policy?')">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_policy">
+                            <input type="hidden" name="policy_id" value="{{ policy.id }}">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Edit Form (Hidden by default) -->
+                    <div class="edit-form" id="edit-form-{{ policy.id }}">
+                        <form method="POST" action="{% url 'hr_policies' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="edit_policy">
+                            <input type="hidden" name="policy_id" value="{{ policy.id }}">
+                            
+                            <div class="form-group">
+                                <label for="edit_policy_text_{{ policy.id }}">Policy Content</label>
+                                <textarea id="edit_policy_text_{{ policy.id }}" name="policy_text" class="form-control" required>{{ policy.policies }}</textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn">Update Policy</button>
+                            <button type="button" class="btn btn-secondary" onclick="toggleEditForm('{{ policy.id }}')">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-policies">
+                    <p>No policies have been added yet. Use the form above to add your first policy.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+    </main>
+
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Popup functionality
+        function showPopup() {
+            if (!localStorage.getItem('hrPoliciesPopupShown')) {
+                document.getElementById('welcomePopup').style.display = 'flex';
+                localStorage.setItem('hrPoliciesPopupShown', 'true');
+            }
+        }
+        
+        function closePopup() {
+            document.getElementById('welcomePopup').style.display = 'none';
+        }
+        
+        // Show popup on page load
+        window.addEventListener('load', showPopup);
+        
+        // Toggle dropdown menu
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+        
+        // Reset popup state when logging out
+        function resetPopupState() {
+            localStorage.removeItem('hrPoliciesPopupShown');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        
+        // Toggle edit form visibility
+        function toggleEditForm(policyId) {
+            const editForm = document.getElementById('edit-form-' + policyId);
+            const isVisible = editForm.style.display === 'block';
+            
+            // Hide all edit forms first
+            const allEditForms = document.querySelectorAll('.edit-form');
+            allEditForms.forEach(form => {
+                form.style.display = 'none';
+            });
+            
+            // Show the selected form if it wasn't already visible
+            if (!isVisible) {
+                editForm.style.display = 'block';
+            }
+        }
+        
+        // Toggle read more/less functionality
+        function toggleReadMore(policyId) {
+            const policyText = document.getElementById('policy-text-' + policyId);
+            const readMoreBtn = document.getElementById('read-more-' + policyId);
+            
+            if (policyText.classList.contains('policy-text-truncated')) {
+                // Expand text
+                policyText.classList.remove('policy-text-truncated');
+                readMoreBtn.textContent = 'Read Less';
+            } else {
+                // Collapse text
+                policyText.classList.add('policy-text-truncated');
+                readMoreBtn.textContent = 'Read More';
+            }
+        }
+        
+        // Initialize read more buttons based on content length
+        window.addEventListener('load', function() {
+            const policyTexts = document.querySelectorAll('.policy-text');
+            policyTexts.forEach(function(policyText) {
+                const policyId = policyText.id.replace('policy-text-', '');
+                const readMoreBtn = document.getElementById('read-more-' + policyId);
+                
+                // Check if content is long enough to need truncation (more than ~300 characters or 4 lines)
+                if (policyText.scrollHeight <= 120) {
+                    // Content is short, hide read more button
+                    readMoreBtn.style.display = 'none';
+                    policyText.classList.remove('policy-text-truncated');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

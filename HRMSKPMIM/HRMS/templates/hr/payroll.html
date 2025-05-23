@@ -1,0 +1,531 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Management | HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            margin-right: 15px;
+            text-align: right;
+        }
+        
+        /* User dropdown styling */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        /* Arrow for dropdown */
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        main {
+            flex: 1;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* Search Section */
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
+        }
+
+        .clear-search {
+            display: none;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 18px;
+            transition: color 0.2s;
+        }
+
+        .clear-search:hover {
+            color: var(--secondary-color);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            font-size: 16px;
+            color: var(--text-color);
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* Staff List Table */
+        .staff-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .staff-table th, .staff-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .staff-table th {
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .staff-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .staff-table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 12px;
+            margin-right: 5px;
+            display: inline-block;
+        }
+
+        .action-btn:hover {
+            background-color: #003bb3;
+            color: white;
+            text-decoration: none;
+        }
+
+        .edit-btn {
+            background-color: #28a745;
+        }
+
+        .edit-btn:hover {
+            background-color: #218838;
+        }
+
+        .view-btn {
+            background-color: #17a2b8;
+        }
+
+        .view-btn:hover {
+            background-color: #138496;
+        }
+
+        .set-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .set-btn:hover {
+            background-color: #003eb2;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        footer {
+            background-color: var(--text-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .popup-title {
+            color: var(--secondary-color);
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .popup-message {
+            color: var(--text-color);
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .popup-close {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .popup-close:hover {
+            background-color: #003bb3;
+        }
+    </style>
+</head>
+<body>
+    
+
+    <!-- Header -->
+    <header>
+        <a href="{% url 'hrmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ hr.staffid.name }}</strong></div>
+                <div>{{ hr.staffid.position }}</div>
+            </div>
+            <!-- User image dropdown -->
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{% url 'hr_profile' %}">Profile</a>
+                    <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <h1>Payroll Management</h1>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="container">
+            <h2>Staff Payroll Information</h2>
+            
+            <!-- Enhanced Search Section -->
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by Staff ID, Name, or Position..." onkeyup="searchTable()">
+                <span class="clear-search" id="clearSearch" onclick="clearSearch()">×</span>
+            </div>
+
+            <!-- Staff Payroll Table -->
+            <table class="staff-table">
+                <thead>
+                    <tr>
+                        <th>Staff ID</th>
+                        <th>Name</th>
+                        <th>Position</th>
+                        <th>Base Salary (RM)</th>
+                        <th>Net Salary (RM)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for staff in staff_list %}
+                    <tr>
+                        <td>{{ staff.id }}</td>
+                        <td>{{ staff.name }}</td>
+                        <td>{{ staff.position }}</td>
+                        <td>
+                            {% if staff.payroll_set.first %}
+                                {{ staff.payroll_set.first.base|floatformat:2 }}
+                            {% else %}
+                                Not Set
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if staff.payroll_set.first %}
+                                {{ staff.payroll_set.first.net_salary|floatformat:2 }}
+                            {% else %}
+                                Not Set
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if staff.payroll_set.first %}
+                                <a href="{% url 'view_payroll' staff.id %}" class="action-btn view-btn">View Details</a>
+                                <a href="{% url 'edit_payroll' staff.id %}" class="action-btn edit-btn">Edit Payroll</a>
+                            {% else %}
+                                <a href="{% url 'set_payroll' staff.id %}" class="action-btn set-btn">Set Payroll</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px; color: #888;">
+                            No staff members found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Popup functionality
+        function closePopup() {
+            document.getElementById('welcomePopup').style.display = 'none';
+        }
+
+        // Show popup on page load
+        window.addEventListener('load', function() {
+            document.getElementById('welcomePopup').style.display = 'flex';
+        });
+
+        // Toggle dropdown menu
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+        
+        // Reset popup state when logging out
+        function resetPopupState() {
+            localStorage.removeItem('hrPopupShown');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
+        // Search functionality
+        function searchTable() {
+            var input, filter, table, tr, td, i, j, txtValue, found;
+            input = document.getElementById("searchInput");
+            filter = input.value.toUpperCase();
+            table = document.querySelector(".staff-table");
+            tr = table.getElementsByTagName("tr");
+            var noResults = document.querySelector(".no-results");
+            var clearBtn = document.getElementById("clearSearch");
+            var visibleRows = 0;
+
+            // Show/hide clear button
+            if (input.value.length > 0) {
+                clearBtn.style.display = "block";
+            } else {
+                clearBtn.style.display = "none";
+            }
+
+            // Loop through all table rows (skip header)
+            for (i = 1; i < tr.length; i++) {
+                tr[i].style.display = "none";
+                found = false;
+                
+                // Loop through all cells in the row (except actions column)
+                for (j = 0; j < 5; j++) { // 0-4 are searchable columns (ID, Name, Position, Base Salary, Net Salary)
+                    td = tr[i].getElementsByTagName("td")[j];
+                    if (td) {
+                        txtValue = td.textContent || td.innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                
+                if (found) {
+                    tr[i].style.display = "";
+                    visibleRows++;
+                }
+            }
+
+            // Show/hide no results message
+            if (visibleRows === 0 && filter.length > 0) {
+                if (!noResults) {
+                    var noResultsDiv = document.createElement("div");
+                    noResultsDiv.className = "no-results";
+                    noResultsDiv.textContent = "No staff found matching your search criteria.";
+                    table.parentNode.appendChild(noResultsDiv);
+                } else {
+                    noResults.style.display = "block";
+                }
+            } else {
+                if (noResults) {
+                    noResults.style.display = "none";
+                }
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById("searchInput").value = "";
+            searchTable();
+        }
+
+        // Logo click functionality
+        document.querySelector('.logo').parentElement.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Redirect based on user type (HR)
+            window.location.href = "{% url 'hrmenu' %}";
+        });
+    </script>
+</body>
+</html>

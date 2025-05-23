@@ -11,6 +11,7 @@ import datetime
 class STAFF(models.Model):
     id = models.TextField(primary_key=True, max_length=12)
     name = models.TextField(default='')
+    position = models.TextField(default='')
     phone = models.TextField(default='')
     email = models.EmailField(default='')
     password = models.TextField(default='')
@@ -76,7 +77,7 @@ class PAYROLL(models.Model):
     
     @property
     def calculate_net_salary(self):
-        return self.base + self.bonus + self.allowance - self.epf_employer - self.epf_employee - self.pcb
+        return self.base + self.bonus + self.allowance - self.epf_employee - self.pcb
     
     def save(self, *args, **kwargs):
         self.epf_employer = self.calculate_epf_employer
@@ -172,7 +173,6 @@ class TIMEOFF(models.Model):
 # manager
 class MANAGER(models.Model):
     id = models.TextField(primary_key=True)
-    name = models.TextField(default='')
     password = models.TextField(default='')
     staffid = models.ForeignKey(STAFF, on_delete=models.CASCADE)
 
@@ -195,7 +195,7 @@ class TEAM_MEMBERSHIP(models.Model):
     joined_date = models.DateField(auto_now_add=True)
     
     class Meta:
-        unique_together = ('team', 'staff')  # Prevents duplicate memberships
+        unique_together = ('team', 'staff')  
         
     def __str__(self):
         return f"{self.staff} in {self.team}"
@@ -203,7 +203,6 @@ class TEAM_MEMBERSHIP(models.Model):
 # hr
 class HR(models.Model):
     id = models.TextField(primary_key=True)
-    name = models.TextField()
     password = models.TextField(default='')
     staffid = models.ForeignKey(STAFF, on_delete=models.CASCADE, default='')
 
@@ -214,6 +213,7 @@ class POLICIES(models.Model):
 
 # admin
 class ADMIN(models.Model):
+
     id = models.TextField(primary_key=True)
     name = models.TextField()
     password = models.TextField()

@@ -275,8 +275,8 @@
         </a>
         <div class="header-right">
             <div class="user-info">
-                <div><strong>{{ hr.name }}</strong></div>
-                <div>HR Personnel</div>
+                <div><strong>{{ hr.staffid.name }}</strong></div>
+                <div>{{ hr.staffid.position }}</div>
             </div>
             <!-- User image dropdown -->
             <div class="user-dropdown">
@@ -313,21 +313,21 @@
                 <div class="card-icon">💰</div>
                 <h3>Payroll</h3>
                 <p>Process payroll, generate pay slips, and manage salary information.</p>
-                <a href="#" class="card-btn">Manage Payroll</a>
+                <a href="{% url 'payroll' %}" class="card-btn">Manage Payroll</a>
             </div>
             
             <div class="dashboard-card">
                 <div class="card-icon">📋</div>
                 <h3>Company Policies</h3>
                 <p>Create, update, and publish company policies and procedures.</p>
-                <a href="#" class="card-btn">Manage Policies</a>
+                <a href="{% url 'hr_policies' %}" class="card-btn">Manage Policies</a>
             </div>
             
             <div class="dashboard-card">
                 <div class="card-icon">📊</div>
                 <h3>Recruitment</h3>
                 <p>View recruitment requests from managers and process new hiring needs.</p>
-                <a href="#" class="card-btn">Manage Recruitment</a>
+                <a href="{% url 'hr_recruitment' %}" class="card-btn">Manage Recruitment</a>
             </div>
             
             <div class="dashboard-card">

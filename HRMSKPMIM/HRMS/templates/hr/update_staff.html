@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Profile | HRMS</title>
+    <title>Update Staff | HRMS</title>
     <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
     <style>
         :root {
@@ -97,7 +97,6 @@
             background-color: var(--primary-color);
         }
         
-        /* Arrow for dropdown */
         .dropdown-content::before {
             content: "";
             position: absolute;
@@ -115,7 +114,7 @@
         main {
             flex: 1;
             padding: 30px;
-            max-width: 1000px;
+            max-width: 800px;
             margin: 0 auto;
             width: 100%;
         }
@@ -126,7 +125,7 @@
             font-size: 28px;
         }
         
-        .profile-container {
+        .container {
             background: white;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -159,6 +158,14 @@
             box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
         }
         
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234A4A4A' d='M6 9l6-6H0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
+        }
+        
         .btn {
             background-color: var(--secondary-color);
             color: white;
@@ -169,29 +176,24 @@
             font-weight: bold;
             font-size: 16px;
             transition: background-color 0.2s;
+            margin-right: 10px;
         }
         
         .btn:hover {
             background-color: #0045c4;
         }
         
-        hr {
-            margin: 30px 0;
-            border: 0;
-            border-top: 1px solid #ddd;
-        }
-        
         .back-btn {
             background-color: #6c757d;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 20px;
             border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
-            margin-top: 20px;
             font-weight: bold;
+            font-size: 16px;
         }
         
         .back-btn:hover {
@@ -216,11 +218,9 @@
             border: 1px solid #f5c6cb;
         }
         
-        /* Password strength indicator styles */
         .password-strength {
             margin-top: 5px;
             font-size: 14px;
-            font-weight: bold;
         }
         
         .strength-weak {
@@ -235,6 +235,12 @@
             color: #28a745;
         }
         
+        .form-text {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #6c757d;
+        }
+        
         footer {
             background-color: var(--text-color);
             color: white;
@@ -242,31 +248,46 @@
             padding: 15px;
             margin-top: auto;
         }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
     </style>
 </head>
 <body>
     <header>
-        <a href="{% url 'adminmenu' %}">
+        <a href="{% url 'hrmenu' %}">
             <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
         </a>
         <div class="header-right">
             <div class="user-info">
-                <div><strong>{{ admin.name }}</strong></div>
-                <div>Administrator</div>
+                <div><strong>{{ hr.staffid.name }}</strong></div>
+                <div>{{ hr.staffid.position }}</div>
             </div>
-            <!-- User image dropdown -->
             <div class="user-dropdown">
                 <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
                 <div id="userDropdown" class="dropdown-content">
-                    <a href="{% url 'admin_profile' %}">Profile</a>
-                    <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+                    <a href="{% url 'hr_profile' %}">Profile</a>
+                    <a href="{% url 'logout' %}">Logout</a>
                 </div>
             </div>
         </div>
     </header>
 
     <main>
-        <h1>Admin Profile Settings</h1>
+        <h1>Update Staff Information</h1>
         
         {% if messages %}
         <div class="messages">
@@ -278,49 +299,50 @@
         </div>
         {% endif %}
         
-        <div class="profile-container">
-            <h2>Update Profile Information</h2>
-            <form method="POST" action="{% url 'admin_profile' %}">
+        <div class="container">
+            <form method="POST">
                 {% csrf_token %}
-                <div class="form-group">
-                    <label for="admin_id">Admin ID</label>
-                    <input type="text" id="admin_id" class="form-control" value="{{ admin.id }}" readonly>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="staff-id">Staff ID</label>
+                        <input type="text" id="staff-id" class="form-control" value="{{ staff.id }}" readonly style="background-color: #f8f9fa;">
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" name="name" class="form-control" value="{{ staff.name }}" placeholder="e.g., John Doe Smith" required>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" id="name" name="name" class="form-control" value="{{ admin.name }}" placeholder="Enter your full name" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="position">Position *</label>
+                        <input type="text" id="position" name="position" class="form-control" value="{{ staff.position }}" placeholder="e.g., Software Developer" required>
+                    </div>
                 </div>
                 
-                <button type="submit" class="btn">Update Profile</button>
-            </form>
-            
-            <hr>
-            
-            <h2>Change Password</h2>
-            <form method="POST" action="{% url 'admin_profile' %}">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="current_password">Current Password</label>
-                    <input type="password" id="current_password" name="current_password" class="form-control" required>
+                
+                
+                <div class="form-row">
+
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="gender" class="form-control">
+                            <option value="">-- Select Gender --</option>
+                            <option value="Male" {% if staff.gender == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if staff.gender == 'Female' %}selected{% endif %}>Female</option>
+                        </select>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="new_password">New Password</label>
-                    <input type="password" id="new_password" name="new_password" class="form-control" required oninput="checkPasswordStrength()" minlength="8">
-                    <div id="password-strength" class="password-strength"></div>
-                    <small class="form-text text-muted">Password must be at least 8 characters with a capital letter, number, and symbol.</small>
-                </div>
                 
-                <div class="form-group">
-                    <label for="confirm_password">Confirm New Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
-                </div>
                 
-                <button type="submit" class="btn">Change Password</button>
+                <div style="margin-top: 30px;">
+                    <button type="submit" class="btn">Update Staff</button>
+                    <a href="{% url 'employee_management' %}" class="back-btn">Cancel</a>
+                </div>
             </form>
         </div>
-        
     </main>
 
     <footer>
@@ -331,11 +353,6 @@
         // Toggle dropdown menu
         function toggleDropdown() {
             document.getElementById('userDropdown').classList.toggle('show');
-        }
-        
-        // Reset popup state when logging out
-        function resetPopupState() {
-            localStorage.removeItem('adminPopupShown');
         }
         
         // Close dropdown when clicking outside
@@ -353,7 +370,7 @@
         
         // Password strength checker
         function checkPasswordStrength() {
-            const password = document.getElementById('new_password').value;
+            const password = document.getElementById('password').value;
             const strengthDiv = document.getElementById('password-strength');
             
             // Clear the div
@@ -403,7 +420,43 @@
                     break;
             }
         }
+        
+        // Form validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            
+            form.addEventListener('submit', function(event) {
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm_password').value;
+                
+                // Only validate password if it's provided
+                if (password.length > 0) {
+                    // Check password requirements
+                    const lengthValid = password.length >= 8;
+                    const hasCapital = /[A-Z]/.test(password);
+                    const hasNumber = /[0-9]/.test(password);
+                    const hasSymbol = /[^A-Za-z0-9]/.test(password);
+                    
+                    let isValid = true;
+                    let errorMessage = '';
+                    
+                    if (!lengthValid || !hasCapital || !hasNumber || !hasSymbol) {
+                        errorMessage = 'Password must be at least 8 characters with a capital letter, number, and symbol.';
+                        isValid = false;
+                    }
+                    
+                    if (password !== confirmPassword) {
+                        errorMessage += ' Passwords do not match.';
+                        isValid = false;
+                    }
+                    
+                    if (!isValid) {
+                        alert(errorMessage);
+                        event.preventDefault();
+                    }
+                }
+            });
+        });
     </script>
-    
 </body>
 </html>

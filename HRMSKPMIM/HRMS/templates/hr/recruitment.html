@@ -1,0 +1,508 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruitment Requests - HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #F0F0F0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background-color: #0053ED;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+        }
+
+        .user-details {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .user-position {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 150px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .dropdown.show {
+            display: block;
+        }
+
+        .dropdown a {
+            display: block;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: #4A4A4A;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dropdown a:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dropdown a:last-child {
+            border-bottom: none;
+        }
+
+        /* Main Content */
+        .main-container {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex: 1;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            color: #4A4A4A;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* Recruitment Cards */
+        .recruitment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .recruitment-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #0053ED;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .recruitment-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .position-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0053ED;
+            margin-bottom: 5px;
+        }
+
+        .request-id {
+            font-size: 12px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            align-self: flex-start;
+        }
+
+        .card-content {
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #4A4A4A;
+            font-size: 14px;
+        }
+
+        .detail-value {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .personnel-count {
+            background: #E90000;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .reason-text {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #0053ED;
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #0053ED;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0041c7;
+        }
+
+        .btn-secondary {
+            background-color: #4A4A4A;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #333;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #4A4A4A;
+        }
+
+        .empty-message {
+            font-size: 16px;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #4A4A4A;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+
+            .main-container {
+                padding: 20px;
+            }
+
+            .recruitment-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-details {
+                display: none;
+            }
+        }
+
+        /* Popup Animation */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .popup-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: popupSlideIn 0.3s ease-out;
+        }
+
+        @keyframes popupSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .popup-title {
+            font-size: 24px;
+            color: #0053ED;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .popup-message {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .popup-btn {
+            background-color: #0053ED;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+
+    <!-- Header -->
+    <header class="header">
+        <a href="{% url 'hrmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="Company Logo" class="logo">
+        </a>
+        
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name">{{ user_name }}</div>
+                <div class="user-position">Human Resources</div>
+            </div>
+            <div class="user-menu">
+                <img src="{% static 'img/user.png' %}" alt="User" class="user-image" onclick="toggleDropdown()">
+                <div class="dropdown" id="userDropdown">
+                    <a href="{% url 'hr_profile' %}">Profile</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <div class="page-header">
+            <h1 class="page-title">Recruitment Requests</h1>
+            <p class="page-subtitle">Review and manage hiring requests from department managers</p>
+        </div>
+
+        {% if recruitment_requests %}
+            <div class="recruitment-grid">
+                {% for request in recruitment_requests %}
+                <div class="recruitment-card">
+                    <div class="card-header">
+                        <div>
+                            <div class="position-title">{{ request.position }}</div>
+                        </div>
+                        <div class="request-id">ID: #{{ request.id }}</div>
+                    </div>
+                    
+                    <div class="card-content">
+                        <div class="detail-row">
+                            <span class="detail-label">Requested by:</span>
+                            <span class="detail-value">{{ request.managerid.staffid.name }}</span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="detail-label">Personnel Needed:</span>
+                            <span class="personnel-count">{{ request.total_personnel }}</span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="detail-label">Manager ID:</span>
+                            <span class="detail-value">{{ request.managerid.id }}</span>
+                        </div>
+                        
+                        {% if request.reason %}
+                        <div class="reason-text">
+                            <strong>Reason:</strong> {{ request.reason }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" onclick="viewDetails('{{ request.id }}')">
+                            View Details
+                        </button>
+                        <button class="btn btn-primary" onclick="processRequest('{{ request.id }}')">
+                            Process Request
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <div class="empty-title">No Recruitment Requests</div>
+                <div class="empty-message">
+                    There are currently no pending recruitment requests from managers.
+                </div>
+            </div>
+        {% endif %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Popup animation
+        function closePopup() {
+            document.getElementById('welcomePopup').style.display = 'none';
+        }
+
+        // Auto close popup after 3 seconds
+        setTimeout(closePopup, 3000);
+
+        // User dropdown functionality
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                const dropdown = document.getElementById('userDropdown');
+                if (dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        }
+
+        // Recruitment card actions
+        function viewDetails(requestId) {
+            // Redirect to detailed view
+            window.location.href = `/hr/recruitment/details/${requestId}/`;
+        }
+
+        function processRequest(requestId) {
+            // Redirect to processing page
+            window.location.href = `/hr/recruitment/process/${requestId}/`;
+        }
+
+        // Add smooth scrolling and animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate cards on load
+            const cards = document.querySelectorAll('.recruitment-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -216,6 +216,25 @@
             border: 1px solid #f5c6cb;
         }
         
+        /* Password strength indicator styles */
+        .password-strength {
+            margin-top: 5px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .strength-weak {
+            color: #dc3545;
+        }
+        
+        .strength-medium {
+            color: #ffc107;
+        }
+        
+        .strength-strong {
+            color: #28a745;
+        }
+        
         footer {
             background-color: var(--text-color);
             color: white;
@@ -232,8 +251,8 @@
         </a>
         <div class="header-right">
             <div class="user-info">
-                <div><strong>{{ hr.name }}</strong></div>
-                <div>HR Personnel</div>
+                <div><strong>{{ hr.staffid.name }}</strong></div>
+                <div>{{ hr.staffid.position }}</div>
             </div>
             <!-- User image dropdown -->
             <div class="user-dropdown">
@@ -260,24 +279,6 @@
         {% endif %}
         
         <div class="profile-container">
-            <h2>Update Profile Information</h2>
-            <form method="POST" action="{% url 'hr_profile' %}">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="hr_id">HR ID</label>
-                    <input type="text" id="hr_id" class="form-control" value="{{ hr.id }}" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" id="name" name="name" class="form-control" value="{{ hr.name }}" required>
-                </div>
-                
-                <button type="submit" class="btn">Update Profile</button>
-            </form>
-            
-            <hr>
-            
             <h2>Change Password</h2>
             <form method="POST" action="{% url 'hr_profile' %}">
                 {% csrf_token %}
@@ -288,8 +289,9 @@
                 
                 <div class="form-group">
                     <label for="new_password">New Password</label>
-                    <input type="password" id="new_password" name="new_password" class="form-control" required>
+                    <input type="password" id="new_password" name="new_password" class="form-control" required oninput="checkPasswordStrength()" minlength="8">
                     <div id="password-strength" class="password-strength"></div>
+                    <small class="form-text text-muted">Password must be at least 8 characters with a capital letter, number, and symbol.</small>
                 </div>
                 
                 <div class="form-group">
@@ -330,8 +332,7 @@
                 }
             }
         }
-    </script>
-    <script>
+        
         // Password strength checker
         function checkPasswordStrength() {
             const password = document.getElementById('new_password').value;

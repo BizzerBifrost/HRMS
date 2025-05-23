@@ -1,0 +1,890 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Recruitment - HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #F0F0F0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background-color: #0053ED;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+        }
+
+        .user-details {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .user-position {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 150px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .dropdown.show {
+            display: block;
+        }
+
+        .dropdown a {
+            display: block;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: #4A4A4A;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dropdown a:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dropdown a:last-child {
+            border-bottom: none;
+        }
+
+        /* Main Content */
+        .main-container {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex: 1;
+        }
+
+        .breadcrumb {
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: #0053ED;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            color: #4A4A4A;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+
+        .search-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #4A4A4A;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            margin-right: 10px;
+            font-size: 24px;
+            color: #0053ED;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #4A4A4A;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-input {
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #0053ED;
+        }
+
+        .search-btn {
+            padding: 12px 20px;
+            background-color: #0053ED;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            height: fit-content;
+        }
+
+        .search-btn:hover {
+            background-color: #0041c7;
+        }
+
+        .clear-btn {
+            padding: 12px 20px;
+            background-color: #4A4A4A;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            height: fit-content;
+            margin-left: 10px;
+        }
+
+        .clear-btn:hover {
+            background-color: #333;
+        }
+
+        /* Search Results */
+        .results-section {
+            margin-bottom: 25px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .results-count {
+            font-weight: 600;
+            color: #4A4A4A;
+        }
+
+        .sort-options {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sort-label {
+            font-weight: 600;
+            color: #4A4A4A;
+            font-size: 14px;
+        }
+
+        .sort-select {
+            padding: 8px 12px;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Results Grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #0053ED;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .position-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0053ED;
+            margin-bottom: 5px;
+        }
+
+        .request-id {
+            font-size: 12px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .match-indicator {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .card-content {
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #4A4A4A;
+            font-size: 14px;
+        }
+
+        .detail-value {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .personnel-count {
+            background: #E90000;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            transition: background-color 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: #0053ED;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0041c7;
+        }
+
+        .btn-secondary {
+            background-color: #4A4A4A;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #333;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #4A4A4A;
+        }
+
+        .empty-message {
+            font-size: 16px;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #4A4A4A;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+
+            .main-container {
+                padding: 20px;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .results-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-details {
+                display: none;
+            }
+        }
+
+        /* Popup Animation */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .popup-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: popupSlideIn 0.3s ease-out;
+        }
+
+        @keyframes popupSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .popup-title {
+            font-size: 24px;
+            color: #0053ED;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .popup-message {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .popup-btn {
+            background-color: #0053ED;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Popup Animation -->
+    <div class="popup-overlay" id="welcomePopup">
+        <div class="popup-content">
+            <div class="popup-title">Search & Filter</div>
+            <div class="popup-message">
+                Find specific recruitment requests using advanced search filters.
+            </div>
+            <button class="popup-btn" onclick="closePopup()">Start Searching</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <a href="{% url 'hrmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="Company Logo" class="logo">
+        </a>
+        
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name">{{ user_name }}</div>
+                <div class="user-position">Human Resources</div>
+            </div>
+            <div class="user-menu">
+                <img src="{% static 'img/user.png' %}" alt="User" class="user-image" onclick="toggleDropdown()">
+                <div class="dropdown" id="userDropdown">
+                    <a href="{% url 'hr_profile' %}">Profile</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <div class="breadcrumb">
+            <a href="{% url 'hr_recruitment' %}">Recruitment Requests</a> > Search & Filter
+        </div>
+
+        <div class="page-header">
+            <h1 class="page-title">Search Recruitment Requests</h1>
+            <p class="page-subtitle">Find and filter recruitment requests using advanced search options</p>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-title">
+                <span class="search-icon">🔍</span>
+                Search Filters
+            </div>
+            
+            <form method="get" class="search-form">
+                <div class="form-group">
+                    <label for="search" class="form-label">General Search</label>
+                    <input 
+                        type="text" 
+                        id="search" 
+                        name="search" 
+                        class="form-input" 
+                        placeholder="Search by position, reason, or manager name..."
+                        value="{{ search_query }}"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="position" class="form-label">Position Filter</label>
+                    <select id="position" name="position" class="form-input">
+                        <option value="">All Positions</option>
+                        {% for pos in all_positions %}
+                        <option value="{{ pos }}" {% if position_filter == pos %}selected{% endif %}>{{ pos }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="manager" class="form-label">Manager Filter</label>
+                    <select id="manager" name="manager" class="form-input">
+                        <option value="">All Managers</option>
+                        {% for mgr in all_managers %}
+                        <option value="{{ mgr }}" {% if manager_filter == mgr %}selected{% endif %}>{{ mgr }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="search-btn">Search</button>
+                    <a href="{% url 'hr_recruitment_search' %}" class="clear-btn">Clear</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Search Results -->
+        {% if recruitment_requests %}
+            <div class="results-section">
+                <div class="results-header">
+                    <div class="results-count">
+                        Found {{ recruitment_requests|length }} result{{ recruitment_requests|length|pluralize }}
+                        {% if search_query %}for "{{ search_query }}"{% endif %}
+                    </div>
+                        <label for="sort" class="sort-label">Sort by:</label>
+                        <select id="sort" name="sort" class="sort-select" onchange="this.form.submit()">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="position">Position A-Z</option>
+                            <option value="manager">Manager A-Z</option>
+                            <option value="personnel">Personnel Count</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    {% for request in recruitment_requests %}
+                    <div class="result-card">
+                        <div class="card-header">
+                            <div>
+                                <div class="position-title">
+                                    {{ request.position }}
+                                    {% if search_query and search_query|lower in request.position|lower %}
+                                        <span class="match-indicator">Match</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="request-id">ID: #{{ request.id }}</div>
+                        </div>
+                        
+                        <div class="card-content">
+                            <div class="detail-row">
+                                <span class="detail-label">Requested by:</span>
+                                <span class="detail-value">
+                                    {% if search_query and search_query|lower in request.managerid.staffid.name|lower %}
+                                        <span class="highlight">{{ request.managerid.staffid.name }}</span>
+                                    {% else %}
+                                        {{ request.managerid.staffid.name }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <span class="detail-label">Personnel Needed:</span>
+                                <span class="personnel-count">{{ request.total_personnel }}</span>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <span class="detail-label">Manager ID:</span>
+                                <span class="detail-value">{{ request.managerid.id }}</span>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <span class="detail-label">Department:</span>
+                                <span class="detail-value">{{ request.managerid.staffid.position }}</span>
+                            </div>
+                            
+                            {% if request.reason %}
+                            <div class="detail-row">
+                                <span class="detail-label">Reason Preview:</span>
+                                <span class="detail-value">
+                                    {% if search_query and search_query|lower in request.reason|lower %}
+                                        <span class="highlight">{{ request.reason|truncatewords:8 }}</span>
+                                    {% else %}
+                                        {{ request.reason|truncatewords:8 }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-actions">
+                            <a href="{% url 'hr_recruitment_details' request.id %}" class="btn btn-secondary">
+                                View Details
+                            </a>
+                            <a href="{% url 'hr_recruitment_process' request.id %}" class="btn btn-primary">
+                                Process
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <div class="empty-title">No Results Found</div>
+                <div class="empty-message">
+                    {% if search_query or position_filter or manager_filter %}
+                        No recruitment requests match your search criteria. Try adjusting your filters or search terms.
+                    {% else %}
+                        No recruitment requests available to search.
+                    {% endif %}
+                </div>
+                <div style="margin-top: 20px;">
+                    <a href="{% url 'hr_recruitment_search' %}" class="btn btn-primary">Clear Search</a>
+                    <a href="{% url 'hr_recruitment' %}" class="btn btn-secondary" style="margin-left: 10px;">View All Requests</a>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="search-section" style="margin-top: 30px;">
+            <div class="search-title">
+                <span class="search-icon">⚡</span>
+                Quick Actions
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <a href="{% url 'hr_recruitment' %}" class="btn btn-primary" style="padding: 15px; text-align: center; display: block;">
+                    📋 View All Requests
+                </a>
+                <a href="{% url 'hr_recruitment_search' %}?position=Manager" class="btn btn-secondary" style="padding: 15px; text-align: center; display: block;">
+                    👨‍💼 Manager Positions
+                </a>
+                <a href="{% url 'hr_recruitment_search' %}?position=Staff" class="btn btn-secondary" style="padding: 15px; text-align: center; display: block;">
+                    👥 Staff Positions
+                </a>
+                <button onclick="exportResults()" class="btn btn-secondary" style="padding: 15px; text-align: center; display: block;">
+                    📄 Export Results
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Popup animation
+        function closePopup() {
+            document.getElementById('welcomePopup').style.display = 'none';
+        }
+
+        // Auto close popup after 3 seconds
+        setTimeout(closePopup, 3000);
+
+        // User dropdown functionality
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                const dropdown = document.getElementById('userDropdown');
+                if (dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        }
+
+        // Export functionality
+        function exportResults() {
+            // Simple CSV export of visible results
+            const results = [];
+            results.push(['Position', 'Manager', 'Personnel Needed', 'Manager ID', 'Request ID']);
+            
+            document.querySelectorAll('.result-card').forEach(card => {
+                const position = card.querySelector('.position-title').textContent.trim();
+                const manager = card.querySelector('.detail-row:nth-child(1) .detail-value').textContent.trim();
+                const personnel = card.querySelector('.personnel-count').textContent.trim();
+                const managerId = card.querySelector('.detail-row:nth-child(3) .detail-value').textContent.trim();
+                const requestId = card.querySelector('.request-id').textContent.trim();
+                
+                results.push([position, manager, personnel, managerId, requestId]);
+            });
+            
+            // Convert to CSV
+            const csvContent = results.map(row => row.join(',')).join('\n');
+            
+            // Download
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'recruitment_search_results.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Real-time search suggestions
+        let searchTimeout;
+        document.getElementById('search').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                // Could implement live search suggestions here
+                console.log('Search query:', this.value);
+            }, 300);
+        });
+
+        // Highlight search terms
+        function highlightSearchTerms() {
+            const searchQuery = "{{ search_query|lower }}";
+            if (searchQuery) {
+                document.querySelectorAll('.detail-value').forEach(element => {
+                    const text = element.innerHTML;
+                    const highlightedText = text.replace(
+                        new RegExp(searchQuery, 'gi'),
+                        '<span class="highlight">                    <div class="sort-options"> </span>'
+                    );
+                    element.innerHTML = highlightedText;
+                });
+            }
+        }
+
+        // Smooth entrance animation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate search section
+            const searchSection = document.querySelector('.search-section');
+            searchSection.style.opacity = '0';
+            searchSection.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                searchSection.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                searchSection.style.opacity = '1';
+                searchSection.style.transform = 'translateY(0)';
+            }, 100);
+
+            // Animate result cards
+            const cards = document.querySelectorAll('.result-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, (index * 100) + 300);
+            });
+
+            // Apply search term highlighting
+            highlightSearchTerms();
+        });
+
+        // Form auto-submit on filter change
+        document.querySelectorAll('select[name="position"], select[name="manager"]').forEach(select => {
+            select.addEventListener('change', function() {
+                // Auto-submit form when filters change
+                setTimeout(() => {
+                    this.form.submit();
+                }, 100);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('search').focus();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape') {
+                if (document.getElementById('search').value) {
+                    document.getElementById('search').value = '';
+                    document.getElementById('search').form.submit();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
