@@ -104,10 +104,10 @@ class FEEDBACK(models.Model):
 class LEAVE_BALANCE(models.Model):
     id = models.AutoField(primary_key=True)
     staffid = models.OneToOneField(STAFF, on_delete=models.CASCADE, related_name='leave_balance')
-    annual_leave = models.IntegerField(default=14)  # Default annual leave days (can be adjusted)
-    leave_available = models.IntegerField(default=14)  # Default starts same as annual_leave
-    year = models.IntegerField(default=datetime.datetime.now().year)  # Track current year for reset
-    last_updated = models.DateTimeField(auto_now=True)  # Track when balance was last updated
+    annual_leave = models.IntegerField(default=14)  
+    leave_available = models.IntegerField(default=14)  
+    year = models.IntegerField(default=datetime.datetime.now().year)  
+    last_updated = models.DateTimeField(auto_now=True)  
     
     def reset_annual_leave(self):
         """Reset leave available to annual leave value if year has changed"""

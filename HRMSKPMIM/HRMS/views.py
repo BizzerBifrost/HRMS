@@ -805,16 +805,24 @@ def update_staff(request, staff_id):
         messages.error(request, 'Staff not found.')
         return redirect('employee_management')
     
+    # Get or create leave balance for this staff member
+    leave_balance, created = LEAVE_BALANCE.objects.get_or_create(staffid=staff)
+    if created:
+        # If newly created, ensure it has default values
+        leave_balance.annual_leave = 14
+        leave_balance.leave_available = 14
+        leave_balance.save()
+    
     if request.method == 'POST':
         # Get form data
         name = request.POST.get('name', '').strip()
         position = request.POST.get('position', '').strip()
         gender = request.POST.get('gender', '')
+        annual_leave = request.POST.get('annual_leave', '').strip()
         
         # Password handling
         new_password = request.POST.get('password', '').strip()
         confirm_password = request.POST.get('confirm_password', '').strip()
-        
         
         try:
             # Update staff information
@@ -822,6 +830,51 @@ def update_staff(request, staff_id):
             staff.position = position
             staff.gender = gender
             
+            # Handle annual leave update
+            if annual_leave:
+                try:
+                    annual_leave_int = int(annual_leave)
+                    if annual_leave_int < 0:
+                        messages.error(request, 'Annual leave cannot be negative.')
+                        hr_id = request.session.get('user_id')
+                        hr = HR.objects.get(id=hr_id)
+                        return render(request, 'hr/update_staff.html', {
+                            'staff': staff, 
+                            'hr': hr, 
+                            'leave_balance': leave_balance
+                        })
+                    
+                    # Calculate the difference to adjust leave_available accordingly
+                    old_annual_leave = leave_balance.annual_leave
+                    leave_difference = annual_leave_int - old_annual_leave
+                    
+                    # Update annual leave
+                    leave_balance.annual_leave = annual_leave_int
+                    
+                    # Adjust available leave proportionally
+                    # If annual leave increased, add the difference to available leave
+                    # If annual leave decreased, subtract the difference from available leave
+                    leave_balance.leave_available += leave_difference
+                    
+                    # Ensure leave_available doesn't go below 0
+                    if leave_balance.leave_available < 0:
+                        leave_balance.leave_available = 0
+                    
+                    # Ensure leave_available doesn't exceed annual_leave
+                    if leave_balance.leave_available > leave_balance.annual_leave:
+                        leave_balance.leave_available = leave_balance.annual_leave
+                    
+                    leave_balance.save()
+                    
+                except ValueError:
+                    messages.error(request, 'Please enter a valid number for annual leave.')
+                    hr_id = request.session.get('user_id')
+                    hr = HR.objects.get(id=hr_id)
+                    return render(request, 'hr/update_staff.html', {
+                        'staff': staff, 
+                        'hr': hr, 
+                        'leave_balance': leave_balance
+                    })
             
             staff.save()
             
@@ -832,7 +885,11 @@ def update_staff(request, staff_id):
             messages.error(request, f'Error updating staff: {str(e)}')
             hr_id = request.session.get('user_id')
             hr = HR.objects.get(id=hr_id)
-            return render(request, 'hr/update_staff.html', {'staff': staff, 'hr': hr})
+            return render(request, 'hr/update_staff.html', {
+                'staff': staff, 
+                'hr': hr, 
+                'leave_balance': leave_balance
+            })
     
     # GET request - display the form
     hr_id = request.session.get('user_id')
@@ -840,7 +897,8 @@ def update_staff(request, staff_id):
     
     context = {
         'staff': staff,
-        'hr': hr
+        'hr': hr,
+        'leave_balance': leave_balance
     }
     return render(request, 'hr/update_staff.html', context)
 
@@ -1493,3 +1551,322 @@ def managermenu(request):
     }
     return render(request, 'manager/managermenu.html', context)
     
+# Add these functions to your HRMS/views.py file
+
+def leave_approvals(request):
+    """View for managers to see and approve/deny leave requests from their team"""
+    # Check if user is authenticated and is a manager
+    if not request.session.get('user_type') == 'manager':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get manager information
+        manager_id = request.session.get('user_id')
+        manager = MANAGER.objects.get(id=manager_id)
+        
+        # Get team members for this manager
+        team = TEAM.objects.get(managerid=manager)
+        team_members = TEAM_MEMBERSHIP.objects.filter(team=team).select_related('staff')
+        team_staff_ids = [member.staff.id for member in team_members]
+        
+        # Get all leave requests from team members
+        leave_requests = TIMEOFF.objects.filter(
+            staffid__id__in=team_staff_ids
+        ).select_related('staffid').order_by('-id')
+        
+        # Separate pending and processed requests
+        pending_requests = leave_requests.filter(status='Pending')
+        processed_requests = leave_requests.exclude(status='Pending')
+        
+        context = {
+            'manager': manager,
+            'pending_requests': pending_requests,
+            'processed_requests': processed_requests,
+            'pending_count': pending_requests.count(),
+            'processed_count': processed_requests.count(),
+        }
+        
+        return render(request, 'manager/leave_approvals.html', context)
+        
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('managermenu')
+
+def process_leave_request(request):
+    """Process leave approval/denial"""
+    # Check if user is authenticated and is a manager
+    if not request.session.get('user_type') == 'manager':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    if request.method == 'POST':
+        try:
+            # Get manager information
+            manager_id = request.session.get('user_id')
+            manager = MANAGER.objects.get(id=manager_id)
+            
+            # Get form data
+            request_id = request.POST.get('request_id')
+            action = request.POST.get('action')  # 'approve' or 'deny'
+            
+            # Get the leave request
+            leave_request = get_object_or_404(TIMEOFF, id=request_id)
+            
+            # Verify that this staff member is under this manager's team
+            team = TEAM.objects.get(managerid=manager)
+            team_members = TEAM_MEMBERSHIP.objects.filter(team=team).select_related('staff')
+            team_staff_ids = [member.staff.id for member in team_members]
+            
+            if leave_request.staffid.id not in team_staff_ids:
+                messages.error(request, "You can only process leave requests from your team members.")
+                return redirect('leave_approvals')
+            
+            # Check if request is still pending
+            if leave_request.status != 'Pending':
+                messages.error(request, "This leave request has already been processed.")
+                return redirect('leave_approvals')
+            
+            # Process the request
+            if action == 'approve':
+                # Check if staff has enough leave balance
+                leave_balance, created = LEAVE_BALANCE.objects.get_or_create(staffid=leave_request.staffid)
+                
+                if leave_balance.leave_available < leave_request.total_days:
+                    messages.error(request, f"Cannot approve leave. {leave_request.staffid.name} only has {leave_balance.leave_available} days available, but requested {leave_request.total_days} days.")
+                    return redirect('leave_approvals')
+                
+                leave_request.status = 'Approved'
+                leave_request.save()
+                messages.success(request, f"Leave request for {leave_request.staffid.name} has been approved.")
+                
+            elif action == 'deny':
+                leave_request.status = 'Denied'
+                leave_request.save()
+                messages.success(request, f"Leave request for {leave_request.staffid.name} has been denied.")
+            
+            else:
+                messages.error(request, "Invalid action specified.")
+            
+            return redirect('leave_approvals')
+            
+        except MANAGER.DoesNotExist:
+            messages.error(request, "Manager profile not found. Please login again.")
+            return redirect('login')
+        except TEAM.DoesNotExist:
+            messages.error(request, "No team assigned to this manager.")
+            return redirect('managermenu')
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+            return redirect('leave_approvals')
+    
+    return redirect('leave_approvals')
+
+# staff
+
+# staff
+def staffmenu(request):
+    # Check if user is authenticated and is staff
+    if not request.session.get('user_type') == 'staff':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    # Get staff information
+    staff_id = request.session.get('user_id')
+    
+    try:
+        staff = STAFF.objects.get(id=staff_id)
+        context = {
+            'staff': staff
+        }
+        return render(request, 'staff/staffmenu.html', context)
+    
+    except Exception as e:
+        # Handle any other exceptions
+        request.session.flush()
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('login')
+    
+def staff_leave_application(request):
+    # Check if user is authenticated and is staff
+    if not request.session.get('user_type') == 'staff':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    # Get staff information
+    staff_id = request.session.get('user_id')
+    
+    try:
+        staff = STAFF.objects.get(id=staff_id)
+        
+        # Get or create leave balance for the staff
+        leave_balance, created = LEAVE_BALANCE.objects.get_or_create(
+            staffid=staff,
+            defaults={
+                'annual_leave': 14,
+                'leave_available': 14,
+                'year': timezone.now().year
+            }
+        )
+        
+        # Update leave balance to ensure it's current
+        leave_balance.update_leave_available()
+        
+        if request.method == 'POST':
+            start_date_str = request.POST.get('start_date')
+            end_date_str = request.POST.get('end_date')
+            reason = request.POST.get('reason', '').strip()
+            
+            # Validate input
+            if not start_date_str or not end_date_str or not reason:
+                messages.error(request, 'All fields are required.')
+                return render(request, 'staff/leave_application.html', {
+                    'staff': staff,
+                    'leave_balance': leave_balance,
+                    'today': timezone.now().date()
+                })
+            
+            try:
+                # Parse dates
+                start_date = parse_date(start_date_str)
+                end_date = parse_date(end_date_str)
+                
+                if not start_date or not end_date:
+                    messages.error(request, 'Invalid date format.')
+                    return render(request, 'staff/leave_application.html', {
+                        'staff': staff,
+                        'leave_balance': leave_balance,
+                        'today': timezone.now().date()
+                    })
+                
+                # Validate date logic
+                if start_date > end_date:
+                    messages.error(request, 'Start date cannot be after end date.')
+                    return render(request, 'staff/leave_application.html', {
+                        'staff': staff,
+                        'leave_balance': leave_balance,
+                        'today': timezone.now().date()
+                    })
+                
+                # Check if start date is not in the past
+                if start_date < timezone.now().date():
+                    messages.error(request, 'Leave application cannot be for past dates.')
+                    return render(request, 'staff/leave_application.html', {
+                        'staff': staff,
+                        'leave_balance': leave_balance,
+                        'today': timezone.now().date()
+                    })
+                
+                # Calculate total days
+                total_days = (end_date - start_date).days + 1
+                
+                # Check if staff has enough leave balance
+                if total_days > leave_balance.leave_available:
+                    messages.error(request, f'Insufficient leave balance. You have {leave_balance.leave_available} days available, but requested {total_days} days.')
+                    return render(request, 'staff/leave_application.html', {
+                        'staff': staff,
+                        'leave_balance': leave_balance,
+                        'today': timezone.now().date()
+                    })
+                
+                # Check for overlapping leave applications
+                overlapping_leaves = TIMEOFF.objects.filter(
+                    staffid=staff,
+                    status__in=['Pending', 'Approved']
+                ).filter(
+                    Q(start__lte=end_date) & Q(end__gte=start_date)
+                )
+                
+                if overlapping_leaves.exists():
+                    messages.error(request, 'You already have a leave application for the selected date range.')
+                    return render(request, 'staff/leave_application.html', {
+                        'staff': staff,
+                        'leave_balance': leave_balance,
+                        'today': timezone.now().date()
+                    })
+                
+                # Create the leave application
+                leave_application = TIMEOFF.objects.create(
+                    staffid=staff,
+                    start=start_date,
+                    end=end_date,
+                    reason=reason,
+                    status='Pending'
+                )
+                
+                messages.success(request, f'Leave application submitted successfully! Your application for {total_days} day(s) from {start_date.strftime("%B %d, %Y")} to {end_date.strftime("%B %d, %Y")} is now pending approval.')
+                return redirect('staff_leave_status')  # Redirect to leave status page
+                
+            except ValueError as e:
+                messages.error(request, f'Invalid date provided: {str(e)}')
+                return render(request, 'staff/leave_application.html', {
+                    'staff': staff,
+                    'leave_balance': leave_balance,
+                    'today': timezone.now().date()
+                })
+            except Exception as e:
+                messages.error(request, f'An error occurred while processing your application: {str(e)}')
+                return render(request, 'staff/leave_application.html', {
+                    'staff': staff,
+                    'leave_balance': leave_balance,
+                    'today': timezone.now().date()
+                })
+        
+        # GET request - show the form
+        context = {
+            'staff': staff,
+            'leave_balance': leave_balance,
+            'today': timezone.now().date()
+        }
+        
+        return render(request, 'staff/leave_application.html', context)
+        
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('staffmenu')
+
+def staff_leave_status(request):
+    # Check if user is authenticated and is staff
+    if not request.session.get('user_type') == 'staff':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    # Get staff information
+    staff_id = request.session.get('user_id')
+    
+    try:
+        staff = STAFF.objects.get(id=staff_id)
+        
+        # Get all leave applications for this staff, ordered by most recent first
+        leave_applications = TIMEOFF.objects.filter(staffid=staff).order_by('-id')
+        
+        # Get leave balance
+        leave_balance, created = LEAVE_BALANCE.objects.get_or_create(
+            staffid=staff,
+            defaults={
+                'annual_leave': 14,
+                'leave_available': 14,
+                'year': timezone.now().year
+            }
+        )
+        
+        # Update leave balance to ensure it's current
+        leave_balance.update_leave_available()
+        
+        context = {
+            'staff': staff,
+            'leave_applications': leave_applications,
+            'leave_balance': leave_balance,
+        }
+        
+        return render(request, 'staff/leave_status.html', context)
+        
+    
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('staffmenu')

@@ -10,6 +10,11 @@ urlpatterns = [
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
     # staff
+    path('staff/home/', views.staffmenu, name='staffmenu'),
+    path('staff/leave/application/', views.staff_leave_application, name='staff_leave_application'),
+    path('staff/leave/status/', views.staff_leave_status, name='staff_leave_status'),
+
+
 
     # hr
     path('hr/home/', views.hrmenu, name='hrmenu'),
@@ -32,6 +37,8 @@ urlpatterns = [
 
     # manager
     path('managermenu/', views.managermenu, name='managermenu'),
+    path('manager/leave-approvals/', views.leave_approvals, name='leave_approvals'),
+    path('manager/process-leave-request/', views.process_leave_request, name='process_leave_request'),
 
     # admin
     path('administrator/home/', views.adminmenu, name = 'adminmenu'),

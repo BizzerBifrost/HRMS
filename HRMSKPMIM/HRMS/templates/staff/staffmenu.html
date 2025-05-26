@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Dashboard | HRMS</title>
+    <title>Staff Dashboard | HRMS</title>
     <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
     <style>
         :root {
@@ -263,20 +263,20 @@
     <div class="popup-container" id="welcomePopup">
         <div class="popup-content">
             <span class="popup-close" onclick="closePopup()">&times;</span>
-            <h2 style="color: var(--secondary-color); margin-bottom: 15px;">Welcome to Manager Dashboard</h2>
-            <p>You are logged in as a Manager.</p>
+            <h2 style="color: var(--secondary-color); margin-bottom: 15px;">Welcome to Staff Dashboard</h2>
+            <p>You are logged in as a Staff Member.</p>
             <button class="card-btn" style="margin-top: 20px; width: auto;" onclick="closePopup()">Get Started</button>
         </div>
     </div>
 
     <header>
-        <a href="{% url 'managermenu' %}">
+        <a href="{% url 'staffmenu' %}">
             <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
         </a>
         <div class="header-right">
             <div class="user-info">
-                <div><strong>{{ manager.staffid.name }}</strong></div>
-                <div>{{ manager.staffid.position }}</div>
+                <div><strong>{{ staff.name }}</strong></div>
+                <div>{{ staff.position }}</div>
             </div>
             <!-- User image dropdown -->
             <div class="user-dropdown">
@@ -298,43 +298,50 @@
         </ul>
         {% endif %}
         
-        <h1>Manager Dashboard</h1>
-        <p>Welcome to the Manager Portal. Manage your team and operations:</p>
+        <h1>Staff Dashboard</h1>
+        <p>Welcome to the Staff Portal. Access your personal information and services:</p>
         
         <div class="dashboard-grid">
             <div class="dashboard-card">
+                <div class="card-icon">👤</div>
+                <h3>Personal Information</h3>
+                <p>View and update your personal details, contact information, and employment data.</p>
+                <a href="#" class="card-btn">Manage Profile</a>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-icon">💰</div>
+                <h3>Pay Slip</h3>
+                <p>Access and download your monthly pay slips and salary information.</p>
+                <a href="#" class="card-btn">View Pay Slip</a>
+            </div>
+            
+            <div class="dashboard-card">
                 <div class="card-icon">📅</div>
-                <h3>Leave Approvals</h3>
-                <p>Review and approve or deny leave requests from your team members.</p>
-                <a href="{% url 'leave_approvals' %}" class="card-btn">Manage Leave Requests</a>
+                <h3>Leave Application</h3>
+                <p>Submit time-off requests and view your leave balance and application history.</p>
+                <a href="{% url 'staff_leave_application' %}" class="card-btn">Apply for Leave</a>
             </div>
             
             <div class="dashboard-card">
-                <div class="card-icon">🎯</div>
-                <h3>Team Goals</h3>
-                <p>Set departmental goals and objectives for your team.</p>
-                <a href="#" class="card-btn">Manage Goals</a>
-            </div>
-            
-            <div class="dashboard-card">
-                <div class="card-icon">👥</div>
-                <h3>Recruitment Requests</h3>
-                <p>Submit new hire requisitions to HR for your department.</p>
-                <a href="#" class="card-btn">Request New Hires</a>
-            </div>
-            
-            <div class="dashboard-card">
-                <div class="card-icon">📊</div>
-                <h3>Team Management</h3>
-                <p>View and manage your team members and team information.</p>
-                <a href="#" class="card-btn">Manage Team</a>
+                <div class="card-icon">💬</div>
+                <h3>Submit Feedback</h3>
+                <p>Submit complaints or feedback to HR department with attachments if needed.</p>
+                <a href="#" class="card-btn">Submit Feedback</a>
             </div>
             
             <div class="dashboard-card">
                 <div class="card-icon">📋</div>
                 <h3>Company Policies</h3>
-                <p>View current company policies and procedures.</p>
+                <p>View current company policies, procedures, and announcements.</p>
                 <a href="#" class="card-btn">View Policies</a>
+            </div>
+            
+            <div class="dashboard-card">
+                <div class="card-icon">🎯</div>
+                <h3>Team Goals</h3>
+                <p>View departmental goals and objectives set by your manager.</p>
+                <a href="#" class="card-btn">View Goals</a>
             </div>
         </div>
     </main>
@@ -348,12 +355,12 @@
         function closePopup() {
             document.getElementById('welcomePopup').style.display = 'none';
             // Set a flag in localStorage to indicate popup has been shown
-            localStorage.setItem('managerPopupShown', 'true');
+            localStorage.setItem('staffPopupShown', 'true');
         }
         
         // Reset popup state when logging out
         function resetPopupState() {
-            localStorage.removeItem('managerPopupShown');
+            localStorage.removeItem('staffPopupShown');
         }
         
         // Toggle dropdown menu
@@ -377,7 +384,7 @@
         // Check if user has seen popup before
         window.onload = function() {
             // Only show the popup if it hasn't been shown before
-            if (localStorage.getItem('managerPopupShown') !== 'true') {
+            if (localStorage.getItem('staffPopupShown') !== 'true') {
                 document.getElementById('welcomePopup').style.display = 'flex';
             } else {
                 document.getElementById('welcomePopup').style.display = 'none';

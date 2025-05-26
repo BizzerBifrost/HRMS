@@ -258,6 +258,25 @@
             flex: 1;
         }
         
+        .leave-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .leave-info h3 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .leave-info p {
+            margin: 5px 0;
+            color: var(--text-color);
+        }
+        
         @media (max-width: 768px) {
             .form-row {
                 flex-direction: column;
@@ -267,6 +286,16 @@
     </style>
 </head>
 <body>
+    <!-- Popup Animation (shown once when page loads) -->
+    <div class="popup-container" id="welcomePopup">
+        <div class="popup-content">
+            <span class="popup-close" onclick="closePopup()">&times;</span>
+            <h2 style="color: var(--secondary-color); margin-bottom: 15px;">Update Staff Information</h2>
+            <p>You are editing staff member details and leave balance.</p>
+            <button class="card-btn" style="margin-top: 20px; width: auto;" onclick="closePopup()">Continue</button>
+        </div>
+    </div>
+
     <header>
         <a href="{% url 'hrmenu' %}">
             <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
@@ -299,6 +328,15 @@
         </div>
         {% endif %}
         
+        <!-- Current Leave Balance Information -->
+        <div class="leave-info">
+            <h3>Current Leave Balance</h3>
+            <p><strong>Annual Leave Entitlement:</strong> {{ leave_balance.annual_leave }} days</p>
+            <p><strong>Leave Available:</strong> {{ leave_balance.leave_available }} days</p>
+            <p><strong>Leave Used:</strong> {{ leave_balance.annual_leave|add:"-"|add:leave_balance.leave_available }} days</p>
+            <p><strong>Year:</strong> {{ leave_balance.year }}</p>
+        </div>
+        
         <div class="container">
             <form method="POST">
                 {% csrf_token %}
@@ -319,12 +357,6 @@
                         <label for="position">Position *</label>
                         <input type="text" id="position" name="position" class="form-control" value="{{ staff.position }}" placeholder="e.g., Software Developer" required>
                     </div>
-                </div>
-                
-                
-                
-                <div class="form-row">
-
                     <div class="form-group">
                         <label for="gender">Gender</label>
                         <select id="gender" name="gender" class="form-control">
@@ -335,7 +367,19 @@
                     </div>
                 </div>
                 
-                
+                <div class="form-group">
+                    <label for="annual_leave">Annual Leave Entitlement (Days) *</label>
+                    <input type="number" id="annual_leave" name="annual_leave" class="form-control" 
+                           value="{{ leave_balance.annual_leave }}" 
+                           placeholder="e.g., 14" 
+                           min="0" 
+                           max="365" 
+                           required>
+                    <small class="form-text text-muted">
+                        Current entitlement: {{ leave_balance.annual_leave }} days. 
+                        Changing this will automatically adjust the available leave balance.
+                    </small>
+                </div>
                 
                 <div style="margin-top: 30px;">
                     <button type="submit" class="btn">Update Staff</button>
@@ -350,6 +394,11 @@
     </footer>
 
     <script>
+        // Popup functionality
+        function closePopup() {
+            document.getElementById('welcomePopup').style.display = 'none';
+        }
+        
         // Toggle dropdown menu
         function toggleDropdown() {
             document.getElementById('userDropdown').classList.toggle('show');
@@ -368,57 +417,10 @@
             }
         }
         
-        // Password strength checker
-        function checkPasswordStrength() {
-            const password = document.getElementById('password').value;
-            const strengthDiv = document.getElementById('password-strength');
-            
-            // Clear the div
-            strengthDiv.className = 'password-strength';
-            
-            if (password.length === 0) {
-                strengthDiv.textContent = '';
-                return;
-            }
-            
-            // Check password strength
-            let strength = 0;
-            
-            // Length check
-            if (password.length >= 8) {
-                strength += 1;
-            }
-            
-            // Character variety check
-            if (/[A-Z]/.test(password)) {
-                strength += 1;
-            }
-            
-            if (/[0-9]/.test(password)) {
-                strength += 1;
-            }
-            
-            if (/[^A-Za-z0-9]/.test(password)) {
-                strength += 1;
-            }
-            
-            // Update the strength indicator
-            switch (strength) {
-                case 0:
-                case 1:
-                    strengthDiv.textContent = 'Weak password';
-                    strengthDiv.classList.add('strength-weak');
-                    break;
-                case 2:
-                case 3:
-                    strengthDiv.textContent = 'Medium password';
-                    strengthDiv.classList.add('strength-medium');
-                    break;
-                case 4:
-                    strengthDiv.textContent = 'Strong password';
-                    strengthDiv.classList.add('strength-strong');
-                    break;
-            }
+        // Check if user has seen popup before
+        window.onload = function() {
+            // Show popup when page loads
+            document.getElementById('welcomePopup').style.display = 'flex';
         }
         
         // Form validation
@@ -426,34 +428,19 @@
             const form = document.querySelector('form');
             
             form.addEventListener('submit', function(event) {
-                const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirm_password').value;
+                const annualLeave = document.getElementById('annual_leave').value;
                 
-                // Only validate password if it's provided
-                if (password.length > 0) {
-                    // Check password requirements
-                    const lengthValid = password.length >= 8;
-                    const hasCapital = /[A-Z]/.test(password);
-                    const hasNumber = /[0-9]/.test(password);
-                    const hasSymbol = /[^A-Za-z0-9]/.test(password);
-                    
-                    let isValid = true;
-                    let errorMessage = '';
-                    
-                    if (!lengthValid || !hasCapital || !hasNumber || !hasSymbol) {
-                        errorMessage = 'Password must be at least 8 characters with a capital letter, number, and symbol.';
-                        isValid = false;
-                    }
-                    
-                    if (password !== confirmPassword) {
-                        errorMessage += ' Passwords do not match.';
-                        isValid = false;
-                    }
-                    
-                    if (!isValid) {
-                        alert(errorMessage);
-                        event.preventDefault();
-                    }
+                // Validate annual leave
+                if (annualLeave && parseInt(annualLeave) < 0) {
+                    alert('Annual leave cannot be negative.');
+                    event.preventDefault();
+                    return false;
+                }
+                
+                if (annualLeave && parseInt(annualLeave) > 365) {
+                    alert('Annual leave cannot exceed 365 days.');
+                    event.preventDefault();
+                    return false;
                 }
             });
         });

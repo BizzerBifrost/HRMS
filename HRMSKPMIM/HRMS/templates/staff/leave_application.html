@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Dashboard | HRMS</title>
+    <title>Leave Application | HRMS</title>
     <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
     <style>
         :root {
@@ -115,7 +115,7 @@
         main {
             flex: 1;
             padding: 30px;
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
             width: 100%;
         }
@@ -126,57 +126,119 @@
             font-size: 28px;
         }
         
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-        
-        .dashboard-card {
+        .leave-form-container {
             background: white;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            text-align: center;
-            transition: transform 0.3s ease;
+            padding: 30px;
+            margin-bottom: 30px;
         }
         
-        .dashboard-card:hover {
-            transform: translateY(-5px);
+        .form-group {
+            margin-bottom: 20px;
         }
         
-        .card-icon {
-            font-size: 40px;
-            margin-bottom: 15px;
-            color: var(--secondary-color);
-        }
-        
-        .dashboard-card h3 {
-            margin-bottom: 10px;
-            color: var(--secondary-color);
-        }
-        
-        .dashboard-card p {
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
             color: var(--text-color);
-            margin-bottom: 15px;
         }
         
-        .card-btn {
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .btn {
             background-color: var(--secondary-color);
             color: white;
             border: none;
-            padding: 8px 15px;
+            padding: 12px 25px;
             border-radius: 5px;
             cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
             font-weight: bold;
-            width: 100%;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin-right: 10px;
         }
         
-        .card-btn:hover {
-            opacity: 0.9;
+        .btn:hover {
+            background-color: #0045c4;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .leave-balance {
+            background-color: #e7f3ff;
+            border: 1px solid var(--secondary-color);
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .leave-balance h3 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+        
+        .balance-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .balance-item {
+            text-align: center;
+        }
+        
+        .balance-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .balance-label {
+            font-size: 14px;
+            color: var(--text-color);
         }
         
         footer {
@@ -243,40 +305,43 @@
             background-color: #d4edda;
             border-color: #c3e6cb;
             color: #155724;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 12px;
+            border-radius: 5px;
             margin-bottom: 10px;
+            border: 1px solid;
         }
         
         .messages .error {
             background-color: #f8d7da;
             border-color: #f5c6cb;
             color: #721c24;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 12px;
+            border-radius: 5px;
             margin-bottom: 10px;
+            border: 1px solid;
+        }
+        
+        .messages .warning {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border: 1px solid;
         }
     </style>
 </head>
 <body>
-    <!-- Popup Animation (shown once when page loads) -->
-    <div class="popup-container" id="welcomePopup">
-        <div class="popup-content">
-            <span class="popup-close" onclick="closePopup()">&times;</span>
-            <h2 style="color: var(--secondary-color); margin-bottom: 15px;">Welcome to Manager Dashboard</h2>
-            <p>You are logged in as a Manager.</p>
-            <button class="card-btn" style="margin-top: 20px; width: auto;" onclick="closePopup()">Get Started</button>
-        </div>
-    </div>
 
     <header>
-        <a href="{% url 'managermenu' %}">
+        <a href="{% url 'staffmenu' %}">
             <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
         </a>
         <div class="header-right">
             <div class="user-info">
-                <div><strong>{{ manager.staffid.name }}</strong></div>
-                <div>{{ manager.staffid.position }}</div>
+                <div><strong>{{ staff.name }}</strong></div>
+                <div>{{ staff.position }}</div>
             </div>
             <!-- User image dropdown -->
             <div class="user-dropdown">
@@ -298,45 +363,66 @@
         </ul>
         {% endif %}
         
-        <h1>Manager Dashboard</h1>
-        <p>Welcome to the Manager Portal. Manage your team and operations:</p>
+        <h1>Leave Application</h1>
         
-        <div class="dashboard-grid">
-            <div class="dashboard-card">
-                <div class="card-icon">📅</div>
-                <h3>Leave Approvals</h3>
-                <p>Review and approve or deny leave requests from your team members.</p>
-                <a href="{% url 'leave_approvals' %}" class="card-btn">Manage Leave Requests</a>
-            </div>
-            
-            <div class="dashboard-card">
-                <div class="card-icon">🎯</div>
-                <h3>Team Goals</h3>
-                <p>Set departmental goals and objectives for your team.</p>
-                <a href="#" class="card-btn">Manage Goals</a>
-            </div>
-            
-            <div class="dashboard-card">
-                <div class="card-icon">👥</div>
-                <h3>Recruitment Requests</h3>
-                <p>Submit new hire requisitions to HR for your department.</p>
-                <a href="#" class="card-btn">Request New Hires</a>
-            </div>
-            
-            <div class="dashboard-card">
-                <div class="card-icon">📊</div>
-                <h3>Team Management</h3>
-                <p>View and manage your team members and team information.</p>
-                <a href="#" class="card-btn">Manage Team</a>
-            </div>
-            
-            <div class="dashboard-card">
-                <div class="card-icon">📋</div>
-                <h3>Company Policies</h3>
-                <p>View current company policies and procedures.</p>
-                <a href="#" class="card-btn">View Policies</a>
+        <!-- Leave Balance Display -->
+        {% if leave_balance %}
+        <div class="leave-balance">
+            <h3>Your Leave Balance</h3>
+            <div class="balance-info">
+                <div class="balance-item">
+                    <div class="balance-number">{{ leave_balance.annual_leave }}</div>
+                    <div class="balance-label">Annual Leave</div>
+                </div>
+                <div class="balance-item">
+                    <div class="balance-number">{{ leave_balance.leave_available }}</div>
+                    <div class="balance-label">Available</div>
+                </div>
+                <div class="balance-item">
+                    <div class="balance-number">
+                        {% widthratio leave_balance.annual_leave 1 1 as annual %}
+                        {% widthratio leave_balance.leave_available 1 1 as available %}
+                        {% widthratio annual 1 1 as total %}
+                        {% widthratio available 1 -1 as negative_available %}
+                        {% widthratio total|add:negative_available 1 1|default:0 %}
+                    </div>
+                    <div class="balance-label">Used</div>
+                </div>
             </div>
         </div>
+        {% endif %}
+        
+        <div class="leave-form-container">
+            <h2>Submit Leave Application</h2>
+            <form method="POST" action="{% url 'staff_leave_application' %}">
+                {% csrf_token %}
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="start_date">Start Date</label>
+                        <input type="date" id="start_date" name="start_date" class="form-control" required min="{{ today }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="end_date">End Date</label>
+                        <input type="date" id="end_date" name="end_date" class="form-control" required min="{{ today }}">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reason">Reason for Leave</label>
+                    <textarea id="reason" name="reason" class="form-control" rows="4" placeholder="Please provide the reason for your leave application..." required></textarea>
+                </div>
+                
+                <div style="margin-top: 25px;">
+                    <button type="submit" class="btn">Submit Application</button>
+                    
+                </div>
+                
+            </form>
+            
+        </div>
+        <a href="{% url 'staff_leave_status' %}"><button class="btn-secondary">View Status</button></a>
     </main>
 
     <footer>
@@ -348,12 +434,12 @@
         function closePopup() {
             document.getElementById('welcomePopup').style.display = 'none';
             // Set a flag in localStorage to indicate popup has been shown
-            localStorage.setItem('managerPopupShown', 'true');
+            localStorage.setItem('staffLeavePopupShown', 'true');
         }
         
         // Reset popup state when logging out
         function resetPopupState() {
-            localStorage.removeItem('managerPopupShown');
+            localStorage.removeItem('staffLeavePopupShown');
         }
         
         // Toggle dropdown menu
@@ -377,12 +463,34 @@
         // Check if user has seen popup before
         window.onload = function() {
             // Only show the popup if it hasn't been shown before
-            if (localStorage.getItem('managerPopupShown') !== 'true') {
+            if (localStorage.getItem('staffLeavePopupShown') !== 'true') {
                 document.getElementById('welcomePopup').style.display = 'flex';
             } else {
                 document.getElementById('welcomePopup').style.display = 'none';
             }
         }
+        
+        // Date validation
+        document.getElementById('start_date').addEventListener('change', function() {
+            var startDate = this.value;
+            var endDateInput = document.getElementById('end_date');
+            endDateInput.min = startDate;
+            
+            // Clear end date if it's before start date
+            if (endDateInput.value && endDateInput.value < startDate) {
+                endDateInput.value = '';
+            }
+        });
+        
+        document.getElementById('end_date').addEventListener('change', function() {
+            var endDate = this.value;
+            var startDate = document.getElementById('start_date').value;
+            
+            if (startDate && endDate < startDate) {
+                alert('End date cannot be before start date');
+                this.value = '';
+            }
+        });
     </script>
 </body>
 </html>
