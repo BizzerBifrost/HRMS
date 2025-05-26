@@ -176,26 +176,6 @@ The HRMS for KOOP-KPMIM is designed to digitize HR operations, replacing manual 
 
 ## System Architecture
 
-### Directory Structure
-```
-HRMS/
-├── static/
-│   └── img/
-│       ├── logo.png
-│       ├── title.png
-│       └── user.png
-├── templates/
-│   ├── admin/
-│   ├── hr/
-│   ├── manager/
-│   ├── staff/
-│   └── home/
-├── models.py
-├── views.py
-├── urls.py
-└── settings.py
-```
-
 ### Database Models
 - **STAFF**: Employee information and authentication
 - **MANAGER**: Manager-specific data linked to staff
