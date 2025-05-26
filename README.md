@@ -1,6 +1,3 @@
-# HRMS
-Human Resources Management System (HRMS) For KOOP KPMIM
-
 # Human Resources Management System (HRMS) for KOOP-KPMIM
 
 A comprehensive web-based Human Resources Management System built with Django framework for KOOP-KPMIM (Kolej Profesional MARA Indera Mahkota Cooperative).
