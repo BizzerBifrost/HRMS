@@ -168,7 +168,7 @@ The HRMS for KOOP-KPMIM is designed to digitize HR operations, replacing manual 
 - Recruitment processing
 - Feedback handling
 
-### Administrator (`/admin/`)
+### Administrator (`/administrator/`)
 - User account management
 - System configuration
 - Access control
