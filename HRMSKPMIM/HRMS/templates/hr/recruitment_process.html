@@ -481,17 +481,7 @@
     </style>
 </head>
 <body>
-    <!-- Popup Animation -->
-    <div class="popup-overlay" id="welcomePopup">
-        <div class="popup-content">
-            <div class="popup-title">Process Request</div>
-            <div class="popup-message">
-                Take action on this recruitment request and provide your feedback.
-            </div>
-            <button class="popup-btn" onclick="closePopup()">Begin Process</button>
-        </div>
-    </div>
-
+    
     <!-- Header -->
     <header class="header">
         <a href="{% url 'hrmenu' %}">
@@ -501,7 +491,7 @@
         <div class="user-info">
             <div class="user-details">
                 <div class="user-name">{{ user_name }}</div>
-                <div class="user-position">Human Resources</div>
+                <div class="user-position">{{ hr.staffid.position }}</div>
             </div>
             <div class="user-menu">
                 <img src="{% static 'img/user.png' %}" alt="User" class="user-image" onclick="toggleDropdown()">

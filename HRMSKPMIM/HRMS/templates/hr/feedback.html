@@ -1,0 +1,597 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Feedback - HR Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F0F0F0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background-color: #0053ED;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-details {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .user-position {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .user-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1001;
+            border-radius: 5px;
+        }
+
+        .dropdown-content a {
+            color: #4A4A4A;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .show {
+            display: block;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex: 1;
+        }
+
+        .page-title {
+            color: #4A4A4A;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .page-subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #0053ED;
+            border-bottom-color: #0053ED;
+            font-weight: bold;
+        }
+
+        .tab:hover {
+            color: #0053ED;
+            background-color: #f8f9fa;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Feedback Cards */
+        .feedback-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .feedback-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid #0053ED;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .feedback-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .feedback-id {
+            font-weight: bold;
+            color: #0053ED;
+            font-size: 18px;
+        }
+
+        .feedback-category {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .category-complaint {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .category-feedback {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .feedback-text {
+            color: #4A4A4A;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .feedback-attachment {
+            margin-bottom: 15px;
+        }
+
+        .attachment-link {
+            color: #0053ED;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .attachment-link:hover {
+            text-decoration: underline;
+        }
+
+        .feedback-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .status-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-unsolved {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-solved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-solve {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-solve:hover {
+            background-color: #218838;
+        }
+
+        .btn-unsolve {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .btn-unsolve:hover {
+            background-color: #e0a800;
+        }
+
+        .no-feedback {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .no-feedback-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Loading animation */
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #4A4A4A;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px 15px;
+            }
+
+            .feedback-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .feedback-footer {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+
+        /* Popup Animation */
+        @keyframes popup {
+            0% {
+                transform: scale(0.8) translateY(20px);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .feedback-card {
+            animation: popup 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <a href="{% url 'hrmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="user-info">
+            <div class="user-details">
+                <div class="user-name">{{ hr_name }}</div>
+                <div class="user-position">{{ hr_position }}</div>
+            </div>
+            <div class="user-menu">
+                <img src="{% static 'img/user.png' %}" alt="User" class="user-image" onclick="toggleDropdown()">
+                <div class="dropdown-content" id="userDropdown">
+                    <a href="{% url 'hr_profile' %}">Profile</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1 class="page-title">Employee Feedback Management</h1>
+        <p class="page-subtitle">Review and manage feedback and complaints from employees</p>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('unsolved')">
+                Unsolved ({{ unsolved_count }})
+            </button>
+            <button class="tab" onclick="showTab('solved')">
+                Solved ({{ solved_count }})
+            </button>
+        </div>
+
+        <!-- Unsolved Feedback Tab -->
+        <div id="unsolved" class="tab-content active">
+            <div class="feedback-grid">
+                {% if unsolved_feedback %}
+                    {% for feedback in unsolved_feedback %}
+                    <div class="feedback-card" id="feedback-{{ feedback.id }}">
+                        <div class="feedback-header">
+                            <div class="feedback-id">Feedback #{{ feedback.id }}</div>
+                            <div class="feedback-category category-{{ feedback.category|lower }}">
+                                {{ feedback.category }}
+                            </div>
+                        </div>
+                        <div class="feedback-text">{{ feedback.text }}</div>
+                        {% if feedback.attachment %}
+                        <div class="feedback-attachment">
+                            <a href="{{ feedback.attachment.url }}" class="attachment-link" target="_blank">
+                                📎 View Attachment
+                            </a>
+                        </div>
+                        {% endif %}
+                        <div class="feedback-footer">
+                            <div class="status-badge status-{{ feedback.status|lower }}">
+                                {{ feedback.status }}
+                            </div>
+                            {% if feedback.category == 'Complaint' %}
+                            <div class="status-actions">
+                                <button class="btn btn-solve" onclick="updateStatus('{{ feedback.id }}', 'Solved')">
+                                    Mark as Solved
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="no-feedback">
+                    <div class="no-feedback-icon">✅</div>
+                    <h3>No Unsolved Feedback</h3>
+                    <p>All feedback and complaints have been addressed!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Solved Feedback Tab -->
+        <div id="solved" class="tab-content">
+            <div class="feedback-grid">
+                {% if solved_feedback %}
+                    {% for feedback in solved_feedback %}
+                    <div class="feedback-card" id="feedback-{{ feedback.id }}">
+                        <div class="feedback-header">
+                            <div class="feedback-id">Feedback #{{ feedback.id }}</div>
+                            <div class="feedback-category category-{{ feedback.category|lower }}">
+                                {{ feedback.category }}
+                            </div>
+                        </div>
+                        <div class="feedback-text">{{ feedback.text }}</div>
+                        {% if feedback.attachment %}
+                        <div class="feedback-attachment">
+                            <a href="{{ feedback.attachment.url }}" class="attachment-link" target="_blank">
+                                📎 View Attachment
+                            </a>
+                        </div>
+                        {% endif %}
+                        <div class="feedback-footer">
+                            <div class="status-badge status-{{ feedback.status|lower }}">
+                                {{ feedback.status }}
+                            </div>
+                            {% if feedback.category == 'Complaint' %}
+                            <div class="status-actions">
+                                <button class="btn btn-unsolve" onclick="updateStatus('{{ feedback.id }}', 'Unsolved')">
+                                    Mark as Unsolved
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="no-feedback">
+                    <div class="no-feedback-icon">📝</div>
+                    <h3>No Solved Feedback</h3>
+                    <p>No feedback has been marked as solved yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>&copy; 2025 KOOP-KPMIM. All rights reserved.</p>
+    </div>
+
+    <script>
+        // User dropdown functionality
+        function toggleDropdown() {
+            document.getElementById("userDropdown").classList.toggle("show");
+        }
+
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            var tabContents = document.getElementsByClassName('tab-content');
+            for (var i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+
+            // Remove active class from all tabs
+            var tabs = document.getElementsByClassName('tab');
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Update feedback status
+        function updateStatus(feedbackId, newStatus) {
+            const card = document.getElementById('feedback-' + feedbackId);
+            card.classList.add('loading');
+
+            fetch('/hr/update-feedback-status/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    'feedback_id': feedbackId,
+                    'status': newStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload the page to update the tabs
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                    card.classList.remove('loading');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating the status.');
+                card.classList.remove('loading');
+            });
+        }
+
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        
+    </script>
+</body>
+</html>

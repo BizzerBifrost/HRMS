@@ -19,6 +19,9 @@ from datetime import datetime
 from decimal import Decimal
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.http import JsonResponse
+import json
+
 
 # Create your views here.
 
@@ -1215,8 +1218,8 @@ def recruitment_list(request):
     try:
         # Get HR user info for header display
         hr_id = request.session.get('user_id')
-        hr_user = HR.objects.get(id=hr_id)
-        user_name = hr_user.staffid.name
+        hr = HR.objects.get(id=hr_id)
+        user_name = hr.staffid.name
         
         # Get all recruitment requests ordered by newest first
         recruitment_requests = RECRUITMENT.objects.select_related(
@@ -1232,6 +1235,7 @@ def recruitment_list(request):
             'recruitment_requests': recruitment_requests,
             'user_name': user_name,
             'total_requests': RECRUITMENT.objects.count(),
+            'hr':hr,
         }
         
         return render(request, 'hr/recruitment.html', context)
@@ -1256,8 +1260,8 @@ def recruitment_details(request, request_id):
     try:
         # Get HR user info
         hr_id = request.session.get('user_id')
-        hr_user = HR.objects.get(id=hr_id)
-        user_name = hr_user.staffid.name
+        hr = HR.objects.get(id=hr_id)
+        user_name = hr.staffid.name
         
         # Get the specific recruitment request
         recruitment_request = get_object_or_404(
@@ -1272,6 +1276,7 @@ def recruitment_details(request, request_id):
             'manager_position': recruitment_request.managerid.staffid.position,
             'manager_email': recruitment_request.managerid.staffid.email,
             'manager_phone': recruitment_request.managerid.staffid.phone,
+            'hr': hr,
         }
         
         return render(request, 'hr/recruitment_details.html', context)
@@ -1314,12 +1319,13 @@ def recruitment_process(request, request_id):
         
         # Get HR user info
         hr_id = request.session.get('user_id')
-        hr_user = HR.objects.get(id=hr_id)
-        user_name = hr_user.staffid.name
+        hr = HR.objects.get(id=hr_id)
+        user_name = hr.staffid.name
         
         context = {
             'recruitment_request': recruitment_request,
             'user_name': user_name,
+            'hr':hr,
         }
         
         return render(request, 'hr/recruitment_process.html', context)
@@ -1344,8 +1350,8 @@ def recruitment_search(request):
     try:
         # Get HR user info
         hr_id = request.session.get('user_id')
-        hr_user = HR.objects.get(id=hr_id)
-        user_name = hr_user.staffid.name
+        hr = HR.objects.get(id=hr_id)
+        user_name = hr.staffid.name
         
         # Get search parameters
         search_query = request.GET.get('search', '')
@@ -1383,6 +1389,7 @@ def recruitment_search(request):
             'manager_filter': manager_filter,
             'all_positions': all_positions,
             'all_managers': all_managers,
+            'hr':hr,
         }
         
         return render(request, 'hr/recruitment_search.html', context)
@@ -1393,3 +1400,96 @@ def recruitment_search(request):
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('hr_recruitment')
+
+def hr_feedback(request):
+    # Check if user is HR
+    if not request.session.get('user_type') == 'hr':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    # Get HR information for header display
+    hr_id = request.session.get('user_id')
+    try:
+        hr = HR.objects.get(id=hr_id)
+        hr_name = hr.staffid.name
+        hr_position = hr.staffid.position
+    except HR.DoesNotExist:
+        messages.error(request, "HR profile not found. Please login again.")
+        return redirect('login')
+    
+    # Get all feedback, separated by status
+    unsolved_feedback = FEEDBACK.objects.filter(status='Unsolved').order_by('-id')
+    solved_feedback = FEEDBACK.objects.filter(status='Solved').order_by('-id')
+    
+    # Filter complaints specifically
+    unsolved_complaints = unsolved_feedback.filter(category='Complaint')
+    solved_complaints = solved_feedback.filter(category='Complaint')
+    
+    # Get all feedback (both complaints and feedback)
+    all_unsolved = unsolved_feedback
+    all_solved = solved_feedback
+    
+    context = {
+        'hr_name': hr_name,
+        'hr_position': hr_position,
+        'unsolved_feedback': all_unsolved,
+        'solved_feedback': all_solved,
+        'unsolved_complaints': unsolved_complaints,
+        'solved_complaints': solved_complaints,
+        'unsolved_count': all_unsolved.count(),
+        'solved_count': all_solved.count(),
+    }
+    
+    return render(request, 'hr/feedback.html', context)
+
+def update_feedback_status(request):
+    # Check if user is HR
+    if not request.session.get('user_type') == 'hr':
+        return JsonResponse({'success': False, 'message': 'Unauthorized access'})
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            feedback_id = data.get('feedback_id')
+            new_status = data.get('status')
+            
+            # Validate status
+            if new_status not in ['Unsolved', 'Solved']:
+                return JsonResponse({'success': False, 'message': 'Invalid status'})
+            
+            # Get and update feedback
+            feedback = get_object_or_404(FEEDBACK, id=feedback_id)
+            feedback.status = new_status
+            feedback.save()
+            
+            return JsonResponse({
+                'success': True, 
+                'message': f'Feedback status updated to {new_status}',
+                'new_status': new_status
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+
+# manager
+
+def managermenu(request):
+    # Check if user is authenticated and is a manager
+    if not request.session.get('user_type') == 'manager':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    # Get manager information
+    manager_id = request.session.get('user_id')
+    
+    manager = MANAGER.objects.get(id=manager_id)
+    context = {
+        'manager': manager
+    }
+    return render(request, 'manager/managermenu.html', context)
+    

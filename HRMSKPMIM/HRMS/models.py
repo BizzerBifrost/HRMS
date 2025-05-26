@@ -95,6 +95,11 @@ class FEEDBACK(models.Model):
     category = models.TextField(choices=CATEGORY, default='')
     text = models.TextField()
     attachment = models.FileField(upload_to='feedback_attachments/', blank=True, null=True)
+    STATUS = [
+        ('Unsolved','unsolved'),
+        ('Solved','solved'),
+    ]
+    status = models.TextField(choices=STATUS, default='Unsolved')
 
 class LEAVE_BALANCE(models.Model):
     id = models.AutoField(primary_key=True)

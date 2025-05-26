@@ -27,8 +27,11 @@ urlpatterns = [
     path('hr/recruitment/details/<int:request_id>/', views.recruitment_details, name='hr_recruitment_details'),
     path('hr/recruitment/process/<int:request_id>/', views.recruitment_process, name='hr_recruitment_process'),
     path('hr/recruitment/search/', views.recruitment_search, name='hr_recruitment_search'),
+    path('hr/feedback/', views.hr_feedback, name='hr_feedback'),
+    path('hr/update-feedback-status/', views.update_feedback_status, name='update_feedback_status'),
 
     # manager
+    path('managermenu/', views.managermenu, name='managermenu'),
 
     # admin
     path('administrator/home/', views.adminmenu, name = 'adminmenu'),
