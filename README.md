@@ -147,7 +147,7 @@ The HRMS for KOOP-KPMIM is designed to digitize HR operations, replacing manual 
 8. **Access the Application**
    Open your browser and navigate to `http://localhost:8000`
 
-## 👤 User Roles
+## User Roles
 
 ### Staff (`/staff/`)
 - Personal information management
