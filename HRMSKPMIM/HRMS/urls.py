@@ -35,10 +35,12 @@ urlpatterns = [
     path('hr/feedback/', views.hr_feedback, name='hr_feedback'),
     path('hr/update-feedback-status/', views.update_feedback_status, name='update_feedback_status'),
 
+
     # manager
     path('managermenu/', views.managermenu, name='managermenu'),
     path('manager/leave-approvals/', views.leave_approvals, name='leave_approvals'),
     path('manager/process-leave-request/', views.process_leave_request, name='process_leave_request'),
+    path('manager/team-management/', views.team_management, name='team_management'),
 
     # admin
     path('administrator/home/', views.adminmenu, name = 'adminmenu'),

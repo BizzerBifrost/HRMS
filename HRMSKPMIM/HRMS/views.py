@@ -466,6 +466,12 @@ def add_user(request):
                     managerid = managers,
                 )
                 team.save()
+                geng = TEAM.objects.get(managerid=managers)
+                team_member = TEAM_MEMBERSHIP(
+                    staff = staff,
+                    team = geng,
+                )
+                team_member.save()
             except Exception as e:
                 messages.error(request, f'Error adding manager: {str(e)}')
             
@@ -691,12 +697,18 @@ def add_employee(request):
                     staffid=staff
                 )
                 manager.save()
-                messages.success(request, f'Manager {name} added successfully')
+                messages.success(request, f'Manager {staff.name} added successfully')
                 managers = MANAGER.objects.get(id=user_id)
                 team = TEAM(
                     managerid = managers,
                 )
                 team.save()
+                geng = TEAM.objects.get(managerid=managers)
+                team_member = TEAM_MEMBERSHIP(
+                    staff = staff,
+                    team = geng,
+                )
+                team_member.save()
             except Exception as e:
                 messages.error(request, f'Error adding manager: {str(e)}')
             
@@ -718,7 +730,7 @@ def add_employee(request):
                     staffid=staff
                 )
                 hr.save()
-                messages.success(request, f'HR {name} added successfully')
+                messages.success(request, f'HR {staff.name} added successfully')
             except Exception as e:
                 messages.error(request, f'Error adding HR: {str(e)}')
         
@@ -1870,3 +1882,135 @@ def staff_leave_status(request):
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('staffmenu')
+    
+def team_management(request):
+    """View for managers to manage their team members and team information"""
+    # Check if user is authenticated and is a manager
+    if not request.session.get('user_type') == 'manager':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get manager information
+        manager_id = request.session.get('user_id')
+        manager = MANAGER.objects.get(id=manager_id)
+        
+        # Get or create team for this manager
+        team, created = TEAM.objects.get_or_create(
+            managerid=manager,
+            defaults={
+                'name': f"{manager.staffid.name}'s Team",
+                'goals': ''
+            }
+        )
+        
+        # Handle POST requests for team management actions
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            
+            if action == 'edit_team':
+                # Update team information
+                team_name = request.POST.get('team_name', '').strip()
+                
+                
+                if team_name:
+                    team.name = team_name
+                    
+                    team.save()
+                    messages.success(request, 'Team information updated successfully!')
+                else:
+                    messages.error(request, 'Team name is required.')
+                
+                return redirect('team_management')
+            
+            elif action == 'add_member':
+                # Add new team member
+                staff_id = request.POST.get('staff_id', '').strip()
+                
+                if not staff_id:
+                    messages.error(request, 'Staff ID is required.')
+                    return redirect('team_management')
+                
+                try:
+                    # Check if staff exists
+                    staff = STAFF.objects.get(id=staff_id)
+                    
+                    # Check if staff is already a member of this team
+                    existing_membership = TEAM_MEMBERSHIP.objects.filter(
+                        team=team, 
+                        staff=staff
+                    ).first()
+                    
+                    if existing_membership:
+                        messages.error(request, f'{staff.name} is already a member of this team.')
+                        return redirect('team_management')
+                    
+                    # Check if staff is already a member of another team
+                    other_membership = TEAM_MEMBERSHIP.objects.filter(staff=staff).first()
+                    if other_membership:
+                        messages.error(request, f'{staff.name} is already a member of {other_membership.team.name}.')
+                        return redirect('team_management')
+                    
+                    # Check if the staff is the manager themselves
+                    if staff.id == manager.staffid.id:
+                        messages.error(request, 'You cannot add yourself as a team member.')
+                        return redirect('team_management')
+                    
+                    # Add staff to team
+                    TEAM_MEMBERSHIP.objects.create(
+                        team=team,
+                        staff=staff
+                    )
+                    
+                    messages.success(request, f'{staff.name} has been added to the team successfully!')
+                    
+                except STAFF.DoesNotExist:
+                    messages.error(request, f'Staff with ID {staff_id} not found.')
+                except Exception as e:
+                    messages.error(request, f'Error adding team member: {str(e)}')
+                
+                return redirect('team_management')
+            
+            elif action == 'remove_member':
+                # Remove team member
+                staff_id = request.POST.get('staff_id', '').strip()
+                
+                if not staff_id:
+                    messages.error(request, 'Staff ID is required.')
+                    return redirect('team_management')
+                
+                try:
+                    staff = STAFF.objects.get(id=staff_id)
+                    membership = TEAM_MEMBERSHIP.objects.get(team=team, staff=staff)
+                    
+                    membership.delete()
+                    messages.success(request, f'{staff.name} has been removed from the team.')
+                    
+                except STAFF.DoesNotExist:
+                    messages.error(request, f'Staff with ID {staff_id} not found.')
+                except TEAM_MEMBERSHIP.DoesNotExist:
+                    messages.error(request, f'Staff is not a member of this team.')
+                except Exception as e:
+                    messages.error(request, f'Error removing team member: {str(e)}')
+                
+                return redirect('team_management')
+        
+        # GET request - display team management page
+        # Get all team members
+        team_members = TEAM_MEMBERSHIP.objects.filter(team=team).select_related('staff').order_by('staff__name')
+        
+        context = {
+            'manager': manager,
+            'team': team,
+            'team_members': team_members,
+        }
+        
+        return render(request, 'manager/team_management.html', context)
+        
+    except MANAGER.DoesNotExist:
+        messages.error(request, "Manager profile not found. Please login again.")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('managermenu')

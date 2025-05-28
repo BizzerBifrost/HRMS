@@ -1,0 +1,597 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Management | HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            margin-right: 15px;
+            text-align: right;
+        }
+        
+        /* User dropdown styling */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        /* Arrow for dropdown */
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        main {
+            flex: 1;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .team-info-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .team-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .edit-team-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .edit-team-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .team-members-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .add-member-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .add-member-btn:hover {
+            background-color: #218838;
+        }
+        
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .member-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .member-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: block;
+        }
+        
+        .member-name {
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+        }
+        
+        .member-position {
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+        
+        .member-id {
+            font-size: 15px;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        
+        .remove-member-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .remove-member-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .no-members {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 40px;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
+        }
+        
+        .btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #0045c4;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        /* Messages styling */
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        
+        .messages .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .messages .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            background-color: var(--text-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{% url 'managermenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ manager.staffid.name }}</strong></div>
+                <div>{{ manager.staffid.position }}</div>
+            </div>
+            <!-- User image dropdown -->
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="#">Profile</a>
+                    <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        
+        <h1>Team Management</h1>
+        
+        <!-- Team Information Card -->
+        <div class="team-info-card">
+            <div class="team-info-header">
+                <h2>Team Information</h2>
+                <button class="edit-team-btn" onclick="openEditTeamModal()">Edit Team</button>
+            </div>
+            
+            <div class="team-details">
+                <p><strong>Team Name:</strong> {{ team.name|default:"Not Set" }}</p>
+                <p><strong>Manager:</strong> {{ manager.staffid.name }}</p>
+                <p><strong>Team Goals:</strong></p>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                    {{ team.goals|default:"No goals set yet"|linebreaks }}
+                </div>
+                <p style="margin-top: 15px;"><strong>Team Members:</strong> {{ team_members.count }} member{{ team_members.count|pluralize }}</p>
+            </div>
+        </div>
+        
+        <!-- Team Members Section -->
+        <div class="team-members-section">
+            <div class="section-header">
+                <h2>Team Members</h2>
+                <button class="add-member-btn" onclick="openAddMemberModal()">Add Member</button>
+            </div>
+            
+            {% if team_members %}
+            <div class="members-grid">
+                {% for membership in team_members %}
+                <div class="member-card">
+                    <img src="{% static 'img/user.png' %}" alt="Member Avatar" class="member-avatar">
+                    <div class="member-name">{{ membership.staff.name }}</div>
+                    <div class="member-position">{{ membership.staff.position }}</div>
+                    <div class="member-id">ID: {{ membership.staff.id }}</div>
+                    <div class="member-joined">Joined: {{ membership.joined_date|date:"M d, Y" }}</div>
+                    <button class="remove-member-btn" onclick="removeMember('{{ membership.staff.id }}', '{{ membership.staff.name }}')">Remove</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-members">
+                <p>No team members assigned yet.</p>
+                <p>Click "Add Member" to start building your team.</p>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Edit Team Modal -->
+    <div id="editTeamModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditTeamModal()">&times;</span>
+            <h2>Edit Team Information</h2>
+            
+            <form method="POST" action="{% url 'team_management' %}">
+                {% csrf_token %}
+                    <label for="team_name">Team Name</label>
+                    <input type="text" id="team_name" name="team_name" class="form-control" 
+                           value="{{ team.name }}" placeholder="Enter team name" required>
+                </div>
+                <button type="submit" class="btn">Update Team</button>
+                <button type="button" class="btn btn-secondary" onclick="closeEditTeamModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Add Member Modal -->
+    <div id="addMemberModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddMemberModal()">&times;</span>
+            <h2>Add Team Member</h2>
+            
+            <form method="POST" action="{% url 'team_management' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_member">
+                
+                <div class="form-group">
+                    <label for="staff_id">Staff ID</label>
+                    <input type="text" id="staff_id" name="staff_id" class="form-control" 
+                           placeholder="Enter staff ID (e.g., STF001)" required>
+                </div>
+                
+                <button type="submit" class="btn">Add Member</button>
+                <button type="button" class="btn btn-secondary" onclick="closeAddMemberModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Toggle dropdown menu
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+        
+        // Reset popup state when logging out
+        function resetPopupState() {
+            localStorage.removeItem('managerPopupShown');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        
+        // Modal functions
+        function openEditTeamModal() {
+            document.getElementById('editTeamModal').style.display = 'block';
+        }
+        
+        function closeEditTeamModal() {
+            document.getElementById('editTeamModal').style.display = 'none';
+        }
+        
+        function openAddMemberModal() {
+            document.getElementById('addMemberModal').style.display = 'block';
+        }
+        
+        function closeAddMemberModal() {
+            document.getElementById('addMemberModal').style.display = 'none';
+        }
+        
+        function removeMember(staffId, staffName) {
+            if (confirm(`Are you sure you want to remove ${staffName} from the team?`)) {
+                // Create a form and submit it
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{% url "team_management" %}';
+                
+                // Add CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+                
+                // Add action
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'remove_member';
+                form.appendChild(actionInput);
+                
+                // Add staff ID
+                const staffInput = document.createElement('input');
+                staffInput.type = 'hidden';
+                staffInput.name = 'staff_id';
+                staffInput.value = staffId;
+                form.appendChild(staffInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const editModal = document.getElementById('editTeamModal');
+            const addModal = document.getElementById('addMemberModal');
+            
+            if (event.target === editModal) {
+                editModal.style.display = 'none';
+            }
+            if (event.target === addModal) {
+                addModal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

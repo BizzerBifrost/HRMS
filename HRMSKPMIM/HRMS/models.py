@@ -191,7 +191,6 @@ class RECRUITMENT(models.Model):
 class TEAM(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.TextField(default='')
-    goals = models.TextField(default='')
     managerid = models.ForeignKey('MANAGER', on_delete=models.CASCADE)
 
 class TEAM_MEMBERSHIP(models.Model):
@@ -205,6 +204,58 @@ class TEAM_MEMBERSHIP(models.Model):
     def __str__(self):
         return f"{self.staff} in {self.team}"
 
+
+class TEAM_GOALS(models.Model):
+    id = models.AutoField(primary_key=True)
+    title = models.TextField(max_length=200)
+    description = models.TextField()
+    target_date = models.DateField()
+    created_date = models.DateField(auto_now_add=True)
+    
+    STATUS_CHOICES = [
+        ('Not Started', 'not_started'),
+        ('In Progress', 'in_progress'),
+        ('Completed', 'completed'),
+        ('On Hold', 'on_hold'),
+    ]
+    status = models.TextField(choices=STATUS_CHOICES, default='Not Started')
+    
+    PRIORITY_CHOICES = [
+        ('Low', 'low'),
+        ('Medium', 'medium'),
+        ('High', 'high'),
+        ('Critical', 'critical'),
+    ]
+    priority = models.TextField(choices=PRIORITY_CHOICES, default='Medium')
+    
+    progress_percentage = models.IntegerField(default=0)  # 0-100
+    notes = models.TextField(blank=True, default='')
+    
+    # Foreign key relationships
+    team = models.ForeignKey(TEAM, on_delete=models.CASCADE, related_name='team_goals')
+    created_by = models.ForeignKey(MANAGER, on_delete=models.CASCADE)
+    
+    # Metadata
+    last_updated = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.title} - {self.team.name if self.team.name else 'Team'}"
+    
+    @property
+    def is_overdue(self):
+        """Check if the goal is overdue"""
+        return self.target_date < timezone.now().date() and self.status != 'Completed'
+    
+    @property
+    def days_remaining(self):
+        """Calculate days remaining until target date"""
+        delta = self.target_date - timezone.now().date()
+        return delta.days
+    
+    class Meta:
+        ordering = ['-created_date']
+        verbose_name = 'Team Goal'
+        verbose_name_plural = 'Team Goals'
 # hr
 class HR(models.Model):
     id = models.TextField(primary_key=True)
