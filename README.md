@@ -246,14 +246,14 @@ This is a proprietary system developed for KOOP-KPMIM. Internal contributions sh
 4. **Security**: Never commit sensitive information like passwords or API keys
 
 
-## 📞 Support
+## Support
 
 For technical support or questions about the system:
 
 - **Internal IT Support**: Contact your system administrator
 - **System Issues**: Report through the internal feedback system
 
-## 📄 License
+## License
 
 This project is proprietary software developed specifically for KOOP-KPMIM (Kolej Profesional MARA Indera Mahkota Cooperative). All rights reserved.
 
