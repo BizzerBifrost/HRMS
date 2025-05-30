@@ -214,6 +214,25 @@
             text-align: center;
         }
         
+        .member-card.team-leader {
+            background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
+            border: 2px solid var(--secondary-color);
+            position: relative;
+        }
+        
+        .team-leader-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
         .member-avatar {
             width: 60px;
             height: 60px;
@@ -424,11 +443,7 @@
             <div class="team-details">
                 <p><strong>Team Name:</strong> {{ team.name|default:"Not Set" }}</p>
                 <p><strong>Manager:</strong> {{ manager.staffid.name }}</p>
-                <p><strong>Team Goals:</strong></p>
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 10px;">
-                    {{ team.goals|default:"No goals set yet"|linebreaks }}
-                </div>
-                <p style="margin-top: 15px;"><strong>Team Members:</strong> {{ team_members.count }} member{{ team_members.count|pluralize }}</p>
+                <p><strong>Team Members:</strong> {{ team_members.count }} member{{ team_members.count|pluralize }}</p>
             </div>
         </div>
         
@@ -442,13 +457,22 @@
             {% if team_members %}
             <div class="members-grid">
                 {% for membership in team_members %}
-                <div class="member-card">
+                <div class="member-card {% if membership.staff.id == manager.staffid.id %}team-leader{% endif %}">
+                    {% if membership.staff.id == manager.staffid.id %}
+                    <div class="team-leader-badge">Team Leader</div>
+                    {% endif %}
                     <img src="{% static 'img/user.png' %}" alt="Member Avatar" class="member-avatar">
                     <div class="member-name">{{ membership.staff.name }}</div>
                     <div class="member-position">{{ membership.staff.position }}</div>
                     <div class="member-id">ID: {{ membership.staff.id }}</div>
                     <div class="member-joined">Joined: {{ membership.joined_date|date:"M d, Y" }}</div>
+                    
+                    {% comment %}
+                    Only show remove button if the member is NOT the manager (team leader)
+                    {% endcomment %}
+                    {% if membership.staff.id != manager.staffid.id %}
                     <button class="remove-member-btn" onclick="removeMember('{{ membership.staff.id }}', '{{ membership.staff.name }}')">Remove</button>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
@@ -469,6 +493,7 @@
             
             <form method="POST" action="{% url 'team_management' %}">
                 {% csrf_token %}
+                <div class="form-group">
                     <label for="team_name">Team Name</label>
                     <input type="text" id="team_name" name="team_name" class="form-control" 
                            value="{{ team.name }}" placeholder="Enter team name" required>

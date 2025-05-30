@@ -1,27 +1,30 @@
+# Add this to the top of your HRMSKPMIM/HRMS/views.py file
+# Update your existing imports to include TEAM_GOALS:
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 from .models import (
     STAFF, EDUCATION, EXPERIENCE, ADDRESS, PAYROLL, 
     FEEDBACK, LEAVE_BALANCE, TIMEOFF, MANAGER, 
-    RECRUITMENT, TEAM, TEAM_MEMBERSHIP, HR, POLICIES, ADMIN
+    RECRUITMENT, TEAM, TEAM_MEMBERSHIP, HR, POLICIES, ADMIN, TEAM_GOALS
 )
 import logging
 import secrets
 import hashlib
 from django.http import HttpResponse, Http404
 from django.urls import reverse
-from django.utils import timezone
 from datetime import timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.dateparse import parse_date
-from datetime import datetime
+from django.utils import timezone
+import pytz
+from datetime import datetime, date
 from decimal import Decimal
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
 import json
-
 
 # Create your views here.
 
@@ -114,7 +117,7 @@ def forgot_password(request):
         
         # Check staff
         try:
-            user = STAFF.objects.get(id=user_id, email=email)
+            user = STAFF.objects.get(id=user_id)
             user_type = 'staff'
         except STAFF.DoesNotExist:
             pass
@@ -1676,9 +1679,204 @@ def process_leave_request(request):
     
     return redirect('leave_approvals')
 
-# staff
+def get_malaysia_date():
+    """Get current date in Malaysia timezone"""
+    malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
+    return timezone.now().astimezone(malaysia_tz).date()
+
+# Update the relevant parts of your team_goals view:
+def team_goals(request):
+    """View for managers to create, edit, and manage team goals using TEAM_GOALS model"""
+    # ... existing code ...
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add_goal':
+            # ... existing validation code ...
+            
+            # Check if target date is not in the past (using Malaysia time)
+            malaysia_today = get_malaysia_date()
+            if target_date_parsed < malaysia_today:
+                messages.error(request, 'Target date cannot be in the past.')
+                return redirect('team_goals')
+            
+    
+    # Check if user is authenticated and is a manager
+    if not request.session.get('user_type') == 'manager':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get manager information
+        manager_id = request.session.get('user_id')
+        manager = MANAGER.objects.get(id=manager_id)
+        
+        # Get the team for this manager
+        team = TEAM.objects.get(managerid=manager)
+        
+        # Get team members
+        team_members = TEAM_MEMBERSHIP.objects.filter(team=team).select_related('staff')
+        
+        # Check if we're editing a goal
+        editing_goal_id = request.GET.get('edit')
+        editing_goal = None
+        if editing_goal_id:
+            try:
+                editing_goal = TEAM_GOALS.objects.get(id=editing_goal_id, team=team)
+            except TEAM_GOALS.DoesNotExist:
+                messages.error(request, "Goal not found.")
+                return redirect('team_goals')
+        
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            
+            if action == 'add_goal':
+                # Create new goal
+                title = request.POST.get('title', '').strip()
+                description = request.POST.get('description', '').strip()
+                target_date = request.POST.get('target_date')
+                priority = request.POST.get('priority')
+                
+                if title and description and target_date and priority:
+                    try:
+                        # Parse target date
+                        target_date_parsed = parse_date(target_date)
+                        
+                        if not target_date_parsed:
+                            messages.error(request, 'Invalid target date format.')
+                            return redirect('team_goals')
+                        
+                        # Check if target date is not in the past
+                        if target_date_parsed < timezone.now().date():
+                            messages.error(request, 'Target date cannot be in the past.')
+                            return redirect('team_goals')
+                        
+                        # Create the goal
+                        goal = TEAM_GOALS.objects.create(
+                            title=title,
+                            description=description,
+                            target_date=target_date_parsed,
+                            priority=priority,
+                            team=team,
+                            created_by=manager,
+                            status='Not Started',
+                            progress_percentage=0
+                        )
+                        
+                        messages.success(request, f'Goal "{title}" has been created successfully!')
+                        return redirect('team_goals')
+                        
+                    except Exception as e:
+                        messages.error(request, f'Error creating goal: {str(e)}')
+                else:
+                    messages.error(request, 'All fields are required to create a goal.')
+            
+            elif action == 'edit_goal':
+                # Edit existing goal
+                goal_id = request.POST.get('goal_id')
+                title = request.POST.get('title', '').strip()
+                description = request.POST.get('description', '').strip()
+                target_date = request.POST.get('target_date')
+                priority = request.POST.get('priority')
+                status = request.POST.get('status')
+                progress_percentage = request.POST.get('progress_percentage', '0')
+                notes = request.POST.get('notes', '').strip()
+                
+                if goal_id and title and description and target_date and priority and status:
+                    try:
+                        goal = TEAM_GOALS.objects.get(id=goal_id, team=team)
+                        
+                        # Parse target date
+                        target_date_parsed = parse_date(target_date)
+                        
+                        if not target_date_parsed:
+                            messages.error(request, 'Invalid target date format.')
+                            return redirect('team_goals')
+                        
+                        # Parse progress percentage
+                        try:
+                            progress_int = int(progress_percentage)
+                            if progress_int < 0 or progress_int > 100:
+                                messages.error(request, 'Progress percentage must be between 0 and 100.')
+                                return redirect('team_goals')
+                        except ValueError:
+                            progress_int = 0
+                        
+                        # Update the goal
+                        goal.title = title
+                        goal.description = description
+                        goal.target_date = target_date_parsed
+                        goal.priority = priority
+                        goal.status = status
+                        goal.progress_percentage = progress_int
+                        goal.notes = notes
+                        goal.save()
+                        
+                        messages.success(request, f'Goal "{title}" has been updated successfully!')
+                        return redirect('team_goals')
+                        
+                    except TEAM_GOALS.DoesNotExist:
+                        messages.error(request, 'Goal not found.')
+                    except Exception as e:
+                        messages.error(request, f'Error updating goal: {str(e)}')
+                else:
+                    messages.error(request, 'All required fields must be filled to update the goal.')
+            
+            elif action == 'delete_goal':
+                # Delete goal
+                goal_id = request.POST.get('goal_id')
+                
+                if goal_id:
+                    try:
+                        goal = TEAM_GOALS.objects.get(id=goal_id, team=team)
+                        goal_title = goal.title
+                        goal.delete()
+                        
+                        messages.success(request, f'Goal "{goal_title}" has been deleted successfully!')
+                        return redirect('team_goals')
+                        
+                    except TEAM_GOALS.DoesNotExist:
+                        messages.error(request, 'Goal not found.')
+                    except Exception as e:
+                        messages.error(request, f'Error deleting goal: {str(e)}')
+                else:
+                    messages.error(request, 'Invalid goal ID.')
+            
+            return redirect('team_goals')
+        
+        # GET request - display the goals management page
+        # Get all goals for this team ordered by most recent first
+        goals = TEAM_GOALS.objects.filter(team=team).order_by('-created_date')
+        
+        # In the context, use Malaysia time for today's date
+        context = {
+            'manager': manager,
+            'team': team,
+            'team_members': team_members,
+            'goals': goals,
+            'editing_goal': editing_goal,
+            'today': get_malaysia_date(),  # Use Malaysia date
+        } 
+        
+        return render(request, 'manager/team_goals.html', context)
+        
+    except MANAGER.DoesNotExist:
+        messages.error(request, "Manager profile not found. Please login again.")
+        return redirect('login')
+    except TEAM.DoesNotExist:
+        messages.error(request, "No team assigned to this manager. Please contact HR.")
+        return redirect('managermenu')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('managermenu')
+
+
+
 
 # staff
+
 def staffmenu(request):
     # Check if user is authenticated and is staff
     if not request.session.get('user_type') == 'staff':
@@ -1901,7 +2099,6 @@ def team_management(request):
             managerid=manager,
             defaults={
                 'name': f"{manager.staffid.name}'s Team",
-                'goals': ''
             }
         )
         
@@ -2014,3 +2211,53 @@ def team_management(request):
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('managermenu')
+    
+def staff_view_goals(request):
+    """View for staff to view team goals set by their manager"""
+    # Check if user is authenticated and is staff
+    if not request.session.get('user_type') == 'staff':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get staff information
+        staff_id = request.session.get('user_id')
+        staff = STAFF.objects.get(id=staff_id)
+        
+        # Find which team this staff member belongs to
+        try:
+            team_membership = TEAM_MEMBERSHIP.objects.get(staff=staff)
+            team = team_membership.team
+            
+            # Get all goals for this team ordered by priority and target date
+            goals = TEAM_GOALS.objects.filter(team=team).order_by('target_date', '-priority')
+            
+            # Separate goals by status for better organization
+            active_goals = goals.exclude(status='Completed')
+            completed_goals = goals.filter(status='Completed')
+            
+        except TEAM_MEMBERSHIP.DoesNotExist:
+            # Staff is not assigned to any team
+            team = None
+            goals = None
+            active_goals = None
+            completed_goals = None
+        
+        context = {
+            'staff': staff,
+            'team': team,
+            'goals': goals,
+            'active_goals': active_goals,
+            'completed_goals': completed_goals,
+        }
+        
+        return render(request, 'staff/view_goals.html', context)
+        
+    except STAFF.DoesNotExist:
+        messages.error(request, "Staff profile not found. Please login again.")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('staffmenu')
+      

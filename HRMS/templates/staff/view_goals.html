@@ -1,0 +1,602 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Goals | HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            margin-right: 15px;
+            text-align: right;
+        }
+        
+        /* User dropdown styling */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        /* Arrow for dropdown */
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        main {
+            flex: 1;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .team-info {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            color: var(--secondary-color);
+            font-size: 22px;
+            margin: 0;
+        }
+        
+        .goal-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .goal-title {
+            color: var(--secondary-color);
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 15px 0;
+        }
+        
+        .goal-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            background: var(--primary-color);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-not-started {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-in-progress {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-on-hold {
+            background: #e2e3e5;
+            color: #6c757d;
+        }
+        
+        .priority-low {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .priority-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .priority-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .priority-critical {
+            background: var(--accent-color);
+            color: white;
+        }
+        
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            margin: 10px 0;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            display: block;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            display: block;
+            min-width: 2px;
+        }
+        
+        .progress-fill.no-progress {
+            background: var(--text-color);
+            width: 100% !important;
+            opacity: 0.3;
+            animation: pulse 2s infinite;
+        }
+        
+        .progress-fill.has-progress {
+            background: var(--secondary-color);
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+            100% { opacity: 0.3; }
+        }
+        
+        .goal-description {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .goal-notes {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        
+        .no-team, .no-goals {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .overdue {
+            border-left-color: var(--accent-color);
+        }
+        
+        .overdue .goal-title {
+            color: var(--accent-color);
+        }
+        
+        .completed-goals {
+            margin-top: 30px;
+        }
+        
+        .goal-card.completed {
+            opacity: 0.8;
+            border-left-color: #28a745;
+        }
+        
+        .goal-card.completed .goal-title {
+            color: #28a745;
+        }
+        
+        footer {
+            background-color: var(--text-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+        
+        /* Popup Animation */
+        .popup-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .popup-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: scaleIn 0.3s ease-in-out;
+        }
+        
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Messages styling */
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        
+        .messages .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .messages .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .messages .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    
+
+    <header>
+        <a href="{% url 'staffmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ staff.name }}</strong></div>
+                <div>{{ staff.position }}</div>
+            </div>
+            <!-- User image dropdown -->
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="#">Profile</a>
+                    <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        
+        
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        <h1>Team Goals</h1>
+        
+        {% if team %}
+            <div class="team-info">
+                <h3 style="color: var(--secondary-color); margin-bottom: 10px;">{{ team.name }}</h3>
+                <p><strong>Manager:</strong> {{ team.managerid.staffid.name }} ({{ team.managerid.staffid.position }})</p>
+                {% if goals %}
+                    <p style="margin-top: 10px;">Your team has {{ active_goals.count }} active goal{{ active_goals.count|pluralize }} and {{ completed_goals.count }} completed goal{{ completed_goals.count|pluralize }}.</p>
+                {% else %}
+                    <p style="margin-top: 10px;">No goals have been set for your team yet.</p>
+                {% endif %}
+            </div>
+            
+            {% if active_goals %}
+                <div class="section-header">
+                    <h2 class="section-title">Active Goals ({{ active_goals.count }})</h2>
+                </div>
+                
+                {% for goal in active_goals %}
+                <div class="goal-card {% if goal.is_overdue %}overdue{% endif %}">
+                    <h3 class="goal-title">{{ goal.title }}</h3>
+                    
+                    <div class="goal-meta">
+                        <span class="meta-item status-{{ goal.status|lower|cut:' ' }}">{{ goal.status }}</span>
+                        <span class="meta-item priority-{{ goal.priority|lower }}">{{ goal.priority }} Priority</span>
+                        <span class="meta-item">Target: {{ goal.target_date|date:"M j, Y" }}</span>
+                        {% if goal.is_overdue %}
+                            <span class="meta-item priority-critical">Overdue</span>
+                        {% else %}
+                            {% if goal.days_remaining > 0 %}
+                                <span class="meta-item">{{ goal.days_remaining }} days left</span>
+                            {% elif goal.days_remaining == 0 %}
+                                <span class="meta-item priority-high">Due Today</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="progress-bar">
+                        {% if goal.progress_percentage == 0 %}
+                            <div class="progress-fill no-progress"></div>
+                        {% else %}
+                            <div class="progress-fill has-progress" style="width: {{ goal.progress_percentage }}%"></div>
+                        {% endif %}
+                    </div>
+                    <div style="text-align: right; font-size: 12px; color: #666; margin-top: 5px;">
+                        {% if goal.progress_percentage == 0 %}
+                            Not Started
+                        {% else %}
+                            {{ goal.progress_percentage }}% Complete
+                        {% endif %}
+                    </div>
+                    
+                    <div class="goal-description">
+                        {{ goal.description|linebreaksbr }}
+                    </div>
+                    
+                    {% if goal.notes %}
+                    <div class="goal-notes">
+                        <strong>Notes:</strong> {{ goal.notes|linebreaksbr }}
+                    </div>
+                    {% endif %}
+                    
+                    <div style="font-size: 12px; color: #666; margin-top: 15px;">
+                        Created: {{ goal.created_date|date:"M j, Y" }} | Last updated: {{ goal.last_updated|date:"M j, Y g:i A" }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if completed_goals %}
+                <div class="completed-goals">
+                    <div class="section-header">
+                        <h2 class="section-title">Completed Goals ({{ completed_goals.count }})</h2>
+                    </div>
+                    
+                    {% for goal in completed_goals %}
+                    <div class="goal-card completed">
+                        <h3 class="goal-title">{{ goal.title }} ✓</h3>
+                        
+                        <div class="goal-meta">
+                            <span class="meta-item status-completed">Completed</span>
+                            <span class="meta-item priority-{{ goal.priority|lower }}">{{ goal.priority }} Priority</span>
+                            <span class="meta-item">Completed: {{ goal.target_date|date:"M j, Y" }}</span>
+                        </div>
+                        
+                        <div class="progress-bar">
+                            <div class="progress-fill has-progress" style="width: 100%; background-color: #28a745;"></div>
+                        </div>
+                        <div style="text-align: right; font-size: 12px; color: #28a745; margin-top: 5px;">
+                            100% Complete
+                        </div>
+                        
+                        <div class="goal-description">
+                            {{ goal.description|linebreaksbr }}
+                        </div>
+                        
+                        {% if goal.notes %}
+                        <div class="goal-notes">
+                            <strong>Notes:</strong> {{ goal.notes|linebreaksbr }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% if not goals %}
+                <div class="no-goals">
+                    <h3>No Goals Set Yet</h3>
+                    <p>Your manager hasn't set any goals for your team yet. Goals will appear here once they are created.</p>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="no-team">
+                <h3>Not Assigned to a Team</h3>
+                <p>You are not currently assigned to any team. Please contact HR to be assigned to a team to view team goals.</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Popup functionality
+        function closePopup() {
+            document.getElementById('welcomePopup').style.display = 'none';
+            localStorage.setItem('staffGoalsPopupShown', 'true');
+        }
+        
+        function resetPopupState() {
+            localStorage.removeItem('staffPopupShown');
+            localStorage.removeItem('staffGoalsPopupShown');
+        }
+        
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+        
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        
+        window.onload = function() {
+            if (localStorage.getItem('staffGoalsPopupShown') !== 'true') {
+                document.getElementById('welcomePopup').style.display = 'flex';
+            } else {
+                document.getElementById('welcomePopup').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

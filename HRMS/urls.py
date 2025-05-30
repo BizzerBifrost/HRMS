@@ -9,12 +9,12 @@ urlpatterns = [
     path('login/process/', views.login_process, name='login_process'),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('reset-password/<str:token>/', views.reset_password, name='reset_password'),
+
     # staff
     path('staff/home/', views.staffmenu, name='staffmenu'),
     path('staff/leave/application/', views.staff_leave_application, name='staff_leave_application'),
     path('staff/leave/status/', views.staff_leave_status, name='staff_leave_status'),
-
-
+    path('staff/view-goals/', views.staff_view_goals, name='staff_view_goals'),
 
     # hr
     path('hr/home/', views.hrmenu, name='hrmenu'),
@@ -35,12 +35,12 @@ urlpatterns = [
     path('hr/feedback/', views.hr_feedback, name='hr_feedback'),
     path('hr/update-feedback-status/', views.update_feedback_status, name='update_feedback_status'),
 
-
     # manager
-    path('managermenu/', views.managermenu, name='managermenu'),
+    path('manager/home/', views.managermenu, name='managermenu'),
     path('manager/leave-approvals/', views.leave_approvals, name='leave_approvals'),
     path('manager/process-leave-request/', views.process_leave_request, name='process_leave_request'),
     path('manager/team-management/', views.team_management, name='team_management'),
+    path('manager/team-goals/', views.team_goals, name='team_goals'),
 
     # admin
     path('administrator/home/', views.adminmenu, name = 'adminmenu'),

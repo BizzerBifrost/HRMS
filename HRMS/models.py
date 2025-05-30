@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from django.utils import timezone
 import datetime
+import pytz
 
 
 # Create your models here.
@@ -205,6 +206,12 @@ class TEAM_MEMBERSHIP(models.Model):
         return f"{self.staff} in {self.team}"
 
 
+def get_malaysia_time():
+    """Get current time in Malaysia timezone"""
+    malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
+    return timezone.now().astimezone(malaysia_tz)
+
+# Update your TEAM_GOALS model to ensure it uses Malaysia time properly:
 class TEAM_GOALS(models.Model):
     id = models.AutoField(primary_key=True)
     title = models.TextField(max_length=200)
@@ -235,7 +242,7 @@ class TEAM_GOALS(models.Model):
     team = models.ForeignKey(TEAM, on_delete=models.CASCADE, related_name='team_goals')
     created_by = models.ForeignKey(MANAGER, on_delete=models.CASCADE)
     
-    # Metadata
+    # Metadata with timezone awareness
     last_updated = models.DateTimeField(auto_now=True)
     
     def __str__(self):
@@ -244,12 +251,17 @@ class TEAM_GOALS(models.Model):
     @property
     def is_overdue(self):
         """Check if the goal is overdue"""
-        return self.target_date < timezone.now().date() and self.status != 'Completed'
+        # Use Malaysia timezone for comparison
+        malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
+        today_malaysia = timezone.now().astimezone(malaysia_tz).date()
+        return self.target_date < today_malaysia and self.status != 'Completed'
     
     @property
     def days_remaining(self):
         """Calculate days remaining until target date"""
-        delta = self.target_date - timezone.now().date()
+        malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
+        today_malaysia = timezone.now().astimezone(malaysia_tz).date()
+        delta = self.target_date - today_malaysia
         return delta.days
     
     class Meta:
