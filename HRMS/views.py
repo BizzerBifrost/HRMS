@@ -1861,19 +1861,102 @@ def team_goals(request):
         } 
         
         return render(request, 'manager/team_goals.html', context)
-        
-    except MANAGER.DoesNotExist:
-        messages.error(request, "Manager profile not found. Please login again.")
-        return redirect('login')
-    except TEAM.DoesNotExist:
-        messages.error(request, "No team assigned to this manager. Please contact HR.")
-        return redirect('managermenu')
+    
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('managermenu')
+    
+# Add this function to your HRMS/views.py file
 
-
-
+def recruitment_request(request):
+    """
+    View for managers to submit recruitment requests
+    """
+    # Check if user is authenticated and is a manager
+    if not request.session.get('user_type') == 'manager':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get manager information
+        manager_id = request.session.get('user_id')
+        manager = MANAGER.objects.get(id=manager_id)
+        
+        if request.method == 'POST':
+            # Get form data
+            position = request.POST.get('position', '').strip()
+            total_personnel_str = request.POST.get('total_personnel', '').strip()
+            reason = request.POST.get('reason', '').strip()
+            
+            # Validate required fields
+            if not position or not total_personnel_str or not reason:
+                messages.error(request, 'All fields are required.')
+                return render(request, 'manager/recruitment_request.html', {
+                    'manager': manager
+                })
+            
+            # Validate total personnel
+            try:
+                total_personnel = int(total_personnel_str)
+                if total_personnel < 1 or total_personnel > 10:
+                    messages.error(request, 'Number of personnel must be between 1 and 10.')
+                    return render(request, 'manager/recruitment_request.html', {
+                        'manager': manager
+                    })
+            except ValueError:
+                messages.error(request, 'Please enter a valid number for personnel needed.')
+                return render(request, 'manager/recruitment_request.html', {
+                    'manager': manager
+                })
+            
+            # Validate reason length
+            if len(reason) > 1000:
+                messages.error(request, 'Justification is too long (maximum 1000 characters).')
+                return render(request, 'manager/recruitment_request.html', {
+                    'manager': manager
+                })
+            
+            # Validate position title
+            if len(position) > 100:
+                messages.error(request, 'Position title is too long (maximum 100 characters).')
+                return render(request, 'manager/recruitment_request.html', {
+                    'manager': manager
+                })
+            
+            try:
+                # Create the recruitment request
+                recruitment_request = RECRUITMENT.objects.create(
+                    position=position,
+                    reason=reason,
+                    total_personnel=total_personnel,
+                    managerid=manager
+                )
+                
+                # Success message with details
+                personnel_text = "person" if total_personnel == 1 else "people"
+                success_message = f'Recruitment request submitted successfully! Request for {total_personnel} {personnel_text} for {position} position has been sent to HR for review.'
+                messages.success(request, success_message)
+                
+                # Redirect to prevent form resubmission
+                return redirect('managermenu')
+                
+            except Exception as e:
+                messages.error(request, f'Error submitting recruitment request: {str(e)}')
+                return render(request, 'manager/recruitment_request.html', {
+                    'manager': manager
+                })
+        
+        # GET request - show the form
+        context = {
+            'manager': manager
+        }
+        
+        return render(request, 'manager/recruitment_request.html', context)
+    
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('managermenu')
 
 # staff
 

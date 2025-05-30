@@ -563,11 +563,6 @@
                         <div class="option-title">Approve & Process</div>
                         <div class="option-description">Approve and start recruitment process</div>
                     </div>
-                    <div class="option-card" onclick="selectAction('request_info')" id="request-info-option">
-                        <div class="option-icon" style="color: #ffc107;">❓</div>
-                        <div class="option-title">Request More Info</div>
-                        <div class="option-description">Ask manager for additional details</div>
-                    </div>
                     <div class="option-card" onclick="selectAction('reject')" id="reject-option">
                         <div class="option-icon" style="color: #dc3545;">❌</div>
                         <div class="option-title">Reject Request</div>
@@ -575,61 +570,6 @@
                     </div>
                 </div>
                 <input type="hidden" name="action" id="selected-action" required>
-            </div>
-
-            <div class="form-section">
-                <div class="section-title">
-                    <span class="section-icon">📝</span>
-                    HR Notes & Comments
-                </div>
-                <div class="form-group">
-                    <label for="hr-notes" class="form-label">Internal Notes (Optional)</label>
-                    <textarea 
-                        id="hr-notes" 
-                        name="hr_notes" 
-                        class="form-textarea" 
-                        placeholder="Add any internal notes about this request for HR records..."
-                    ></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="manager-feedback" class="form-label">Feedback to Manager</label>
-                    <textarea 
-                        id="manager-feedback" 
-                        name="manager_feedback" 
-                        class="form-textarea" 
-                        placeholder="Message that will be sent to the requesting manager..."
-                        required
-                    ></textarea>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <div class="section-title">
-                    <span class="section-icon">📅</span>
-                    Timeline & Priority
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                    <div class="form-group">
-                        <label for="priority" class="form-label">Priority Level</label>
-                        <select id="priority" name="priority" class="form-input">
-                            <option value="standard">Standard</option>
-                            <option value="high">High Priority</option>
-                            <option value="urgent">Urgent</option>
-                            <option value="low">Low Priority</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="expected-timeline" class="form-label">Expected Timeline</label>
-                        <select id="expected-timeline" name="expected_timeline" class="form-input">
-                            <option value="1-2 weeks">1-2 weeks</option>
-                            <option value="2-4 weeks">2-4 weeks</option>
-                            <option value="1-2 months">1-2 months</option>
-                            <option value="2-3 months">2-3 months</option>
-                            <option value="3+ months">3+ months</option>
-                        </select>
-                    </div>
-                </div>
             </div>
 
             <div class="action-buttons">

@@ -184,10 +184,197 @@ class MANAGER(models.Model):
 
 class RECRUITMENT(models.Model):
     id = models.AutoField(primary_key=True)
+    
+    # Basic Information
     position = models.TextField(default='')
     reason = models.TextField(default='')
-    total_personnel = models.IntegerField(default=0)
-    managerid = models.ForeignKey(MANAGER, on_delete=models.CASCADE)
+    total_personnel = models.IntegerField(default=1)
+    
+    # Status and Priority
+    STATUS_CHOICES = [
+        ('Pending', 'pending'),
+        ('Under Review', 'under_review'),
+        ('Approved', 'approved'),
+        ('In Progress', 'in_progress'),
+        ('Completed', 'completed'),
+        ('Rejected', 'rejected'),
+        ('On Hold', 'on_hold'),
+        ('More Info Needed', 'more_info_needed'),
+    ]
+    status = models.TextField(choices=STATUS_CHOICES, default='Pending')
+    
+    PRIORITY_CHOICES = [
+        ('Low', 'low'),
+        ('Standard', 'standard'),
+        ('High', 'high'),
+        ('Urgent', 'urgent'),
+        ('Critical', 'critical'),
+    ]
+    priority = models.TextField(choices=PRIORITY_CHOICES, default='Standard')
+    
+    # Timeline Information
+    requested_date = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    target_start_date = models.DateField(null=True, blank=True)
+    expected_completion_date = models.DateField(null=True, blank=True)
+    
+    TIMELINE_CHOICES = [
+        ('1-2 weeks', '1-2 weeks'),
+        ('2-4 weeks', '2-4 weeks'),
+        ('1-2 months', '1-2 months'),
+        ('2-3 months', '2-3 months'),
+        ('3+ months', '3+ months'),
+    ]
+    expected_timeline = models.TextField(choices=TIMELINE_CHOICES, default='2-4 weeks')
+    
+    # Job Details
+    job_description = models.TextField(blank=True, default='')
+    required_qualifications = models.TextField(blank=True, default='')
+    preferred_qualifications = models.TextField(blank=True, default='')
+    salary_range_min = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    salary_range_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    EMPLOYMENT_TYPE_CHOICES = [
+        ('Full-time', 'full_time'),
+        ('Part-time', 'part_time'),
+        ('Contract', 'contract'),
+        ('Temporary', 'temporary'),
+        ('Internship', 'internship'),
+    ]
+    employment_type = models.TextField(choices=EMPLOYMENT_TYPE_CHOICES, default='Full-time')
+    
+    # Department and Location
+    department = models.TextField(blank=True, default='')
+    work_location = models.TextField(blank=True, default='')
+    
+    REMOTE_WORK_CHOICES = [
+        ('On-site', 'on_site'),
+        ('Remote', 'remote'),
+        ('Hybrid', 'hybrid'),
+    ]
+    remote_work_option = models.TextField(choices=REMOTE_WORK_CHOICES, default='On-site')
+    
+    # Business Justification
+    business_justification = models.TextField(blank=True, default='')
+    budget_allocated = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    
+    JUSTIFICATION_TYPE_CHOICES = [
+        ('New Position', 'new_position'),
+        ('Replacement', 'replacement'),
+        ('Expansion', 'expansion'),
+        ('Temporary Cover', 'temporary_cover'),
+        ('Project Based', 'project_based'),
+    ]
+    justification_type = models.TextField(choices=JUSTIFICATION_TYPE_CHOICES, default='New Position')
+    
+    # Foreign Keys
+    managerid = models.ForeignKey('MANAGER', on_delete=models.CASCADE)
+    assigned_hr = models.ForeignKey('HR', on_delete=models.SET_NULL, null=True, blank=True)
+    
+    # Tracking Information
+    last_updated = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey('HR', on_delete=models.SET_NULL, null=True, blank=True, related_name='recruitment_updates')
+    
+    # Additional Fields
+    is_confidential = models.BooleanField(default=False)
+    external_posting_allowed = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return f"{self.position} - {self.total_personnel} positions (ID: {self.id})"
+    
+    @property
+    def days_since_request(self):
+        """Calculate days since the request was made"""
+        return (timezone.now().date() - self.requested_date.date()).days
+    
+    @property
+    def is_urgent(self):
+        """Check if the request is urgent based on priority and time"""
+        return self.priority in ['Urgent', 'Critical'] or self.days_since_request > 30
+    
+    @property
+    def is_overdue(self):
+        """Check if the expected completion date has passed"""
+        if self.expected_completion_date:
+            return self.expected_completion_date < timezone.now().date()
+        return False
+    
+    class Meta:
+        ordering = ['-requested_date']
+        verbose_name = 'Recruitment Request'
+        verbose_name_plural = 'Recruitment Requests'
+
+
+class RECRUITMENT_NOTES(models.Model):
+    """Model to track notes and comments on recruitment requests"""
+    id = models.AutoField(primary_key=True)
+    recruitment = models.ForeignKey(RECRUITMENT, on_delete=models.CASCADE, related_name='notes')
+    
+    NOTE_TYPE_CHOICES = [
+        ('HR Internal', 'hr_internal'),
+        ('Manager Feedback', 'manager_feedback'),
+        ('Status Update', 'status_update'),
+        ('Interview Note', 'interview_note'),
+        ('General', 'general'),
+    ]
+    note_type = models.TextField(choices=NOTE_TYPE_CHOICES, default='General')
+    
+    note_content = models.TextField()
+    created_by = models.ForeignKey('HR', on_delete=models.CASCADE)
+    created_date = models.DateTimeField(auto_now_add=True)
+    is_visible_to_manager = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"Note for {self.recruitment.position} - {self.note_type}"
+    
+    class Meta:
+        ordering = ['-created_date']
+
+
+class RECRUITMENT_STATUS_HISTORY(models.Model):
+    """Model to track status changes in recruitment requests"""
+    id = models.AutoField(primary_key=True)
+    recruitment = models.ForeignKey(RECRUITMENT, on_delete=models.CASCADE, related_name='status_history')
+    
+    old_status = models.TextField(blank=True)
+    new_status = models.TextField()
+    changed_by = models.ForeignKey('HR', on_delete=models.CASCADE)
+    changed_date = models.DateTimeField(auto_now_add=True)
+    change_reason = models.TextField(blank=True)
+    
+    def __str__(self):
+        return f"{self.recruitment.position} - {self.old_status} to {self.new_status}"
+    
+    class Meta:
+        ordering = ['-changed_date']
+
+
+class RECRUITMENT_ATTACHMENTS(models.Model):
+    """Model to handle file attachments for recruitment requests"""
+    id = models.AutoField(primary_key=True)
+    recruitment = models.ForeignKey(RECRUITMENT, on_delete=models.CASCADE, related_name='attachments')
+    
+    file_name = models.TextField()
+    file_path = models.FileField(upload_to='recruitment_attachments/', null=True, blank=True)
+    uploaded_by = models.ForeignKey('HR', on_delete=models.CASCADE)
+    uploaded_date = models.DateTimeField(auto_now_add=True)
+    
+    ATTACHMENT_TYPE_CHOICES = [
+        ('Job Description', 'job_description'),
+        ('Budget Approval', 'budget_approval'),
+        ('Organizational Chart', 'org_chart'),
+        ('Supporting Document', 'supporting_doc'),
+        ('Other', 'other'),
+    ]
+    attachment_type = models.TextField(choices=ATTACHMENT_TYPE_CHOICES, default='Other')
+    
+    description = models.TextField(blank=True)
+    
+    def __str__(self):
+        return f"{self.file_name} - {self.recruitment.position}"
+    
+    class Meta:
+        ordering = ['-uploaded_date']
+
 
 class TEAM(models.Model):
     id = models.AutoField(primary_key=True)

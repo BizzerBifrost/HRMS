@@ -41,6 +41,7 @@ urlpatterns = [
     path('manager/process-leave-request/', views.process_leave_request, name='process_leave_request'),
     path('manager/team-management/', views.team_management, name='team_management'),
     path('manager/team-goals/', views.team_goals, name='team_goals'),
+    path('manager/recruitment-request/', views.recruitment_request, name='recruitment_request'),
 
     # admin
     path('administrator/home/', views.adminmenu, name = 'adminmenu'),

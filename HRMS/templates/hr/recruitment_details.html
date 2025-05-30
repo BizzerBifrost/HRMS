@@ -412,17 +412,6 @@
     </style>
 </head>
 <body>
-    <!-- Popup Animation -->
-    <div class="popup-overlay" id="welcomePopup">
-        <div class="popup-content">
-            <div class="popup-title">Recruitment Details</div>
-            <div class="popup-message">
-                Review detailed information about this recruitment request.
-            </div>
-            <button class="popup-btn" onclick="closePopup()">Continue</button>
-        </div>
-    </div>
-
     <!-- Header -->
     <header class="header">
         <a href="{% url 'hrmenu' %}">
@@ -509,14 +498,6 @@
                         <span class="detail-label">Request Status:</span>
                         <span class="detail-value" style="color: #E90000; font-weight: bold;">Pending Review</span>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Priority Level:</span>
-                        <span class="detail-value">Standard</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Submitted Date:</span>
-                        <span class="detail-value">{{ recruitment_request.id|date:"M d, Y" }}</span>
-                    </div>
                 </div>
             </div>
 
@@ -537,9 +518,6 @@
                 <a href="{% url 'hr_recruitment' %}" class="btn btn-outline">
                     Back to List
                 </a>
-                <button class="btn btn-secondary" onclick="printDetails()">
-                    Print Details
-                </button>
             </div>
         </div>
     </main>
@@ -572,11 +550,6 @@
                     dropdown.classList.remove('show');
                 }
             }
-        }
-
-        // Print functionality
-        function printDetails() {
-            window.print();
         }
 
         // Smooth entrance animation
