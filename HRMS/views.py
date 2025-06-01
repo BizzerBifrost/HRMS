@@ -40,7 +40,7 @@ from django.conf import settings
 import uuid
 from threading import Timer
 import os
-
+from dateutil.relativedelta import relativedelta
 
 
 # Create your views here.
@@ -1894,9 +1894,15 @@ def recruitment_analytics(request):
         
         # ===== MONTHLY TRENDS =====
         monthly_data = []
+        current_date = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)  # First day of current month
+
         for i in range(6):  # Last 6 months
-            month_start = timezone.now().replace(day=1) - timedelta(days=30*i)
-            month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            # Calculate the month we're looking at
+            month_start = current_date - relativedelta(months=i)
+            # Get the last day of that month
+            month_end = month_start + relativedelta(months=1) - timedelta(days=1)
+            # Ensure month_end time is end of day
+            month_end = month_end.replace(hour=23, minute=59, second=59, microsecond=999999)
             
             month_requests = RECRUITMENT.objects.filter(
                 requested_date__gte=month_start,
@@ -1907,7 +1913,7 @@ def recruitment_analytics(request):
                 'month': month_start.strftime('%b %Y'),
                 'count': month_requests
             })
-        
+
         monthly_data.reverse()  # Show chronologically
         
         # ===== PRIORITY DISTRIBUTION =====
@@ -1918,7 +1924,7 @@ def recruitment_analytics(request):
         # ===== TOP PERFORMING MANAGERS =====
         manager_performance = []
         managers_with_requests = current_requests.values('managerid').distinct()
-        
+
         for manager_data in managers_with_requests:
             manager_id = manager_data['managerid']
             try:
@@ -1941,15 +1947,19 @@ def recruitment_analytics(request):
                 else:
                     mgr_avg_processing = 0
                 
-                manager_performance.append({
-                    'manager': manager,
-                    'requests': total_mgr_requests,
-                    'avg_processing': mgr_avg_processing,
-                    'success_rate': int(success_rate)
-                })
+                # Check if this manager is already in the list (avoid duplicates)
+                existing_manager = next((item for item in manager_performance if item['manager'].id == manager.id), None)
+                
+                if not existing_manager:
+                    manager_performance.append({
+                        'manager': manager,
+                        'requests': total_mgr_requests,
+                        'avg_processing': mgr_avg_processing,
+                        'success_rate': int(success_rate)
+                    })
             except MANAGER.DoesNotExist:
                 continue
-        
+
         # Sort by success rate
         manager_performance.sort(key=lambda x: x['success_rate'], reverse=True)
         
@@ -2671,6 +2681,38 @@ def managermenu(request):
     }
     return render(request, 'manager/managermenu.html', context)
     
+def manager_profile(request):
+    # Check if user is authenticated and is a manager
+    if not request.session.get('user_type') == 'manager':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    user_id = request.session.get('user_id')
+    manager = MANAGER.objects.get(id=user_id)
+    # Handle form submission
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        # Update password if provided
+        if current_password and new_password and confirm_password:
+            if check_password(current_password, manager.password):
+                if new_password == confirm_password:
+                    manager.password = make_password(new_password)
+                    manager.save()
+                    messages.success(request, 'Password updated successfully!')
+                else:
+                    messages.error(request, 'New password and confirm password do not match!')
+            else:
+                messages.error(request, 'Current password is incorrect!')
+                
+    context = {
+        'manager': manager
+    }
+    return render(request, 'manager/profile.html', context)
+
 # Add these functions to your HRMS/views.py file
 
 def leave_approvals(request):
@@ -3269,6 +3311,207 @@ def staffmenu(request):
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('login')
     
+def staff_personal_info(request):
+    """View for staff to view and update their personal information"""
+    # Check if user is authenticated and is staff
+    if not request.session.get('user_type') == 'staff':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get staff information
+        staff_id = request.session.get('user_id')
+        staff = STAFF.objects.get(id=staff_id)
+        
+        # Get or create address information
+        try:
+            address = ADDRESS.objects.get(staffid=staff)
+        except ADDRESS.DoesNotExist:
+            address = None
+        
+        if request.method == 'POST':
+            section = request.POST.get('section')
+            
+            if section == 'basic_info':
+                # Update basic information
+                name = request.POST.get('name', '').strip()
+                email = request.POST.get('email', '').strip()
+                phone = request.POST.get('phone', '').strip()
+                gender = request.POST.get('gender', '')
+                status = request.POST.get('status', '')
+                bank_number = request.POST.get('bank_number', '').strip()
+                emergency_contact = request.POST.get('emergency_contact', '').strip()
+                
+                # Validate required fields
+                if not name:
+                    messages.error(request, 'Name is required.')
+                    return render(request, 'staff/personal_info.html', {
+                        'staff': staff,
+                        'address': address
+                    })
+                
+                # Validate email format if provided
+                if email:
+                    import re
+                    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+                    if not re.match(email_pattern, email):
+                        messages.error(request, 'Please enter a valid email address.')
+                        return render(request, 'staff/personal_info.html', {
+                            'staff': staff,
+                            'address': address
+                        })
+                
+                # Validate phone number if provided
+                if phone:
+                    # Remove spaces and special characters for validation
+                    phone_clean = re.sub(r'[^\d+]', '', phone)
+                    if len(phone_clean) < 10 or len(phone_clean) > 15:
+                        messages.error(request, 'Please enter a valid phone number (10-15 digits).')
+                        return render(request, 'staff/personal_info.html', {
+                            'staff': staff,
+                            'address': address
+                        })
+                
+                try:
+                    # Update staff information
+                    staff.name = name
+                    staff.email = email
+                    staff.phone = phone
+                    staff.gender = gender
+                    staff.status = status
+                    staff.bank_number = bank_number
+                    staff.emergency_contact = emergency_contact
+                    staff.save()
+                    
+                    messages.success(request, 'Your personal information has been updated successfully!')
+                    
+                except Exception as e:
+                    messages.error(request, f'Error updating personal information: {str(e)}')
+            
+            elif section == 'address':
+                # Update address information
+                address1 = request.POST.get('address1', '').strip()
+                address2 = request.POST.get('address2', '').strip()
+                poscode_str = request.POST.get('poscode', '').strip()
+                state = request.POST.get('state', '').strip()
+                
+                # Validate postal code if provided
+                poscode = None
+                if poscode_str:
+                    try:
+                        poscode = int(poscode_str)
+                        if poscode < 10000 or poscode > 99999:
+                            messages.error(request, 'Please enter a valid 5-digit postal code.')
+                            return render(request, 'staff/personal_info.html', {
+                                'staff': staff,
+                                'address': address
+                            })
+                    except ValueError:
+                        messages.error(request, 'Please enter a valid postal code (numbers only).')
+                        return render(request, 'staff/personal_info.html', {
+                            'staff': staff,
+                            'address': address
+                        })
+                
+                try:
+                    # Update or create address
+                    if address:
+                        # Update existing address
+                        address.address1 = address1
+                        address.address2 = address2
+                        address.poscode = poscode if poscode else 0
+                        address.state = state
+                        address.save()
+                    else:
+                        # Create new address
+                        address = ADDRESS.objects.create(
+                            staffid=staff,
+                            address1=address1,
+                            address2=address2,
+                            poscode=poscode if poscode else 0,
+                            state=state
+                        )
+                    
+                    messages.success(request, 'Your address information has been updated successfully!')
+                    
+                except Exception as e:
+                    messages.error(request, f'Error updating address information: {str(e)}')
+            
+            elif section == 'password':
+                # Change password
+                current_password = request.POST.get('current_password')
+                new_password = request.POST.get('new_password')
+                confirm_password = request.POST.get('confirm_password')
+                
+                # Validate current password
+                if not check_password(current_password, staff.password):
+                    messages.error(request, 'Current password is incorrect.')
+                    return render(request, 'staff/personal_info.html', {
+                        'staff': staff,
+                        'address': address
+                    })
+                
+                # Validate new password
+                if new_password != confirm_password:
+                    messages.error(request, 'New password and confirm password do not match.')
+                    return render(request, 'staff/personal_info.html', {
+                        'staff': staff,
+                        'address': address
+                    })
+                
+                # Validate password strength
+                if not validate_password_strength(new_password):
+                    messages.error(request, 'Password must be at least 8 characters with a capital letter, number, and symbol.')
+                    return render(request, 'staff/personal_info.html', {
+                        'staff': staff,
+                        'address': address
+                    })
+                
+                # Check if new password is different from current
+                if check_password(new_password, staff.password):
+                    messages.error(request, 'New password must be different from current password.')
+                    return render(request, 'staff/personal_info.html', {
+                        'staff': staff,
+                        'address': address
+                    })
+                
+                try:
+                    # Update password
+                    staff.password = make_password(new_password)
+                    staff.save()
+                    
+                    messages.success(request, 'Your password has been changed successfully!')
+                    
+                except Exception as e:
+                    messages.error(request, f'Error changing password: {str(e)}')
+            
+            else:
+                messages.error(request, 'Invalid form submission.')
+            
+            # Refresh address after potential creation
+            try:
+                address = ADDRESS.objects.get(staffid=staff)
+            except ADDRESS.DoesNotExist:
+                address = None
+            
+            return render(request, 'staff/personal_info.html', {
+                'staff': staff,
+                'address': address
+            })
+        
+        # GET request - display the personal information page
+        context = {
+            'staff': staff,
+            'address': address,
+        }
+        
+        return render(request, 'staff/personal_info.html', context)
+        
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('staffmenu')
+
 def staff_leave_application(request):
     # Check if user is authenticated and is staff
     if not request.session.get('user_type') == 'staff':

@@ -626,7 +626,8 @@
                 <div class="header-left">
                     <h1>Recruitment Analytics & Reports</h1>
                     <div class="header-description">
-                        Comprehensive insights and analytics for recruitment performance ({{ start_date }} to {{ end_date }})
+                        Comprehensive insights and analytics for recruitment performance.<br>
+                        Last updated on: {{ end_date }}
                     </div>
                 </div>
                 
@@ -793,7 +794,8 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Manager</th>
+                                <th>Manager ID</th>
+                                <th>Manager Name</th>
                                 <th>Requests</th>
                                 <th>Avg. Processing</th>
                                 <th>Success Rate</th>
@@ -803,6 +805,7 @@
                         <tbody>
                             {% for manager in manager_performance %}
                             <tr>
+                                <td>{{ manager.manager.id }}</td>
                                 <td>
                                     <strong>{{ manager.manager.staffid.name }}</strong><br>
                                     <small>{{ manager.manager.staffid.position }}</small>
@@ -813,7 +816,7 @@
                                 <td>
                                     <div class="progress-bar">
                                         <div class="progress-fill {% if manager.success_rate >= 80 %}success{% elif manager.success_rate >= 60 %}warning{% else %}danger{% endif %}" 
-                                             style="width: {{ manager.success_rate }}%;"></div>
+                                            style="width: {{ manager.success_rate }}%;"></div>
                                     </div>
                                 </td>
                             </tr>

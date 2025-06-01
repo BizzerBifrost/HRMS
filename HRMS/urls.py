@@ -16,6 +16,8 @@ urlpatterns = [
     path('staff/leave/status/', views.staff_leave_status, name='staff_leave_status'),
     path('staff/view-goals/', views.staff_view_goals, name='staff_view_goals'),
     path('staff/policies/', views.staff_policies, name='staff_policies'),
+    path('staff/personal-info/', views.staff_personal_info, name='staff_personal_info'),
+
 
     # hr
     path('hr/home/', views.hrmenu, name='hrmenu'),
@@ -52,6 +54,7 @@ urlpatterns = [
     path('manager/team-management/', views.team_management, name='team_management'),
     path('manager/team-goals/', views.team_goals, name='team_goals'),
     path('manager/recruitment-request/', views.recruitment_request, name='recruitment_request'),
+    path('manager/profile/', views.manager_profile, name='manager_profile'),
 
     # admin
     path('administrator/home/', views.adminmenu, name = 'adminmenu'),

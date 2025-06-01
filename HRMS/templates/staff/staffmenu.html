@@ -282,7 +282,6 @@
             <div class="user-dropdown">
                 <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
                 <div id="userDropdown" class="dropdown-content">
-                    <a href="#">Profile</a>
                     <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
                 </div>
             </div>
@@ -306,7 +305,7 @@
                 <div class="card-icon">👤</div>
                 <h3>Personal Information</h3>
                 <p>View and update your personal details, contact information, and employment data.</p>
-                <a href="#" class="card-btn">Manage Profile</a>
+                <a href="{% url 'staff_personal_info' %}" class="card-btn">Manage Personal Information</a>
             </div>
             
             <div class="dashboard-card">

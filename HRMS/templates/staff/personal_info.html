@@ -1,0 +1,729 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Information | HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            margin-right: 15px;
+            text-align: right;
+        }
+        
+        /* User dropdown styling */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        /* Arrow for dropdown */
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        main {
+            flex: 1;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .profile-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
+        }
+        
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            color: #6c757d;
+        }
+        
+        .btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.2s;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #0045c4;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        hr {
+            margin: 30px 0;
+            border: 0;
+            border-top: 1px solid #ddd;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Password strength indicator styles */
+        .password-strength {
+            margin-top: 5px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .strength-weak {
+            color: #dc3545;
+        }
+        
+        .strength-medium {
+            color: #ffc107;
+        }
+        
+        .strength-strong {
+            color: #28a745;
+        }
+        
+        .info-display {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: var(--text-color);
+            min-width: 150px;
+        }
+        
+        .info-value {
+            color: #495057;
+            flex: 1;
+            text-align: right;
+        }
+        
+        .edit-mode {
+            display: none;
+        }
+        
+        .edit-mode.active {
+            display: block;
+        }
+        
+        .view-mode.editing {
+            display: none;
+        }
+        
+        footer {
+            background-color: var(--text-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+        
+        /* Popup Animation */
+        .popup-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .popup-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: scaleIn 0.3s ease-in-out;
+        }
+        
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Popup Animation (shown once when page loads) -->
+    <div class="popup-container" id="welcomePopup">
+        <div class="popup-content">
+            <span class="popup-close" onclick="closePopup()">&times;</span>
+            <h2 style="color: var(--secondary-color); margin-bottom: 15px;">Personal Information</h2>
+            <p>Manage your personal details and account settings.</p>
+            <button class="btn" style="margin-top: 20px; width: auto;" onclick="closePopup()">Continue</button>
+        </div>
+    </div>
+
+    <header>
+        <a href="{% url 'staffmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ staff.name }}</strong></div>
+                <div>{{ staff.position }}</div>
+            </div>
+            <!-- User image dropdown -->
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{% url 'staff_personal_info' %}">Profile</a>
+                    <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <h1>Personal Information</h1>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Basic Information Section -->
+        <div class="profile-container">
+            <h2 class="section-title">Basic Information</h2>
+            
+            <div class="view-mode" id="basicInfoView">
+                <div class="info-display">
+                    <div class="info-row">
+                        <span class="info-label">Staff ID:</span>
+                        <span class="info-value">{{ staff.id }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Full Name:</span>
+                        <span class="info-value">{{ staff.name|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Position:</span>
+                        <span class="info-value">{{ staff.position|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">{{ staff.email|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Phone:</span>
+                        <span class="info-value">{{ staff.phone|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Gender:</span>
+                        <span class="info-value">{{ staff.get_gender_display|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Marital Status:</span>
+                        <span class="info-value">{{ staff.get_status_display|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date of Birth:</span>
+                        <span class="info-value">{{ staff.date_of_birth|date:"F d, Y"|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Age:</span>
+                        <span class="info-value">{{ staff.age }} years old</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Bank Account Number:</span>
+                        <span class="info-value">{{ staff.bank_number|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Emergency Contact:</span>
+                        <span class="info-value">{{ staff.emergency_contact|default:"Not provided" }}</span>
+                    </div>
+                </div>
+                <button type="button" class="btn" onclick="enableEdit('basicInfo')">Edit Information</button>
+            </div>
+            
+            <div class="edit-mode" id="basicInfoEdit">
+                <form method="POST" action="{% url 'staff_personal_info' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="section" value="basic_info">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Full Name *</label>
+                            <input type="text" id="name" name="name" class="form-control" value="{{ staff.name }}" placeholder="e.g., John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" class="form-control" value="{{ staff.email }}" placeholder="e.g., john.doe@example.com">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" class="form-control" value="{{ staff.phone }}" placeholder="e.g., +60123456789">
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender" class="form-control">
+                                <option value="">Select Gender</option>
+                                <option value="Male" {% if staff.gender == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if staff.gender == 'Female' %}selected{% endif %}>Female</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="status">Marital Status</label>
+                            <select id="status" name="status" class="form-control">
+                                <option value="">Select Status</option>
+                                <option value="Single" {% if staff.status == 'Single' %}selected{% endif %}>Single</option>
+                                <option value="Married" {% if staff.status == 'Married' %}selected{% endif %}>Married</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="bank_number">Bank Account Number</label>
+                            <input type="text" id="bank_number" name="bank_number" class="form-control" value="{{ staff.bank_number }}" placeholder="e.g., 1234567890">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="emergency_contact">Emergency Contact</label>
+                        <input type="text" id="emergency_contact" name="emergency_contact" class="form-control" value="{{ staff.emergency_contact }}" placeholder="e.g., Jane Doe - 0123456789">
+                    </div>
+                    
+                    <button type="submit" class="btn">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelEdit('basicInfo')">Cancel</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Address Information Section -->
+        <div class="profile-container">
+            <h2 class="section-title">Address Information</h2>
+            
+            <div class="view-mode" id="addressView">
+                <div class="info-display">
+                    {% if address %}
+                    <div class="info-row">
+                        <span class="info-label">Address Line 1:</span>
+                        <span class="info-value">{{ address.address1|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Address Line 2:</span>
+                        <span class="info-value">{{ address.address2|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Postal Code:</span>
+                        <span class="info-value">{{ address.poscode|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">State:</span>
+                        <span class="info-value">{{ address.state|default:"Not provided" }}</span>
+                    </div>
+                    {% else %}
+                    <div class="info-row">
+                        <span class="info-value">No address information available</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <button type="button" class="btn" onclick="enableEdit('address')">{% if address %}Edit Address{% else %}Add Address{% endif %}</button>
+            </div>
+            
+            <div class="edit-mode" id="addressEdit">
+                <form method="POST" action="{% url 'staff_personal_info' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="section" value="address">
+                    
+                    <div class="form-group">
+                        <label for="address1">Address Line 1</label>
+                        <input type="text" id="address1" name="address1" class="form-control" value="{{ address.address1|default:'' }}" placeholder="e.g., 123 Main Street">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address2">Address Line 2</label>
+                        <input type="text" id="address2" name="address2" class="form-control" value="{{ address.address2|default:'' }}" placeholder="e.g., Indera Mahkota">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="poscode">Postal Code</label>
+                            <input type="number" id="poscode" name="poscode" class="form-control" value="{{ address.poscode|default:'' }}" placeholder="e.g., 50000">
+                        </div>
+                        <div class="form-group">
+                            <label for="state">State</label>
+                            <input type="text" id="state" name="state" class="form-control" value="{{ address.state|default:'' }}" placeholder="e.g., Selangor">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelEdit('address')">Cancel</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Change Password Section -->
+        <div class="profile-container">
+            <h2 class="section-title">Change Password</h2>
+            
+            <form method="POST" action="{% url 'staff_personal_info' %}">
+                {% csrf_token %}
+                <input type="hidden" name="section" value="password">
+                
+                <div class="form-group">
+                    <label for="current_password">Current Password</label>
+                    <input type="password" id="current_password" name="current_password" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="new_password" class="form-control" required oninput="checkPasswordStrength()" minlength="8">
+                    <div id="password-strength" class="password-strength"></div>
+                    <small class="form-text text-muted">Password must be at least 8 characters with a capital letter, number, and symbol.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Confirm New Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+                </div>
+                
+                <button type="submit" class="btn">Change Password</button>
+            </form>
+        </div>
+        
+    </main>
+
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Popup functionality
+        function closePopup() {
+            document.getElementById('welcomePopup').style.display = 'none';
+            localStorage.setItem('staffPersonalInfoPopupShown', 'true');
+        }
+        
+        // Reset popup state when logging out
+        function resetPopupState() {
+            localStorage.removeItem('staffPersonalInfoPopupShown');
+        }
+        
+        // Toggle dropdown menu
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        
+        // Check if user has seen popup before
+        window.onload = function() {
+            if (localStorage.getItem('staffPersonalInfoPopupShown') !== 'true') {
+                document.getElementById('welcomePopup').style.display = 'flex';
+            } else {
+                document.getElementById('welcomePopup').style.display = 'none';
+            }
+        }
+        
+        // Edit mode functionality
+        function enableEdit(section) {
+            document.getElementById(section + 'View').classList.add('editing');
+            document.getElementById(section + 'Edit').classList.add('active');
+        }
+        
+        function cancelEdit(section) {
+            document.getElementById(section + 'View').classList.remove('editing');
+            document.getElementById(section + 'Edit').classList.remove('active');
+        }
+        
+        // Password strength checker
+        function checkPasswordStrength() {
+            const password = document.getElementById('new_password').value;
+            const strengthDiv = document.getElementById('password-strength');
+            
+            // Clear the div
+            strengthDiv.className = 'password-strength';
+            
+            if (password.length === 0) {
+                strengthDiv.textContent = '';
+                return;
+            }
+            
+            // Check password strength
+            let strength = 0;
+            
+            // Length check
+            if (password.length >= 8) {
+                strength += 1;
+            }
+            
+            // Character variety check
+            if (/[A-Z]/.test(password)) {
+                strength += 1;
+            }
+            
+            if (/[0-9]/.test(password)) {
+                strength += 1;
+            }
+            
+            if (/[^A-Za-z0-9]/.test(password)) {
+                strength += 1;
+            }
+            
+            // Update the strength indicator
+            switch (strength) {
+                case 0:
+                case 1:
+                    strengthDiv.textContent = 'Weak password';
+                    strengthDiv.classList.add('strength-weak');
+                    break;
+                case 2:
+                case 3:
+                    strengthDiv.textContent = 'Medium password';
+                    strengthDiv.classList.add('strength-medium');
+                    break;
+                case 4:
+                    strengthDiv.textContent = 'Strong password';
+                    strengthDiv.classList.add('strength-strong');
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
