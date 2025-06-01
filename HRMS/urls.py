@@ -15,6 +15,7 @@ urlpatterns = [
     path('staff/leave/application/', views.staff_leave_application, name='staff_leave_application'),
     path('staff/leave/status/', views.staff_leave_status, name='staff_leave_status'),
     path('staff/view-goals/', views.staff_view_goals, name='staff_view_goals'),
+    path('staff/policies/', views.staff_policies, name='staff_policies'),
 
     # hr
     path('hr/home/', views.hrmenu, name='hrmenu'),
@@ -36,6 +37,8 @@ urlpatterns = [
     path('hr/recruitment/process/<int:request_id>/', views.recruitment_process, name='hr_recruitment_process'),
     path('hr/recruitment/notes/<int:request_id>/', views.recruitment_notes, name='hr_recruitment_notes'),
     path('hr/recruitment/attachments/<int:request_id>/', views.recruitment_attachments, name='hr_recruitment_attachments'),
+    path('hr/recruitment/attachment/download/<int:attachment_id>/', views.download_attachment, name='download_attachment'),
+
     path('hr/recruitment/history/<int:request_id>/', views.recruitment_status_history, name='hr_recruitment_history'),
     path('hr/recruitment/analytics/', views.recruitment_analytics, name='recruitment_analytics'),
     path('hr/recruitment/export/', views.export_recruitment_report, name='export_recruitment_report'),

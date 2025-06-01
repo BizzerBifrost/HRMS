@@ -20,7 +20,7 @@ from django.utils.dateparse import parse_date
 from django.utils import timezone
 import pytz
 from datetime import datetime, date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
@@ -39,6 +39,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 import uuid
 from threading import Timer
+import os
+
 
 
 # Create your views here.
@@ -2444,8 +2446,16 @@ def recruitment_attachments(request, request_id):
                             messages.error(request, 'File type not allowed.')
                             return redirect('hr_recruitment_attachments', request_id=request_id)
                         
-                        # Create attachment record (placeholder - implement based on your models)
-                        # In real implementation, save file and create RECRUITMENT_ATTACHMENTS record
+                        # Create attachment record
+                        attachment = RECRUITMENT_ATTACHMENTS.objects.create(
+                            recruitment=recruitment_request,
+                            file_name=file.name,
+                            file_path=file,  # Django will handle the file saving
+                            uploaded_by=hr,
+                            attachment_type=attachment_type,
+                            description=description
+                        )
+                        
                         messages.success(request, f'Attachment "{file.name}" uploaded successfully!')
                         return redirect('hr_recruitment_attachments', request_id=request_id)
                         
@@ -2458,21 +2468,64 @@ def recruitment_attachments(request, request_id):
                 attachment_id = request.POST.get('attachment_id')
                 if attachment_id:
                     try:
-                        # Delete attachment (placeholder)
-                        messages.success(request, 'Attachment deleted successfully!')
+                        # Get and delete attachment
+                        attachment = get_object_or_404(RECRUITMENT_ATTACHMENTS, id=attachment_id, recruitment=recruitment_request)
+                        
+                        # Delete the physical file if it exists
+                        if attachment.file_path:
+                            try:
+                                attachment.file_path.delete(save=False)
+                            except:
+                                pass  # File might not exist physically
+                        
+                        attachment_name = attachment.file_name
+                        attachment.delete()
+                        
+                        messages.success(request, f'Attachment "{attachment_name}" deleted successfully!')
                         return redirect('hr_recruitment_attachments', request_id=request_id)
+                        
                     except Exception as e:
                         messages.error(request, f'Error deleting attachment: {str(e)}')
         
         # GET request - display attachments page
-        # Mock attachments data
-        attachments = []  # This would be: RECRUITMENT_ATTACHMENTS.objects.filter(recruitment=recruitment_request)
+        # Get actual attachments from database
+        attachments = RECRUITMENT_ATTACHMENTS.objects.filter(recruitment=recruitment_request).order_by('-uploaded_date')
         
-        # Mock statistics
-        total_size = "2.5 MB"
+        # Calculate statistics
+        total_attachments = attachments.count()
+        total_size_bytes = 0
         job_desc_count = 0
         budget_count = 0
         supporting_count = 0
+        
+        for attachment in attachments:
+            # Count by type
+            if attachment.attachment_type == 'Job Description':
+                job_desc_count += 1
+            elif attachment.attachment_type == 'Budget Approval':
+                budget_count += 1
+            elif attachment.attachment_type == 'Supporting Document':
+                supporting_count += 1
+            
+            # Calculate total file size
+            try:
+                if attachment.file_path and hasattr(attachment.file_path, 'size'):
+                    total_size_bytes += attachment.file_path.size
+            except:
+                pass  # Skip if file doesn't exist or size unavailable
+        
+        # Format total size
+        def format_file_size(size_bytes):
+            if size_bytes == 0:
+                return "0 MB"
+            elif size_bytes < 1024:
+                return f"{size_bytes} Bytes"
+            elif size_bytes < 1024 * 1024:
+                return f"{size_bytes / 1024:.1f} KB"
+            else:
+                return f"{size_bytes / (1024 * 1024):.1f} MB"
+        
+        total_size = format_file_size(total_size_bytes)
         
         context = {
             'hr': hr,
@@ -2489,6 +2542,66 @@ def recruitment_attachments(request, request_id):
     except HR.DoesNotExist:
         messages.error(request, "HR user not found. Please login again")
         return redirect('login')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('hr_recruitment')
+    
+def download_attachment(request, attachment_id):
+    """
+    Download a recruitment attachment file
+    """
+    # Check if user is authorized HR
+    if not request.session.get('user_type') == 'hr':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get the attachment
+        attachment = get_object_or_404(RECRUITMENT_ATTACHMENTS, id=attachment_id)
+        
+        # Check if file exists
+        if not attachment.file_path or not attachment.file_path.name:
+            messages.error(request, "File not found.")
+            return redirect('hr_recruitment_attachments', request_id=attachment.recruitment.id)
+        
+        try:
+            # Open the file
+            file_path = attachment.file_path.path
+            
+            # Check if file physically exists
+            if not os.path.exists(file_path):
+                messages.error(request, "File no longer exists on server.")
+                return redirect('hr_recruitment_attachments', request_id=attachment.recruitment.id)
+            
+            # Determine content type based on file extension
+            file_extension = attachment.file_name.split('.')[-1].lower()
+            content_type_map = {
+                'pdf': 'application/pdf',
+                'doc': 'application/msword',
+                'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'xls': 'application/vnd.ms-excel',
+                'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'png': 'image/png',
+                'jpg': 'image/jpeg',
+                'jpeg': 'image/jpeg',
+            }
+            
+            content_type = content_type_map.get(file_extension, 'application/octet-stream')
+            
+            # Create response with file
+            with open(file_path, 'rb') as file:
+                response = HttpResponse(file.read(), content_type=content_type)
+                response['Content-Disposition'] = f'attachment; filename="{attachment.file_name}"'
+                return response
+                
+        except Exception as e:
+            messages.error(request, f"Error accessing file: {str(e)}")
+            return redirect('hr_recruitment_attachments', request_id=attachment.recruitment.id)
+        
+    except RECRUITMENT_ATTACHMENTS.DoesNotExist:
+        messages.error(request, "Attachment not found.")
+        return redirect('hr_recruitment')
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('hr_recruitment')
@@ -2862,7 +2975,7 @@ def team_goals(request):
 
 def recruitment_request(request):
     """
-    View for managers to submit recruitment requests
+    Enhanced view for managers to submit comprehensive recruitment requests
     """
     # Check if user is authenticated and is a manager
     if not request.session.get('user_type') == 'manager':
@@ -2876,14 +2989,26 @@ def recruitment_request(request):
         manager = MANAGER.objects.get(id=manager_id)
         
         if request.method == 'POST':
-            # Get form data
+            # Get basic required fields
             position = request.POST.get('position', '').strip()
             total_personnel_str = request.POST.get('total_personnel', '').strip()
             reason = request.POST.get('reason', '').strip()
+            priority = request.POST.get('priority', '').strip()
+            justification_type = request.POST.get('justification_type', '').strip()
+            
+            # Get optional fields
+            expected_timeline = request.POST.get('expected_timeline', '2-4 weeks')
+            target_start_date = request.POST.get('target_start_date', '').strip()
+            employment_type = request.POST.get('employment_type', 'Full-time')
+            remote_work_option = request.POST.get('remote_work_option', 'On-site')
+            salary_range_min = request.POST.get('salary_range_min', '').strip()
+            salary_range_max = request.POST.get('salary_range_max', '').strip()
+            required_qualifications = request.POST.get('required_qualifications', '').strip()
+            job_description = request.POST.get('job_description', '').strip()
             
             # Validate required fields
-            if not position or not total_personnel_str or not reason:
-                messages.error(request, 'All fields are required.')
+            if not position or not total_personnel_str or not reason or not priority or not justification_type:
+                messages.error(request, 'All required fields must be filled.')
                 return render(request, 'manager/recruitment_request.html', {
                     'manager': manager
                 })
@@ -2902,32 +3027,163 @@ def recruitment_request(request):
                     'manager': manager
                 })
             
-            # Validate reason length
-            if len(reason) > 1000:
-                messages.error(request, 'Justification is too long (maximum 1000 characters).')
-                return render(request, 'manager/recruitment_request.html', {
-                    'manager': manager
-                })
-            
-            # Validate position title
+            # Validate field lengths
             if len(position) > 100:
                 messages.error(request, 'Position title is too long (maximum 100 characters).')
                 return render(request, 'manager/recruitment_request.html', {
                     'manager': manager
                 })
             
+            if len(reason) > 1000:
+                messages.error(request, 'Justification is too long (maximum 1000 characters).')
+                return render(request, 'manager/recruitment_request.html', {
+                    'manager': manager
+                })
+            
+            
+            
+
+            # Validate priority and justification type
+            valid_priorities = ['Low', 'Standard', 'High', 'Urgent', 'Critical']
+            valid_justification_types = ['New Position', 'Replacement', 'Expansion', 'Temporary Cover', 'Project Based']
+            
+            if priority not in valid_priorities:
+                messages.error(request, 'Invalid priority level selected.')
+                return render(request, 'manager/recruitment_request.html', {
+                    'manager': manager
+                })
+            
+            if justification_type not in valid_justification_types:
+                messages.error(request, 'Invalid request type selected.')
+                return render(request, 'manager/recruitment_request.html', {
+                    'manager': manager
+                })
+            
+            # Validate salary range if provided
+            salary_min_decimal = None
+            salary_max_decimal = None
+            
+            if salary_range_min:
+                try:
+                    salary_min_decimal = Decimal(salary_range_min)
+                    if salary_min_decimal < 0:
+                        messages.error(request, 'Minimum salary cannot be negative.')
+                        return render(request, 'manager/recruitment_request.html', {
+                            'manager': manager
+                        })
+                except (ValueError, InvalidOperation):
+                    messages.error(request, 'Please enter a valid minimum salary amount.')
+                    return render(request, 'manager/recruitment_request.html', {
+                        'manager': manager
+                    })
+            
+            if salary_range_max:
+                try:
+                    salary_max_decimal = Decimal(salary_range_max)
+                    if salary_max_decimal < 0:
+                        messages.error(request, 'Maximum salary cannot be negative.')
+                        return render(request, 'manager/recruitment_request.html', {
+                            'manager': manager
+                        })
+                except (ValueError, InvalidOperation):
+                    messages.error(request, 'Please enter a valid maximum salary amount.')
+                    return render(request, 'manager/recruitment_request.html', {
+                        'manager': manager
+                    })
+            
+            # Validate salary range logic
+            if salary_min_decimal and salary_max_decimal and salary_min_decimal > salary_max_decimal:
+                messages.error(request, 'Minimum salary cannot be higher than maximum salary.')
+                return render(request, 'manager/recruitment_request.html', {
+                    'manager': manager
+                })
+            
+            # Validate target start date if provided
+            target_start_date_parsed = None
+            if target_start_date:
+                try:
+                    target_start_date_parsed = parse_date(target_start_date)
+                    if target_start_date_parsed and target_start_date_parsed < timezone.now().date():
+                        messages.error(request, 'Preferred start date cannot be in the past.')
+                        return render(request, 'manager/recruitment_request.html', {
+                            'manager': manager
+                        })
+                except ValueError:
+                    messages.error(request, 'Invalid date format for preferred start date.')
+                    return render(request, 'manager/recruitment_request.html', {
+                        'manager': manager
+                    })
+            
+            # Calculate expected completion date based on timeline
+            expected_completion_date = None
+            if target_start_date_parsed:
+                timeline_days = {
+                    '1-2 weeks': 14,
+                    '2-4 weeks': 28,
+                    '1-2 months': 60,
+                    '2-3 months': 90,
+                    '3+ months': 120
+                }
+                days_to_add = timeline_days.get(expected_timeline, 28)
+                expected_completion_date = target_start_date_parsed - timedelta(days=7)  # Hiring should complete 1 week before start
+            
+            # Get team information for department field
             try:
-                # Create the recruitment request
+                team = TEAM.objects.get(managerid=manager)
+                department = team.name if team.name else f"{manager.staffid.position} Department"
+            except TEAM.DoesNotExist:
+                department = f"{manager.staffid.position} Department"
+            
+            try:
+                # Create the recruitment request with comprehensive data
                 recruitment_request = RECRUITMENT.objects.create(
+                    # Basic Information
                     position=position,
                     reason=reason,
                     total_personnel=total_personnel,
-                    managerid=manager
+                    managerid=manager,
+                    
+                    # Status and Priority
+                    status='Pending',
+                    priority=priority,
+                    
+                    # Timeline Information
+                    target_start_date=target_start_date_parsed,
+                    expected_completion_date=expected_completion_date,
+                    expected_timeline=expected_timeline,
+                    
+                    # Job Details
+                    job_description=job_description,
+                    required_qualifications=required_qualifications,
+                    salary_range_min=salary_min_decimal,
+                    salary_range_max=salary_max_decimal,
+                    employment_type=employment_type,
+                    
+                    # Department and Location
+                    department=department,
+                    work_location='KOOP-KPMIM Premises',
+                    remote_work_option=remote_work_option,
+                    
+                    # Business Justification
+                    business_justification=reason,  # Use the same as reason for now
+                    justification_type=justification_type,
+                    
+                    # Additional Settings
+                    is_confidential=False,
+                    external_posting_allowed=True,
                 )
                 
-                # Success message with details
+                # Create success message with details
                 personnel_text = "person" if total_personnel == 1 else "people"
-                success_message = f'Recruitment request submitted successfully! Request for {total_personnel} {personnel_text} for {position} position has been sent to HR for review.'
+                priority_text = f" with {priority.lower()} priority" if priority != 'Standard' else ""
+                timeline_text = f" Expected timeline: {expected_timeline}."
+                
+                success_message = (
+                    f'Recruitment request submitted successfully! '
+                    f'Request #{recruitment_request.id} for {total_personnel} {personnel_text} '
+                    f'for {position} position{priority_text} has been sent to HR for review.{timeline_text}'
+                )
+                
                 messages.success(request, success_message)
                 
                 # Redirect to prevent form resubmission
@@ -2941,16 +3197,54 @@ def recruitment_request(request):
         
         # GET request - show the form
         context = {
-            'manager': manager
+            'manager': manager,
+            'today': timezone.now().date(),
         }
         
         return render(request, 'manager/recruitment_request.html', context)
     
+    except MANAGER.DoesNotExist:
+        messages.error(request, "Manager profile not found. Please login again.")
+        return redirect('login')
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('managermenu')
 
 # staff
+
+def staff_policies(request):
+    """View for staff to view company policies and procedures"""
+    # Check if user is authenticated and is staff
+    if not request.session.get('user_type') == 'staff':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get staff information
+        staff_id = request.session.get('user_id')
+        staff = STAFF.objects.get(id=staff_id)
+        
+        # Get all policies ordered by most recent first
+        policies = POLICIES.objects.all().order_by('-enacted')
+        
+        # Count total policies
+        policies_count = policies.count()
+        
+        context = {
+            'staff': staff,
+            'policies': policies,
+            'policies_count': policies_count,
+        }
+        
+        return render(request, 'staff/policies.html', context)
+        
+    except STAFF.DoesNotExist:
+        messages.error(request, "Staff profile not found. Please login again.")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('staffmenu')
 
 def staffmenu(request):
     # Check if user is authenticated and is staff

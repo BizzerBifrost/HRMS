@@ -854,40 +854,6 @@
             {% endif %}
         </div>
 
-        <!-- Performance Metrics -->
-        <div class="analytics-table">
-            <div class="table-header">Detailed Performance Metrics</div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Metric</th>
-                            <th>Current Period</th>
-                            <th>Previous Period</th>
-                            <th>Change</th>
-                            <th>Target</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for metric in performance_metrics %}
-                        <tr>
-                            <td><strong>{{ metric.metric }}</strong></td>
-                            <td>{{ metric.current }}</td>
-                            <td>{{ metric.previous }}</td>
-                            <td>
-                                <span class="kpi-change {{ metric.change_direction }}">
-                                    {% if metric.change_direction == 'positive' %}+{% elif metric.change_direction == 'negative' %}-{% endif %}{{ metric.change_percent }}%
-                                </span>
-                            </td>
-                            <td>{{ metric.target }}</td>
-                            <td>{{ metric.status }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </main>
 
     <!-- Export Modal -->
