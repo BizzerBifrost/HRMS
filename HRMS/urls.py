@@ -19,6 +19,7 @@ urlpatterns = [
     path('staff/personal-info/', views.staff_personal_info, name='staff_personal_info'),
     path('staff/payslip/', views.staff_payslip, name='staff_payslip'),
     path('staff/payslip/pdf/', views.staff_payslip_pdf, name='staff_payslip_pdf'),
+    path('staff/submit-feedback/', views.staff_submit_feedback, name='staff_submit_feedback'),
 
 
     # hr

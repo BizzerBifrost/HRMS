@@ -1,0 +1,525 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Feedback | HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            margin-right: 15px;
+            text-align: right;
+        }
+        
+        /* User dropdown styling */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        /* Arrow for dropdown */
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        main {
+            flex: 1;
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .feedback-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
+        }
+        
+        select.form-control {
+            cursor: pointer;
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: block;
+            padding: 12px 15px;
+            border: 2px dashed #ddd;
+            border-radius: 5px;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .file-input-label:hover {
+            border-color: var(--secondary-color);
+            background-color: rgba(0, 83, 237, 0.05);
+            transform: scale(1.01);
+        }
+        
+        .file-input-label.drag-over {
+            border-color: var(--secondary-color);
+            background-color: rgba(0, 83, 237, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .file-selected {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background-color: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 5px;
+            color: #155724;
+            font-size: 14px;
+        }
+        
+        .btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #0045c4;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .form-text {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        footer {
+            background-color: var(--text-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+        
+        /* Popup Animation */
+        .popup-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .popup-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: scaleIn 0.3s ease-in-out;
+        }
+        
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{% url 'staffmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ staff.name }}</strong></div>
+                <div>{{ staff.position }}</div>
+            </div>
+            <!-- User image dropdown -->
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <h1>Submit Feedback</h1>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="feedback-container">
+            <form method="POST" enctype="multipart/form-data" action="{% url 'staff_submit_feedback' %}">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="category">Category <span style="color: var(--accent-color);">*</span></label>
+                    <select id="category" name="category" class="form-control" required>
+                        <option value="">Select feedback category</option>
+                        <option value="Complaint">Complaint</option>
+                        <option value="Feedback">Feedback</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="text">Your Message <span style="color: var(--accent-color);">*</span></label>
+                    <textarea id="text" name="text" class="form-control" required 
+                              placeholder="Please describe your feedback, suggestion, or concern in detail..."></textarea>
+                    <div class="form-text">Minimum 10 characters required.</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="attachment">Attachment (Optional)</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="attachment" name="attachment" class="file-input" 
+                               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt" onchange="showFileName()">
+                        <label for="attachment" class="file-input-label">
+                             Click to select file<br>
+                            <small>Supported formats: PDF, DOC, DOCX, JPG, PNG, TXT (Max 5MB)</small>
+                        </label>
+                    </div>
+                    <div id="file-selected" class="file-selected" style="display: none;"></div>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn">Submit Feedback</button>
+                    <a href="{% url 'staffmenu' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Popup functionality
+        function closePopup() {
+            document.getElementById('welcomePopup').style.display = 'none';
+            localStorage.setItem('staffFeedbackPopupShown', 'true');
+        }
+        
+        // Reset popup state when logging out
+        function resetPopupState() {
+            localStorage.removeItem('staffFeedbackPopupShown');
+        }
+        
+        // Toggle dropdown menu
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        
+        // Show selected file name
+        function showFileName() {
+            const fileInput = document.getElementById('attachment');
+            const fileSelectedDiv = document.getElementById('file-selected');
+            
+            if (fileInput.files.length > 0) {
+                const fileName = fileInput.files[0].name;
+                const fileSize = (fileInput.files[0].size / (1024 * 1024)).toFixed(2);
+                
+                fileSelectedDiv.innerHTML = `📎 Selected: ${fileName} (${fileSize} MB)`;
+                fileSelectedDiv.style.display = 'block';
+            } else {
+                fileSelectedDiv.style.display = 'none';
+            }
+        }
+        
+        // Drag and drop functionality (based on working HR attachment code)
+        function initializeDragAndDrop() {
+            const fileInputLabel = document.querySelector('.file-input-label');
+            const fileInput = document.getElementById('attachment');
+            
+            fileInputLabel.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('drag-over');
+            });
+            
+            fileInputLabel.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('drag-over');
+            });
+            
+            fileInputLabel.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('drag-over');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    // Validate file before setting
+                    const file = files[0];
+                    const maxSize = 5 * 1024 * 1024; // 5MB
+                    const allowedExtensions = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.txt'];
+                    const fileName = file.name.toLowerCase();
+                    
+                    // Check file size
+                    if (file.size > maxSize) {
+                        alert('File size must be less than 5MB.');
+                        return;
+                    }
+                    
+                    // Check file type
+                    const isValidType = allowedExtensions.some(ext => fileName.endsWith(ext));
+                    if (!isValidType) {
+                        alert('Please upload a valid file type (PDF, DOC, DOCX, JPG, PNG, TXT).');
+                        return;
+                    }
+                    
+                    // Set the files directly
+                    fileInput.files = files;
+                    showFileName();
+                }
+            });
+        }
+        
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const textField = document.getElementById('text');
+            const categoryField = document.getElementById('category');
+            
+            if (textField.value.trim().length < 10) {
+                e.preventDefault();
+                alert('Please provide at least 10 characters in your message.');
+                textField.focus();
+                return;
+            }
+            
+            if (categoryField.value === '') {
+                e.preventDefault();
+                alert('Please select a feedback category.');
+                categoryField.focus();
+                return;
+            }
+        });
+        
+        // Check if user has seen popup before
+        window.onload = function() {
+            if (localStorage.getItem('staffFeedbackPopupShown') !== 'true') {
+                document.getElementById('welcomePopup').style.display = 'flex';
+            } else {
+                document.getElementById('welcomePopup').style.display = 'none';
+            }
+            
+            // Initialize drag and drop functionality
+            initializeDragAndDrop();
+        }
+    </script>
+</body>
+</html>
