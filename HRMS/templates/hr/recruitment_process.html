@@ -4,63 +4,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Process Recruitment - HRMS</title>
+    <title>Process Recruitment Request | HRMS</title>
     <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
     <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: Arial, sans-serif;
         }
-
+        
         body {
-            background-color: #F0F0F0;
+            background-color: var(--primary-color);
+            color: var(--text-color);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
-
-        /* Header */
-        .header {
-            background-color: #0053ED;
-            padding: 15px 30px;
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
+        
         .logo {
             width: 120px;
             height: auto;
         }
-
-        .user-info {
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
             display: flex;
             align-items: center;
-            gap: 15px;
-            color: white;
         }
-
-        .user-details {
+        
+        .user-info {
+            margin-right: 15px;
             text-align: right;
         }
-
-        .user-name {
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .user-position {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .user-menu {
+        
+        /* User dropdown styling */
+        .user-dropdown {
             position: relative;
+            display: inline-block;
         }
-
+        
         .user-image {
             width: 40px;
             height: 40px;
@@ -68,434 +72,451 @@
             cursor: pointer;
             border: 2px solid white;
         }
-
-        .dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            min-width: 150px;
-            z-index: 1000;
+        
+        .dropdown-content {
             display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
         }
-
-        .dropdown.show {
-            display: block;
-        }
-
-        .dropdown a {
-            display: block;
+        
+        .dropdown-content a {
+            color: var(--text-color);
             padding: 12px 16px;
             text-decoration: none;
-            color: #4A4A4A;
-            border-bottom: 1px solid #f0f0f0;
+            display: block;
+            border-radius: 5px;
         }
-
-        .dropdown a:hover {
-            background-color: #f8f9fa;
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
         }
-
-        .dropdown a:last-child {
-            border-bottom: none;
+        
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
         }
-
-        /* Main Content */
-        .main-container {
-            padding: 30px;
-            max-width: 900px;
-            margin: 0 auto;
+        
+        .show {
+            display: block;
+        }
+        
+        main {
             flex: 1;
+            padding: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
         }
-
+        
+        /* Breadcrumb */
         .breadcrumb {
             margin-bottom: 20px;
-            color: #666;
         }
-
+        
         .breadcrumb a {
-            color: #0053ED;
+            color: var(--secondary-color);
             text-decoration: none;
         }
-
+        
         .breadcrumb a:hover {
             text-decoration: underline;
         }
-
-        .page-header {
+        
+        /* Header Section */
+        .process-header {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 25px;
             margin-bottom: 30px;
         }
-
-        .page-title {
-            color: #4A4A4A;
-            font-size: 28px;
-            font-weight: bold;
+        
+        .request-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .summary-left h1 {
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        
+        .request-id {
+            color: #666;
+            font-size: 14px;
             margin-bottom: 10px;
         }
-
-        .page-subtitle {
-            color: #666;
+        
+        .current-status {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-in-progress, .status-under-review {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .priority-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .priority-low {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .priority-standard {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .priority-high {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .priority-urgent {
+            background-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .priority-critical {
+            background-color: #e2d9f3;
+            color: #6f42c1;
+        }
+        
+        /* Process Cards */
+        .process-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .process-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
             font-size: 16px;
         }
-
-        /* Request Summary */
-        .request-summary {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-left: 4px solid #0053ED;
-            margin-bottom: 25px;
-        }
-
-        .summary-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .position-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #0053ED;
-        }
-
-        .request-id {
-            background: #f0f0f0;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            color: #666;
-            font-weight: bold;
-        }
-
-        .summary-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            background: #f8f9fa;
-            border-radius: 6px;
-        }
-
-        .summary-label {
-            font-weight: 600;
-            color: #4A4A4A;
-            font-size: 14px;
-        }
-
-        .summary-value {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .personnel-count {
-            background: #E90000;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 15px;
-            font-weight: bold;
-            font-size: 12px;
-        }
-
-        /* Process Form */
-        .process-form {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 25px;
-        }
-
-        .form-section {
-            margin-bottom: 30px;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #4A4A4A;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-        }
-
-        .section-icon {
-            margin-right: 10px;
-            font-size: 20px;
-        }
-
-        .action-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .option-card {
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
+        
+        .card-content {
             padding: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
         }
-
-        .option-card:hover {
-            border-color: #0053ED;
-            transform: translateY(-2px);
-        }
-
-        .option-card.selected {
-            border-color: #0053ED;
-            background-color: #f8f9ff;
-        }
-
-        .option-icon {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-
-        .option-title {
-            font-weight: bold;
-            color: #4A4A4A;
-            margin-bottom: 5px;
-        }
-
-        .option-description {
-            color: #666;
-            font-size: 14px;
-        }
-
+        
+        /* Form Elements */
         .form-group {
             margin-bottom: 20px;
         }
-
-        .form-label {
+        
+        .form-group label {
             display: block;
-            font-weight: 600;
-            color: #4A4A4A;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #0053ED;
-        }
-
-        .form-textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 6px;
-            font-size: 14px;
-            min-height: 120px;
-            resize: vertical;
-            transition: border-color 0.2s;
-        }
-
-        .form-textarea:focus {
-            outline: none;
-            border-color: #0053ED;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 30px;
-        }
-
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
+            margin-bottom: 5px;
             font-weight: bold;
-            font-size: 14px;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-block;
+            color: var(--text-color);
         }
-
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
         .btn-primary {
-            background-color: #0053ED;
+            background-color: var(--secondary-color);
             color: white;
         }
-
+        
         .btn-primary:hover {
-            background-color: #0041c7;
-            transform: translateY(-2px);
+            background-color: #0045c4;
         }
-
+        
         .btn-success {
             background-color: #28a745;
             color: white;
         }
-
+        
         .btn-success:hover {
             background-color: #218838;
-            transform: translateY(-2px);
         }
-
+        
         .btn-danger {
             background-color: #dc3545;
             color: white;
         }
-
+        
         .btn-danger:hover {
             background-color: #c82333;
-            transform: translateY(-2px);
         }
-
-        .btn-secondary {
-            background-color: #4A4A4A;
+        
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        
+        .btn-info {
+            background-color: #17a2b8;
             color: white;
         }
-
-        .btn-secondary:hover {
-            background-color: #333;
-            transform: translateY(-2px);
+        
+        .btn-info:hover {
+            background-color: #138496;
         }
-
-        /* Footer */
-        .footer {
-            background-color: #4A4A4A;
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .quick-actions h4 {
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        /* Status History */
+        .status-history {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-date {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .history-action {
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        
+        .history-note {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        /* Confirmation Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            max-width: 90%;
+        }
+        
+        .modal-header {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* Messages */
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        
+        .messages .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .messages .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            background-color: var(--text-color);
             color: white;
             text-align: center;
-            padding: 20px;
+            padding: 15px;
             margin-top: auto;
         }
-
-        /* Responsive */
+        
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .logo {
-                width: 100px;
-            }
-
-            .main-container {
-                padding: 20px;
-            }
-
-            .summary-details {
+            .process-container {
                 grid-template-columns: 1fr;
             }
-
-            .action-options {
-                grid-template-columns: 1fr;
+            
+            .request-summary {
+                flex-direction: column;
             }
-
+            
             .action-buttons {
                 flex-direction: column;
             }
-
-            .summary-header {
-                flex-direction: column;
-                gap: 10px;
+            
+            .btn {
+                margin-right: 0;
+                justify-content: center;
             }
-
-            .user-details {
-                display: none;
-            }
-        }
-
-        /* Popup Animation */
-        .popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
-
-        .popup-content {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            animation: popupSlideIn 0.3s ease-out;
-        }
-
-        @keyframes popupSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-50px) scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .popup-title {
-            font-size: 24px;
-            color: #0053ED;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-
-        .popup-message {
-            color: #666;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-
-        .popup-btn {
-            background-color: #0053ED;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    
-    <!-- Header -->
-    <header class="header">
+    <header>
         <a href="{% url 'hrmenu' %}">
-            <img src="{% static 'img/logo.png' %}" alt="Company Logo" class="logo">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
         </a>
-        
-        <div class="user-info">
-            <div class="user-details">
-                <div class="user-name">{{ user_name }}</div>
-                <div class="user-position">{{ hr.staffid.position }}</div>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ hr.staffid.name }}</strong></div>
+                <div>{{ hr.staffid.position }}</div>
             </div>
-            <div class="user-menu">
-                <img src="{% static 'img/user.png' %}" alt="User" class="user-image" onclick="toggleDropdown()">
-                <div class="dropdown" id="userDropdown">
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
                     <a href="{% url 'hr_profile' %}">Profile</a>
                     <a href="{% url 'logout' %}">Logout</a>
                 </div>
@@ -503,212 +524,349 @@
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="main-container">
+    <main>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        <!-- Breadcrumb -->
         <div class="breadcrumb">
-            <a href="{% url 'hr_recruitment' %}">Recruitment Requests</a> > 
-            <a href="{% url 'hr_recruitment_details' recruitment_request.id %}">Request Details</a> > 
-            Process Request
+            <a href="{% url 'hrmenu' %}">HR Dashboard</a> &gt; 
+            <a href="{% url 'hr_recruitment' %}">Recruitment</a> &gt; 
+            <a href="{% url 'hr_recruitment_details' recruitment_request.id %}">Request #{{ recruitment_request.id }}</a> &gt; 
+            Process
         </div>
-
-        <div class="page-header">
-            <h1 class="page-title">Process Recruitment Request</h1>
-            <p class="page-subtitle">Review and take action on this hiring request</p>
-        </div>
-
-        <!-- Request Summary -->
-        <div class="request-summary">
-            <div class="summary-header">
-                <div class="position-title">{{ recruitment_request.position }}</div>
-                <div class="request-id">Request ID: #{{ recruitment_request.id }}</div>
-            </div>
-            
-            <div class="summary-details">
-                <div class="summary-item">
-                    <span class="summary-label">Requested by:</span>
-                    <span class="summary-value">{{ recruitment_request.managerid.staffid.name }}</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Manager ID:</span>
-                    <span class="summary-value">{{ recruitment_request.managerid.id }}</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Personnel Needed:</span>
-                    <span class="personnel-count">{{ recruitment_request.total_personnel }}</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Current Status:</span>
-                    <span class="summary-value" style="color: #E90000; font-weight: bold;">Pending</span>
+        
+        <!-- Header Section -->
+        <div class="process-header">
+            <div class="request-summary">
+                <div class="summary-left">
+                    <h1>Process: {{ recruitment_request.position }}</h1>
+                    <div class="request-id">Request ID: #{{ recruitment_request.id }} | Manager: {{ recruitment_request.managerid.staffid.name }}</div>
+                    <div class="current-status">
+                        <span class="status-badge status-{{ recruitment_request.status|lower|cut:' ' }}">
+                            {{ recruitment_request.status }}
+                        </span>
+                        <span class="priority-badge priority-{{ recruitment_request.priority|lower }}">
+                            {{ recruitment_request.priority }}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Process Form -->
-        <form method="post" class="process-form">
-            {% csrf_token %}
-            
-            <div class="form-section">
-                <div class="section-title">
-                    <span class="section-icon">⚡</span>
-                    Select Action
-                </div>
-                <div class="action-options">
-                    <div class="option-card" onclick="selectAction('acknowledge')" id="acknowledge-option">
-                        <div class="option-icon" style="color: #28a745;">✅</div>
-                        <div class="option-title">Acknowledge Request</div>
-                        <div class="option-description">Mark as reviewed and begin processing</div>
-                    </div>
-                    <div class="option-card" onclick="selectAction('approve')" id="approve-option">
-                        <div class="option-icon" style="color: #0053ED;">👍</div>
-                        <div class="option-title">Approve & Process</div>
-                        <div class="option-description">Approve and start recruitment process</div>
-                    </div>
-                    <div class="option-card" onclick="selectAction('reject')" id="reject-option">
-                        <div class="option-icon" style="color: #dc3545;">❌</div>
-                        <div class="option-title">Reject Request</div>
-                        <div class="option-description">Decline this recruitment request</div>
-                    </div>
-                </div>
-                <input type="hidden" name="action" id="selected-action" required>
-            </div>
-
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <h4>Quick Actions</h4>
             <div class="action-buttons">
-                <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
-                    Process Request
+                <button type="button" class="btn btn-success" onclick="quickAction('acknowledge')">
+                    ✅ Acknowledge Request
                 </button>
-                <a href="{% url 'hr_recruitment_details' recruitment_request.id %}" class="btn btn-secondary">
-                    Back to Details
-                </a>
-                <a href="{% url 'hr_recruitment' %}" class="btn btn-secondary">
-                    Cancel
-                </a>
+                <button type="button" class="btn btn-info" onclick="quickAction('under_review')">
+                    🔍 Mark Under Review
+                </button>
+                <button type="button" class="btn btn-warning" onclick="quickAction('on_hold')">
+                    ⏸️ Put On Hold
+                </button>
+                <button type="button" class="btn btn-primary" onclick="quickAction('approved')">
+                    ✅ Approve Request
+                </button>
+                <button type="button" class="btn btn-danger" onclick="quickAction('rejected')">
+                    ❌ Reject Request
+                </button>
             </div>
-        </form>
+        </div>
+
+        <!-- Process Cards -->
+        <div class="process-container">
+            <!-- Status Update -->
+            <div class="process-card">
+                <div class="card-header">Update Status</div>
+                <div class="card-content">
+                    <form method="POST" id="statusForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_status">
+                        
+                        <div class="form-group">
+                            <label for="status">New Status</label>
+                            <select id="status" name="status" class="form-control" required>
+                                {% for choice in status_choices %}
+                                    <option value="{{ choice.0 }}" {% if choice.0 == recruitment_request.status %}selected{% endif %}>
+                                        {{ choice.0 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="priority">Priority Level</label>
+                            <select id="priority" name="priority" class="form-control">
+                                <option value="Low" {% if recruitment_request.priority == 'Low' %}selected{% endif %}>Low</option>
+                                <option value="Standard" {% if recruitment_request.priority == 'Standard' %}selected{% endif %}>Standard</option>
+                                <option value="High" {% if recruitment_request.priority == 'High' %}selected{% endif %}>High</option>
+                                <option value="Urgent" {% if recruitment_request.priority == 'Urgent' %}selected{% endif %}>Urgent</option>
+                                <option value="Critical" {% if recruitment_request.priority == 'Critical' %}selected{% endif %}>Critical</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="reason">Reason for Change</label>
+                            <textarea id="reason" name="reason" class="form-control" 
+                                    placeholder="Explain the reason for this status/priority change..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            💾 Update Status
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Timeline & Assignment -->
+            <div class="process-card">
+                <div class="card-header">Timeline & Assignment</div>
+                <div class="card-content">
+                    <form method="POST" id="timelineForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_timeline">
+                        
+                        <div class="form-group">
+                            <label for="target_start_date">Target Start Date</label>
+                            <input type="date" id="target_start_date" name="target_start_date" 
+                                   class="form-control" value="{{ recruitment_request.target_start_date|date:'Y-m-d' }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="expected_completion">Expected Completion</label>
+                            <input type="date" id="expected_completion" name="expected_completion" 
+                                   class="form-control" value="{{ recruitment_request.expected_completion_date|date:'Y-m-d' }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="assigned_hr">Assign to HR Personnel</label>
+                            <select id="assigned_hr" name="assigned_hr" class="form-control">
+                                <option value="">Select HR Personnel</option>
+                                <option value="current" selected>{{ hr.staffid.name }} (Current)</option>
+                                <!-- Add other HR personnel options here -->
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-info">
+                            📅 Update Timeline
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Communication -->
+            <div class="process-card">
+                <div class="card-header">Communication</div>
+                <div class="card-content">
+                    <form method="POST" id="communicationForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="send_communication">
+                        
+                        <div class="form-group">
+                            <label for="communication_type">Communication Type</label>
+                            <select id="communication_type" name="communication_type" class="form-control">
+                                <option value="status_update">Status Update</option>
+                                <option value="request_info">Request More Information</option>
+                                <option value="approval_notification">Approval Notification</option>
+                                <option value="rejection_notification">Rejection Notification</option>
+                                <option value="general">General Communication</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">Message to Manager</label>
+                            <textarea id="message" name="message" class="form-control" 
+                                    placeholder="Enter your message to the requesting manager..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" name="urgent_flag" value="1">
+                                Mark as urgent communication
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            📧 Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Advanced Actions -->
+            <div class="process-card">
+                <div class="card-header">Advanced Actions</div>
+                <div class="card-content">
+                    <div class="form-group">
+                        <label>Request Management</label>
+                        <div style="margin-top: 10px;">
+                            <a href="#" class="btn btn-info">
+                                 Add Notes
+                            </a>
+                            <a href="#" class="btn btn-warning">
+                                📎 Manage Attachments
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Documentation</label>
+                        <div style="margin-top: 10px;">
+                            <button type="button" class="btn btn-secondary" onclick="generateReport()">
+                                📊 Generate Report
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="exportData()">
+                                📤 Export Data
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Danger Zone</label>
+                        <div style="margin-top: 10px;">
+                            <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                                🗑️ Delete Request
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 30px;">
+                        <a href="{% url 'hr_recruitment_details' recruitment_request.id %}" class="btn btn-secondary">
+                            ← Back to Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System. All rights reserved.</p>
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Confirm Action</div>
+            <div class="modal-body">
+                <p id="confirmMessage">Are you sure you want to perform this action?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmBtn" onclick="executeAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
     </footer>
 
     <script>
-        let selectedAction = null;
-
-        // Popup animation
-        function closePopup() {
-            document.getElementById('welcomePopup').style.display = 'none';
-        }
-
-        // Auto close popup after 3 seconds
-        setTimeout(closePopup, 3000);
-
-        // User dropdown functionality
+        let currentAction = null;
+        
         function toggleDropdown() {
-            const dropdown = document.getElementById('userDropdown');
-            dropdown.classList.toggle('show');
+            document.getElementById('userDropdown').classList.toggle('show');
         }
-
-        // Close dropdown when clicking outside
+        
         window.onclick = function(event) {
             if (!event.target.matches('.user-image')) {
-                const dropdown = document.getElementById('userDropdown');
-                if (dropdown.classList.contains('show')) {
-                    dropdown.classList.remove('show');
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
                 }
             }
-        }
-
-        // Action selection
-        function selectAction(action) {
-            // Remove previous selection
-            document.querySelectorAll('.option-card').forEach(card => {
-                card.classList.remove('selected');
-            });
             
-            // Add selection to clicked card
-            document.getElementById(action + '-option').classList.add('selected');
-            
-            // Set hidden input value
-            document.getElementById('selected-action').value = action;
-            selectedAction = action;
-            
-            // Enable submit button
-            document.getElementById('submit-btn').disabled = false;
-            
-            // Update submit button text based on action
-            const submitBtn = document.getElementById('submit-btn');
-            switch(action) {
-                case 'acknowledge':
-                    submitBtn.textContent = 'Acknowledge Request';
-                    submitBtn.className = 'btn btn-success';
-                    break;
-                case 'approve':
-                    submitBtn.textContent = 'Approve & Process';
-                    submitBtn.className = 'btn btn-primary';
-                    break;
-                case 'request_info':
-                    submitBtn.textContent = 'Request Information';
-                    submitBtn.className = 'btn btn-primary';
-                    break;
-                case 'reject':
-                    submitBtn.textContent = 'Reject Request';
-                    submitBtn.className = 'btn btn-danger';
-                    break;
-            }
-            
-            // Update placeholder text for manager feedback based on action
-            const feedbackTextarea = document.getElementById('manager-feedback');
-            switch(action) {
-                case 'acknowledge':
-                    feedbackTextarea.placeholder = 'Your recruitment request has been received and is being processed...';
-                    break;
-                case 'approve':
-                    feedbackTextarea.placeholder = 'Your recruitment request has been approved. We will begin the hiring process...';
-                    break;
-                case 'request_info':
-                    feedbackTextarea.placeholder = 'We need additional information about your recruitment request...';
-                    break;
-                case 'reject':
-                    feedbackTextarea.placeholder = 'Your recruitment request cannot be approved at this time due to...';
-                    break;
+            // Close modal if clicked outside
+            if (event.target.classList.contains('modal')) {
+                closeModal();
             }
         }
-
+        
+        function quickAction(action) {
+            const statusSelect = document.getElementById('status');
+            const messages = {
+                'acknowledge': 'acknowledge this recruitment request',
+                'under_review': 'mark this request as under review',
+                'on_hold': 'put this request on hold',
+                'approved': 'approve this recruitment request',
+                'rejected': 'reject this recruitment request'
+            };
+            
+            const statusMappings = {
+                'acknowledge': 'Under Review',
+                'under_review': 'Under Review',
+                'on_hold': 'On Hold',
+                'approved': 'Approved',
+                'rejected': 'Rejected'
+            };
+            
+            currentAction = () => {
+                statusSelect.value = statusMappings[action];
+                document.getElementById('statusForm').submit();
+            };
+            
+            document.getElementById('confirmMessage').textContent = 
+                `Are you sure you want to ${messages[action]}?`;
+            document.getElementById('confirmModal').style.display = 'block';
+        }
+        
+        function confirmDelete() {
+            currentAction = () => {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            };
+            
+            document.getElementById('confirmMessage').textContent = 
+                'Are you sure you want to delete this recruitment request? This action cannot be undone.';
+            document.getElementById('confirmBtn').className = 'btn btn-danger';
+            document.getElementById('confirmModal').style.display = 'block';
+        }
+        
+        function generateReport() {
+            alert('Generate report functionality will be implemented');
+        }
+        
+        function exportData() {
+            alert('Export data functionality will be implemented');
+        }
+        
+        function closeModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            document.getElementById('confirmBtn').className = 'btn btn-primary';
+            currentAction = null;
+        }
+        
+        function executeAction() {
+            if (currentAction) {
+                currentAction();
+            }
+            closeModal();
+        }
+        
         // Form validation
-        document.querySelector('.process-form').addEventListener('submit', function(e) {
-            if (!selectedAction) {
-                e.preventDefault();
-                alert('Please select an action to proceed.');
-                return;
-            }
+        document.getElementById('statusForm').addEventListener('submit', function(e) {
+            const status = document.getElementById('status').value;
+            const reason = document.getElementById('reason').value.trim();
             
-            const managerFeedback = document.getElementById('manager-feedback').value.trim();
-            if (!managerFeedback) {
+            if ((status === 'Rejected' || status === 'On Hold') && !reason) {
                 e.preventDefault();
-                alert('Please provide feedback to the manager.');
-                return;
+                alert('Please provide a reason for this status change.');
+                document.getElementById('reason').focus();
             }
-            
-            // Confirm action
-            const confirmMessage = `Are you sure you want to ${selectedAction.replace('_', ' ')} this recruitment request?`;
-            if (!confirm(confirmMessage)) {
-                e.preventDefault();
-            }
-        });
-
-        // Smooth entrance animation
-        document.addEventListener('DOMContentLoaded', function() {
-            const sections = document.querySelectorAll('.request-summary, .process-form');
-            sections.forEach((section, index) => {
-                section.style.opacity = '0';
-                section.style.transform = 'translateY(20px)';
-                
-                setTimeout(() => {
-                    section.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                    section.style.opacity = '1';
-                    section.style.transform = 'translateY(0)';
-                }, index * 200);
-            });
         });
     </script>
 </body>

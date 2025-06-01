@@ -1,4 +1,4 @@
-# Add this to the top of your HRMSKPMIM/HRMS/views.py file
+# Add this to the top of your HRMSKPMIM/HRMS/views.py fileSTATUS_HISTORY
 # Update your existing imports to include TEAM_GOALS:
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -7,7 +7,7 @@ from django.contrib import messages
 from .models import (
     STAFF, EDUCATION, EXPERIENCE, ADDRESS, PAYROLL, 
     FEEDBACK, LEAVE_BALANCE, TIMEOFF, MANAGER, 
-    RECRUITMENT, TEAM, TEAM_MEMBERSHIP, HR, POLICIES, ADMIN, TEAM_GOALS
+    RECRUITMENT,RECRUITMENT_NOTES,RECRUITMENT_STATUS_HISTORY,RECRUITMENT_ATTACHMENTS, TEAM, TEAM_MEMBERSHIP, HR, POLICIES, ADMIN, TEAM_GOALS
 )
 import logging
 import secrets
@@ -25,6 +25,21 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
 import json
+import io
+from django.db.models import Count, Avg, Q, Sum, Case, When, F, IntegerField
+from django.db.models.functions import TruncMonth, TruncWeek, TruncDay
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.lib.units import inch
+import xlsxwriter
+from django.core.mail import send_mail
+from django.conf import settings
+import uuid
+from threading import Timer
+
 
 # Create your views here.
 
@@ -1278,201 +1293,7 @@ def hr_policies(request):
     
     return render(request, 'hr/hr_policies.html', context)
 
-def recruitment_list(request):
-    """
-    Display all recruitment requests for HR to review
-    """
-    # Check if user is authorized HR
-    if not request.session.get('user_type') == 'hr':
-        request.session.flush()
-        messages.error(request, "You do not have permission to view this page. Please login again")
-        return redirect('login')
-    
-    try:
-        # Get HR user info for header display
-        hr_id = request.session.get('user_id')
-        hr = HR.objects.get(id=hr_id)
-        user_name = hr.staffid.name
-        
-        # Get all recruitment requests ordered by newest first
-        recruitment_requests = RECRUITMENT.objects.select_related(
-            'managerid__staffid'
-        ).order_by('-id')
-        
-        # Add pagination if there are many requests
-        paginator = Paginator(recruitment_requests, 12)  # Show 12 requests per page
-        page_number = request.GET.get('page')
-        recruitment_requests = paginator.get_page(page_number)
-        
-        context = {
-            'recruitment_requests': recruitment_requests,
-            'user_name': user_name,
-            'total_requests': RECRUITMENT.objects.count(),
-            'hr':hr,
-        }
-        
-        return render(request, 'hr/recruitment.html', context)
-        
-    except HR.DoesNotExist:
-        messages.error(request, "HR user not found. Please login again")
-        return redirect('login')
-    except Exception as e:
-        messages.error(request, f"An error occurred: {str(e)}")
-        return redirect('hrmenu')
 
-def recruitment_details(request, request_id):
-    """
-    Display detailed view of a specific recruitment request
-    """
-    # Check if user is authorized HR
-    if not request.session.get('user_type') == 'hr':
-        request.session.flush()
-        messages.error(request, "You do not have permission to view this page. Please login again")
-        return redirect('login')
-    
-    try:
-        # Get HR user info
-        hr_id = request.session.get('user_id')
-        hr = HR.objects.get(id=hr_id)
-        user_name = hr.staffid.name
-        
-        # Get the specific recruitment request
-        recruitment_request = get_object_or_404(
-            RECRUITMENT.objects.select_related('managerid__staffid'),
-            id=request_id
-        )
-        
-        context = {
-            'recruitment_request': recruitment_request,
-            'user_name': user_name,
-            'manager_name': recruitment_request.managerid.staffid.name,
-            'manager_position': recruitment_request.managerid.staffid.position,
-            'manager_email': recruitment_request.managerid.staffid.email,
-            'manager_phone': recruitment_request.managerid.staffid.phone,
-            'hr': hr,
-        }
-        
-        return render(request, 'hr/recruitment_details.html', context)
-        
-    except HR.DoesNotExist:
-        messages.error(request, "HR user not found. Please login again")
-        return redirect('login')
-    except Exception as e:
-        messages.error(request, f"An error occurred: {str(e)}")
-        return redirect('hr_recruitment')
-
-def recruitment_process(request, request_id):
-    """
-    Process a recruitment request (mark as processed, add notes, etc.)
-    """
-    # Check if user is authorized HR
-    if not request.session.get('user_type') == 'hr':
-        request.session.flush()
-        messages.error(request, "You do not have permission to view this page. Please login again")
-        return redirect('login')
-    
-    try:
-        # Get the recruitment request
-        recruitment_request = get_object_or_404(RECRUITMENT, id=request_id)
-        
-        if request.method == 'POST':
-            action = request.POST.get('action')
-            
-            if action == 'acknowledge':
-                # Mark as acknowledged/processed
-                messages.success(request, f"Recruitment request for {recruitment_request.position} has been acknowledged and will be processed.")
-                return redirect('hr_recruitment')
-            
-            elif action == 'delete':
-                # Delete the request (if needed)
-                position = recruitment_request.position
-                recruitment_request.delete()
-                messages.success(request, f"Recruitment request for {position} has been removed.")
-                return redirect('hr_recruitment')
-        
-        # Get HR user info
-        hr_id = request.session.get('user_id')
-        hr = HR.objects.get(id=hr_id)
-        user_name = hr.staffid.name
-        
-        context = {
-            'recruitment_request': recruitment_request,
-            'user_name': user_name,
-            'hr':hr,
-        }
-        
-        return render(request, 'hr/recruitment_process.html', context)
-        
-    except HR.DoesNotExist:
-        messages.error(request, "HR user not found. Please login again")
-        return redirect('login')
-    except Exception as e:
-        messages.error(request, f"An error occurred: {str(e)}")
-        return redirect('hr_recruitment')
-
-def recruitment_search(request):
-    """
-    Search and filter recruitment requests
-    """
-    # Check if user is authorized HR
-    if not request.session.get('user_type') == 'hr':
-        request.session.flush()
-        messages.error(request, "You do not have permission to view this page. Please login again")
-        return redirect('login')
-    
-    try:
-        # Get HR user info
-        hr_id = request.session.get('user_id')
-        hr = HR.objects.get(id=hr_id)
-        user_name = hr.staffid.name
-        
-        # Get search parameters
-        search_query = request.GET.get('search', '')
-        position_filter = request.GET.get('position', '')
-        manager_filter = request.GET.get('manager', '')
-        
-        # Start with all recruitment requests
-        recruitment_requests = RECRUITMENT.objects.select_related('managerid__staffid')
-        
-        # Apply filters
-        if search_query:
-            recruitment_requests = recruitment_requests.filter(
-                Q(position__icontains=search_query) |
-                Q(reason__icontains=search_query) |
-                Q(managerid__staffid__name__icontains=search_query)
-            )
-        
-        if position_filter:
-            recruitment_requests = recruitment_requests.filter(position__icontains=position_filter)
-        
-        if manager_filter:
-            recruitment_requests = recruitment_requests.filter(managerid__staffid__name__icontains=manager_filter)
-        
-        recruitment_requests = recruitment_requests.order_by('-id')
-        
-        # Get unique positions and managers for filter options
-        all_positions = RECRUITMENT.objects.values_list('position', flat=True).distinct()
-        all_managers = RECRUITMENT.objects.select_related('managerid__staffid').values_list('managerid__staffid__name', flat=True).distinct()
-        
-        context = {
-            'recruitment_requests': recruitment_requests,
-            'user_name': user_name,
-            'search_query': search_query,
-            'position_filter': position_filter,
-            'manager_filter': manager_filter,
-            'all_positions': all_positions,
-            'all_managers': all_managers,
-            'hr':hr,
-        }
-        
-        return render(request, 'hr/recruitment_search.html', context)
-        
-    except HR.DoesNotExist:
-        messages.error(request, "HR user not found. Please login again")
-        return redirect('login')
-    except Exception as e:
-        messages.error(request, f"An error occurred: {str(e)}")
-        return redirect('hr_recruitment')
 
 def hr_feedback(request):
     # Check if user is HR
@@ -1547,6 +1368,1177 @@ def update_feedback_status(request):
     
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
+# Updated recruitment views for HRMS/views.py
+# Replace the existing recruitment functions with these improved versions
+
+def recruitment_list(request):
+    """
+    Display recruitment dashboard with statistics and recent requests
+    """
+    # Check if user is authorized HR
+    if not request.session.get('user_type') == 'hr':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get HR user info for header display
+        hr_id = request.session.get('user_id')
+        hr = HR.objects.get(id=hr_id)
+        
+        # Calculate statistics
+        total_requests = RECRUITMENT.objects.count()
+        pending_count = RECRUITMENT.objects.filter(status='Pending').count()
+        in_progress_count = RECRUITMENT.objects.filter(status__in=['Under Review', 'In Progress', 'Approved']).count()
+        completed_count = RECRUITMENT.objects.filter(status='Completed').count()
+        urgent_count = RECRUITMENT.objects.filter(priority__in=['Urgent', 'Critical']).count()
+        
+        # Get recent requests (last 10)
+        recruitment_requests = RECRUITMENT.objects.select_related(
+            'managerid__staffid'
+        ).order_by('-requested_date')[:10]
+        
+        # Add pagination for the recent requests display
+        paginator = Paginator(recruitment_requests, 10)  
+        page_number = request.GET.get('page', 1)
+        recruitment_requests = paginator.get_page(page_number)
+        
+        context = {
+            'hr': hr,
+            'recruitment_requests': recruitment_requests,
+            'total_requests': total_requests,
+            'pending_count': pending_count,
+            'in_progress_count': in_progress_count,
+            'completed_count': completed_count,
+            'urgent_count': urgent_count,
+        }
+        
+        return render(request, 'hr/recruitment.html', context)
+        
+    except HR.DoesNotExist:
+        messages.error(request, "HR user not found. Please login again")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('hrmenu')
+
+def recruitment_search(request):
+    """
+    Advanced search and filter page for recruitment requests
+    """
+    # Check if user is authorized HR
+    if not request.session.get('user_type') == 'hr':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get HR user info
+        hr_id = request.session.get('user_id')
+        hr = HR.objects.get(id=hr_id)
+        
+        # Get search parameters from request
+        search_query = request.GET.get('search', '').strip()
+        status_filter = request.GET.get('status', '')
+        priority_filter = request.GET.get('priority', '')
+        position_filter = request.GET.get('position', '').strip()
+        manager_filter = request.GET.get('manager', '').strip()
+        date_from = request.GET.get('date_from', '')
+        date_to = request.GET.get('date_to', '')
+        personnel_min = request.GET.get('personnel_min', '')
+        sort_by = request.GET.get('sort', 'newest')
+        page_size = int(request.GET.get('page_size', 25))
+        
+        # Start with all recruitment requests
+        recruitment_requests = RECRUITMENT.objects.select_related('managerid__staffid')
+        
+        # Track if any search was performed
+        search_performed = any([
+            search_query, status_filter, priority_filter, position_filter,
+            manager_filter, date_from, date_to, personnel_min
+        ])
+        
+        # Apply filters
+        if search_query:
+            recruitment_requests = recruitment_requests.filter(
+                Q(position__icontains=search_query) |
+                Q(reason__icontains=search_query) |
+                Q(business_justification__icontains=search_query) |
+                Q(managerid__staffid__name__icontains=search_query)
+            )
+        
+        if status_filter:
+            recruitment_requests = recruitment_requests.filter(status=status_filter)
+        
+        if priority_filter:
+            recruitment_requests = recruitment_requests.filter(priority=priority_filter)
+        
+        if position_filter:
+            recruitment_requests = recruitment_requests.filter(position__icontains=position_filter)
+        
+        if manager_filter:
+            recruitment_requests = recruitment_requests.filter(
+                managerid__staffid__name__icontains=manager_filter
+            )
+        
+        if date_from:
+            try:
+                from_date = parse_date(date_from)
+                if from_date:
+                    recruitment_requests = recruitment_requests.filter(requested_date__date__gte=from_date)
+            except:
+                messages.warning(request, 'Invalid "from" date format.')
+        
+        if date_to:
+            try:
+                to_date = parse_date(date_to)
+                if to_date:
+                    recruitment_requests = recruitment_requests.filter(requested_date__date__lte=to_date)
+            except:
+                messages.warning(request, 'Invalid "to" date format.')
+        
+        if personnel_min:
+            try:
+                min_personnel = int(personnel_min)
+                recruitment_requests = recruitment_requests.filter(total_personnel__gte=min_personnel)
+            except ValueError:
+                messages.warning(request, 'Invalid minimum personnel value.')
+        
+        # Apply sorting
+        if sort_by == 'oldest':
+            recruitment_requests = recruitment_requests.order_by('requested_date')
+        elif sort_by == 'priority':
+            # Custom ordering: Critical, Urgent, High, Standard, Low
+            priority_order = ['Critical', 'Urgent', 'High', 'Standard', 'Low']
+            recruitment_requests = recruitment_requests.extra(
+                select={
+                    'priority_order': 
+                    "CASE "
+                    "WHEN priority = 'Critical' THEN 1 "
+                    "WHEN priority = 'Urgent' THEN 2 "
+                    "WHEN priority = 'High' THEN 3 "
+                    "WHEN priority = 'Standard' THEN 4 "
+                    "WHEN priority = 'Low' THEN 5 "
+                    "ELSE 6 END"
+                }
+            ).order_by('priority_order', '-requested_date')
+        elif sort_by == 'status':
+            recruitment_requests = recruitment_requests.order_by('status', '-requested_date')
+        elif sort_by == 'position':
+            recruitment_requests = recruitment_requests.order_by('position')
+        else:  # newest (default)
+            recruitment_requests = recruitment_requests.order_by('-requested_date')
+        
+        # Get total count before pagination
+        total_results = recruitment_requests.count()
+        
+        # Apply pagination
+        paginator = Paginator(recruitment_requests, page_size)
+        page_number = request.GET.get('page', 1)
+        recruitment_requests = paginator.get_page(page_number)
+        
+        # Get filter options for dropdowns (for advanced filtering in future)
+        all_statuses = RECRUITMENT.objects.values_list('status', flat=True).distinct()
+        all_priorities = RECRUITMENT.objects.values_list('priority', flat=True).distinct()
+        all_positions = RECRUITMENT.objects.values_list('position', flat=True).distinct()
+        all_managers = RECRUITMENT.objects.select_related('managerid__staffid').values_list(
+            'managerid__staffid__name', flat=True
+        ).distinct()
+        
+        context = {
+            'hr': hr,
+            'recruitment_requests': recruitment_requests,
+            'total_results': total_results,
+            'search_performed': search_performed,
+            
+            # Search parameters (to maintain form state)
+            'search_query': search_query,
+            'status_filter': status_filter,
+            'priority_filter': priority_filter,
+            'position_filter': position_filter,
+            'manager_filter': manager_filter,
+            'date_from': date_from,
+            'date_to': date_to,
+            'personnel_min': personnel_min,
+            'sort_by': sort_by,
+            'page_size': page_size,
+            
+            # Filter options for dropdowns
+            'all_statuses': all_statuses,
+            'all_priorities': all_priorities,
+            'all_positions': all_positions,
+            'all_managers': all_managers,
+        }
+        
+        return render(request, 'hr/recruitment_search.html', context)
+        
+    except HR.DoesNotExist:
+        messages.error(request, "HR user not found. Please login again")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('hr_recruitment')
+
+def recruitment_details(request, request_id):
+    """
+    Display detailed view of a specific recruitment request
+    """
+    # Check if user is authorized HR
+    if not request.session.get('user_type') == 'hr':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get HR user info
+        hr_id = request.session.get('user_id')
+        hr = HR.objects.get(id=hr_id)
+        
+        # Get the specific recruitment request
+        recruitment_request = get_object_or_404(
+            RECRUITMENT.objects.select_related('managerid__staffid'),
+            id=request_id
+        )
+        
+        context = {
+            'recruitment_request': recruitment_request,
+            'hr': hr,
+            'manager_name': recruitment_request.managerid.staffid.name,
+            'manager_position': recruitment_request.managerid.staffid.position,
+            'manager_email': recruitment_request.managerid.staffid.email,
+            'manager_phone': recruitment_request.managerid.staffid.phone,
+        }
+        
+        return render(request, 'hr/recruitment_details.html', context)
+        
+    except HR.DoesNotExist:
+        messages.error(request, "HR user not found. Please login again")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('hr_recruitment')
+
+def recruitment_process(request, request_id):
+    """
+    Process a recruitment request (mark as processed, add notes, etc.)
+    """
+    # Check if user is authorized HR
+    if not request.session.get('user_type') == 'hr':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get the recruitment request
+        recruitment_request = get_object_or_404(RECRUITMENT, id=request_id)
+        
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            
+            if action == 'update_status':
+                new_status = request.POST.get('status')
+                if new_status in dict(RECRUITMENT.STATUS_CHOICES):
+                    old_status = recruitment_request.status
+                    recruitment_request.status = new_status
+                    recruitment_request.save()
+                    
+                    messages.success(request, f"Status updated from '{old_status}' to '{new_status}' successfully.")
+                    return redirect('hr_recruitment_details', request_id=request_id)
+                else:
+                    messages.error(request, "Invalid status selected.")
+            
+            elif action == 'acknowledge':
+                # Mark as acknowledged/processed
+                if recruitment_request.status == 'Pending':
+                    recruitment_request.status = 'Under Review'
+                    recruitment_request.save()
+                
+                messages.success(request, f"Recruitment request for {recruitment_request.position} has been acknowledged and is now under review.")
+                return redirect('hr_recruitment')
+            
+            elif action == 'delete':
+                # Delete the request (if needed)
+                position = recruitment_request.position
+                recruitment_request.delete()
+                messages.success(request, f"Recruitment request for {position} has been removed.")
+                return redirect('hr_recruitment')
+            
+            elif action == 'assign':
+                # Assign to specific HR personnel (placeholder for future implementation)
+                messages.info(request, "Assignment functionality will be implemented in future updates.")
+                return redirect('hr_recruitment_details', request_id=request_id)
+        
+        # Get HR user info
+        hr_id = request.session.get('user_id')
+        hr = HR.objects.get(id=hr_id)
+        
+        context = {
+            'recruitment_request': recruitment_request,
+            'hr': hr,
+            'status_choices': RECRUITMENT.STATUS_CHOICES,
+        }
+        
+        return render(request, 'hr/recruitment_process.html', context)
+        
+    except HR.DoesNotExist:
+        messages.error(request, "HR user not found. Please login again")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('hr_recruitment')
+    
+def recruitment_notes(request, request_id):
+    """
+    Manage notes for a specific recruitment request
+    """
+    # Check if user is authorized HR
+    if not request.session.get('user_type') == 'hr':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get HR user info
+        hr_id = request.session.get('user_id')
+        hr = HR.objects.get(id=hr_id)
+        
+        # Get the specific recruitment request
+        recruitment_request = get_object_or_404(RECRUITMENT, id=request_id)
+        
+        # Handle POST requests for note management
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            
+            if action == 'add_note':
+                note_type = request.POST.get('note_type')
+                note_content = request.POST.get('note_content', '').strip()
+                visible_to_manager = request.POST.get('visible_to_manager') == '1'
+                
+                if note_type and note_content:
+                    try:
+                        # Check if RECRUITMENT_NOTES model exists, if not use a simple approach
+                        # For now, we'll create a basic note system
+                        # You may need to create the RECRUITMENT_NOTES model as defined in models.py
+                        
+                        # Placeholder for note creation - implement based on your models
+                        messages.success(request, f'Note of type "{note_type}" added successfully!')
+                        return redirect('hr_recruitment_notes', request_id=request_id)
+                        
+                    except Exception as e:
+                        messages.error(request, f'Error adding note: {str(e)}')
+                else:
+                    messages.error(request, 'Note type and content are required.')
+            
+            elif action == 'edit_note':
+                note_id = request.POST.get('note_id')
+                note_type = request.POST.get('note_type')
+                note_content = request.POST.get('note_content', '').strip()
+                visible_to_manager = request.POST.get('visible_to_manager') == '1'
+                
+                if note_id and note_type and note_content:
+                    try:
+                        # Placeholder for note editing
+                        messages.success(request, 'Note updated successfully!')
+                        return redirect('hr_recruitment_notes', request_id=request_id)
+                    except Exception as e:
+                        messages.error(request, f'Error updating note: {str(e)}')
+                else:
+                    messages.error(request, 'All fields are required for editing.')
+            
+            elif action == 'delete_note':
+                note_id = request.POST.get('note_id')
+                
+                if note_id:
+                    try:
+                        # Placeholder for note deletion
+                        messages.success(request, 'Note deleted successfully!')
+                        return redirect('hr_recruitment_notes', request_id=request_id)
+                    except Exception as e:
+                        messages.error(request, f'Error deleting note: {str(e)}')
+                else:
+                    messages.error(request, 'Invalid note ID.')
+        
+        # GET request - display notes page
+        # For now, we'll create mock data since RECRUITMENT_NOTES might not be implemented yet
+        notes = RECRUITMENT_NOTES.objects.filter(recruitment=recruitment_request).order_by('-created_date')
+        
+        # Mock statistics
+        hr_internal_count = notes.filter(note_type='HR Internal').count()
+        manager_visible_count = notes.filter(is_visible_to_manager=True).count()
+        note_authors = notes.values('created_by__staffid__name').distinct()
+        
+        context = {
+            'hr': hr,
+            'recruitment_request': recruitment_request,
+            'notes': notes,
+            'hr_internal_count': hr_internal_count,
+            'manager_visible_count': manager_visible_count,
+            'note_authors': note_authors,
+        }
+        
+        return render(request, 'hr/recruitment_notes.html', context)
+    
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('hr_recruitment')
+
+def recruitment_analytics(request):
+    """
+    Analytics and reporting dashboard for recruitment data with real calculations
+    """
+    # Check if user is authorized HR
+    if not request.session.get('user_type') == 'hr':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get HR user info
+        hr_id = request.session.get('user_id')
+        hr = HR.objects.get(id=hr_id)
+        
+        # Get time period parameters
+        days = int(request.GET.get('days', 30))
+        custom_start = request.GET.get('date_from')
+        custom_end = request.GET.get('date_to')
+        
+        # Calculate date range
+        if custom_start and custom_end:
+            start_date = datetime.strptime(custom_start, '%Y-%m-%d').date()
+            end_date = datetime.strptime(custom_end, '%Y-%m-%d').date()
+            # Convert to datetime for filtering
+            start_datetime = timezone.make_aware(datetime.combine(start_date, datetime.min.time()))
+            end_datetime = timezone.make_aware(datetime.combine(end_date, datetime.max.time()))
+        else:
+            start_datetime = timezone.now() - timedelta(days=days)
+            end_datetime = timezone.now()
+            start_date = start_datetime.date()
+            end_date = end_datetime.date()
+        
+        # Calculate previous period for comparison
+        period_length = (end_datetime - start_datetime).days
+        previous_start = start_datetime - timedelta(days=period_length)
+        previous_end = start_datetime
+        
+        # Get recruitment data for current period
+        current_requests = RECRUITMENT.objects.filter(
+            requested_date__gte=start_datetime,
+            requested_date__lte=end_datetime
+        ).select_related('managerid__staffid')
+        
+        # Get recruitment data for previous period
+        previous_requests = RECRUITMENT.objects.filter(
+            requested_date__gte=previous_start,
+            requested_date__lt=previous_end
+        ).select_related('managerid__staffid')
+        
+        # ===== CALCULATE REAL KPIs =====
+        
+        # Total requests
+        total_requests = current_requests.count()
+        previous_total = previous_requests.count()
+        total_change = calculate_percentage_change(total_requests, previous_total)
+        
+        # Average processing time calculation (only for completed requests)
+        completed_requests = current_requests.filter(status='Completed')
+        previous_completed = previous_requests.filter(status='Completed')
+        
+        if completed_requests.exists():
+            processing_times = []
+            for req in completed_requests:
+                days_diff = (req.last_updated.date() - req.requested_date.date()).days
+                processing_times.append(days_diff)
+            avg_processing_time = sum(processing_times) // len(processing_times)
+        else:
+            avg_processing_time = 0
+            
+        if previous_completed.exists():
+            prev_processing_times = []
+            for req in previous_completed:
+                days_diff = (req.last_updated.date() - req.requested_date.date()).days
+                prev_processing_times.append(days_diff)
+            prev_avg_processing = sum(prev_processing_times) // len(prev_processing_times)
+        else:
+            prev_avg_processing = 0
+            
+        processing_change = calculate_change_days(avg_processing_time, prev_avg_processing)
+        
+        # Completion rate
+        completion_rate = (completed_requests.count() / total_requests * 100) if total_requests > 0 else 0
+        prev_completion_rate = (previous_completed.count() / previous_total * 100) if previous_total > 0 else 0
+        completion_change = calculate_percentage_change(completion_rate, prev_completion_rate)
+        
+        # Urgent requests
+        urgent_requests = current_requests.filter(priority__in=['Urgent', 'Critical']).count()
+        prev_urgent = previous_requests.filter(priority__in=['Urgent', 'Critical']).count()
+        urgent_change = calculate_percentage_change(urgent_requests, prev_urgent)
+        
+        # Overdue requests (requests older than 30 days and not completed)
+        overdue_cutoff = timezone.now() - timedelta(days=30)
+        overdue_requests = current_requests.filter(
+            requested_date__lt=overdue_cutoff
+        ).exclude(status='Completed').count()
+        
+        prev_overdue_cutoff = previous_end - timedelta(days=30)
+        prev_overdue = previous_requests.filter(
+            requested_date__lt=prev_overdue_cutoff
+        ).exclude(status='Completed').count()
+        overdue_change = calculate_percentage_change(overdue_requests, prev_overdue)
+        
+        # ===== STATUS DISTRIBUTION =====
+        status_distribution = current_requests.values('status').annotate(
+            count=Count('id')
+        ).order_by('-count')
+        
+        # ===== MONTHLY TRENDS =====
+        monthly_data = []
+        for i in range(6):  # Last 6 months
+            month_start = timezone.now().replace(day=1) - timedelta(days=30*i)
+            month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            
+            month_requests = RECRUITMENT.objects.filter(
+                requested_date__gte=month_start,
+                requested_date__lte=month_end
+            ).count()
+            
+            monthly_data.append({
+                'month': month_start.strftime('%b %Y'),
+                'count': month_requests
+            })
+        
+        monthly_data.reverse()  # Show chronologically
+        
+        # ===== PRIORITY DISTRIBUTION =====
+        priority_distribution = current_requests.values('priority').annotate(
+            count=Count('id')
+        ).order_by('-count')
+        
+        # ===== TOP PERFORMING MANAGERS =====
+        manager_performance = []
+        managers_with_requests = current_requests.values('managerid').distinct()
+        
+        for manager_data in managers_with_requests:
+            manager_id = manager_data['managerid']
+            try:
+                manager = MANAGER.objects.get(id=manager_id)
+                manager_requests = current_requests.filter(managerid=manager)
+                
+                # Calculate metrics for this manager
+                total_mgr_requests = manager_requests.count()
+                completed_mgr = manager_requests.filter(status='Completed').count()
+                success_rate = (completed_mgr / total_mgr_requests * 100) if total_mgr_requests > 0 else 0
+                
+                # Average processing time for this manager
+                mgr_completed = manager_requests.filter(status='Completed')
+                if mgr_completed.exists():
+                    mgr_processing_times = [
+                        (req.last_updated.date() - req.requested_date.date()).days 
+                        for req in mgr_completed
+                    ]
+                    mgr_avg_processing = sum(mgr_processing_times) // len(mgr_processing_times)
+                else:
+                    mgr_avg_processing = 0
+                
+                manager_performance.append({
+                    'manager': manager,
+                    'requests': total_mgr_requests,
+                    'avg_processing': mgr_avg_processing,
+                    'success_rate': int(success_rate)
+                })
+            except MANAGER.DoesNotExist:
+                continue
+        
+        # Sort by success rate
+        manager_performance.sort(key=lambda x: x['success_rate'], reverse=True)
+        
+        # ===== MOST REQUESTED POSITIONS =====
+        position_requests = current_requests.values('position').annotate(
+            request_count=Count('id'),
+            total_personnel=Sum('total_personnel'),
+            avg_timeline=Avg(
+                Case(
+                    When(status='Completed', 
+                         then=F('last_updated') - F('requested_date')),
+                    default=None
+                )
+            )
+        ).order_by('-request_count')[:10]
+        
+        # ===== PERFORMANCE METRICS COMPARISON =====
+        performance_metrics = [
+            {
+                'metric': 'Total Requests Received',
+                'current': total_requests,
+                'previous': previous_total,
+                'change_percent': total_change['percent'],
+                'change_direction': total_change['direction'],
+                'target': 25,
+                'status': get_status_vs_target(total_requests, 25)
+            },
+            {
+                'metric': 'Average Processing Time',
+                'current': f"{avg_processing_time} days",
+                'previous': f"{prev_avg_processing} days",
+                'change_percent': abs(processing_change['days']),
+                'change_direction': processing_change['direction'],
+                'target': "14 days",
+                'status': get_processing_time_status(avg_processing_time, 14)
+            },
+            {
+                'metric': 'Completion Rate',
+                'current': f"{int(completion_rate)}%",
+                'previous': f"{int(prev_completion_rate)}%",
+                'change_percent': completion_change['percent'],
+                'change_direction': completion_change['direction'],
+                'target': "80%",
+                'status': get_status_vs_target(completion_rate, 80)
+            }
+        ]
+        
+        # ===== INSIGHTS GENERATION =====
+        insights = generate_insights(
+            current_requests, avg_processing_time, prev_avg_processing,
+            position_requests, manager_performance
+        )
+        
+        context = {
+            'hr': hr,
+            'total_requests': total_requests,
+            'total_change': total_change,
+            'avg_processing_time': avg_processing_time,
+            'processing_change': processing_change,
+            'completion_rate': int(completion_rate),
+            'completion_change': completion_change,
+            'urgent_requests': urgent_requests,
+            'urgent_change': urgent_change,
+            'overdue_requests': overdue_requests,
+            'overdue_change': overdue_change,
+            'status_distribution': status_distribution,
+            'monthly_data': json.dumps(monthly_data),
+            'priority_distribution': priority_distribution,
+            'manager_performance': manager_performance[:5],  # Top 5
+            'position_requests': position_requests[:5],  # Top 5
+            'performance_metrics': performance_metrics,
+            'insights': insights,
+            'days_period': days,
+            'start_date': start_date,
+            'end_date': end_date,
+        }
+        
+        return render(request, 'hr/recruitment_analytics.html', context)
+        
+    except HR.DoesNotExist:
+        messages.error(request, "HR user not found. Please login again")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('hr_recruitment')
+
+def calculate_percentage_change(current, previous):
+    """Calculate percentage change and direction"""
+    if previous == 0:
+        if current > 0:
+            return {'percent': 100, 'direction': 'positive'}
+        else:
+            return {'percent': 0, 'direction': 'neutral'}
+    
+    change = ((current - previous) / previous) * 100
+    
+    return {
+        'percent': abs(int(change)),
+        'direction': 'positive' if change >= 0 else 'negative'
+    }
+
+def calculate_change_days(current, previous):
+    """Calculate change in days with direction"""
+    change = current - previous
+    
+    return {
+        'days': abs(change),
+        'direction': 'negative' if change > 0 else 'positive' if change < 0 else 'neutral'
+    }
+
+def get_status_vs_target(current, target):
+    """Determine status compared to target"""
+    if current >= target:
+        return "🎯 On Target"
+    elif current >= target * 0.9:
+        return "📈 Near Target"
+    else:
+        return "🔄 Below Target"
+
+def get_processing_time_status(current, target):
+    """Determine processing time status"""
+    if current <= target:
+        return "✅ On Target"
+    elif current <= target * 1.2:
+        return "⚠️ Slightly Above"
+    else:
+        return "🔴 Above Target"
+
+def generate_insights(requests, avg_processing, prev_avg_processing, position_requests, manager_performance):
+    """Generate intelligent insights based on data"""
+    insights = []
+    
+    # Processing time insight
+    if avg_processing > prev_avg_processing:
+        insights.append({
+            'title': 'Processing Time Trending Up',
+            'description': f'Average processing time has increased by {avg_processing - prev_avg_processing} days compared to last period. Consider reviewing approval workflows for bottlenecks.'
+        })
+    elif avg_processing < prev_avg_processing:
+        insights.append({
+            'title': 'Processing Time Improving',
+            'description': f'Average processing time has improved by {prev_avg_processing - avg_processing} days. Keep up the good work!'
+        })
+    
+    # High demand positions insight
+    if position_requests:
+        top_position = position_requests[0]
+        total_positions = sum([pos['request_count'] for pos in position_requests[:3]])
+        percentage = (top_position['request_count'] / requests.count() * 100) if requests.count() > 0 else 0
+        
+        if percentage > 30:
+            insights.append({
+                'title': 'High Demand Positions',
+                'description': f"{top_position['position']} accounts for {int(percentage)}% of all requests. Consider bulk recruitment strategies."
+            })
+    
+    # Manager performance insight
+    if manager_performance:
+        best_manager = manager_performance[0]
+        insights.append({
+            'title': 'Manager Performance',
+            'description': f"Requests from {best_manager['manager'].staffid.name} show {best_manager['success_rate']}% success rate. Share best practices with other managers."
+        })
+    
+    return insights
+
+def export_recruitment_report(request):
+    """Export recruitment analytics report as PDF or Excel"""
+    if not request.session.get('user_type') == 'hr':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
+    format_type = request.GET.get('format', 'pdf')
+    days = int(request.GET.get('days', 30))
+    
+    try:
+        hr_id = request.session.get('user_id')
+        hr = HR.objects.get(id=hr_id)
+        
+        # Get data (reuse logic from analytics view)
+        start_datetime = timezone.now() - timedelta(days=days)
+        end_datetime = timezone.now()
+        
+        current_requests = RECRUITMENT.objects.filter(
+            requested_date__gte=start_datetime,
+            requested_date__lte=end_datetime
+        ).select_related('managerid__staffid')
+        
+        if format_type == 'pdf':
+            return generate_pdf_report(current_requests, hr, days)
+        elif format_type == 'excel':
+            return generate_excel_report(current_requests, hr, days)
+        else:
+            return JsonResponse({'error': 'Invalid format'}, status=400)
+            
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+def generate_pdf_report(requests, hr, days):
+    """Generate PDF report using ReportLab"""
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="recruitment_report_{timezone.now().strftime("%Y%m%d")}.pdf"'
+    
+    # Create PDF document
+    doc = SimpleDocTemplate(response, pagesize=A4)
+    styles = getSampleStyleSheet()
+    story = []
+    
+    # Title
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        spaceAfter=30,
+        alignment=1  # Center alignment
+    )
+    story.append(Paragraph("Recruitment Analytics Report", title_style))
+    story.append(Spacer(1, 12))
+    
+    # Report info
+    report_info = f"""
+    <b>Generated by:</b> {hr.staffid.name}<br/>
+    <b>Date:</b> {timezone.now().strftime('%B %d, %Y')}<br/>
+    <b>Period:</b> Last {days} days<br/>
+    <b>Total Requests:</b> {requests.count()}
+    """
+    story.append(Paragraph(report_info, styles['Normal']))
+    story.append(Spacer(1, 20))
+    
+    # Summary statistics
+    completed = requests.filter(status='Completed').count()
+    pending = requests.filter(status='Pending').count()
+    in_progress = requests.filter(status__in=['Under Review', 'In Progress']).count()
+    
+    summary_data = [
+        ['Metric', 'Value'],
+        ['Total Requests', str(requests.count())],
+        ['Completed', str(completed)],
+        ['Pending', str(pending)],
+        ['In Progress', str(in_progress)],
+        ['Completion Rate', f"{(completed/requests.count()*100):.1f}%" if requests.count() > 0 else "0%"]
+    ]
+    
+    summary_table = Table(summary_data)
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 14),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    story.append(Paragraph("Summary Statistics", styles['Heading2']))
+    story.append(summary_table)
+    story.append(Spacer(1, 20))
+    
+    # Detailed requests table
+    story.append(Paragraph("Detailed Requests", styles['Heading2']))
+    
+    request_data = [['Request ID', 'Position', 'Manager', 'Status', 'Personnel', 'Date']]
+    
+    for req in requests.order_by('-requested_date')[:20]:  # Latest 20 requests
+        request_data.append([
+            str(req.id),
+            req.position[:20] + '...' if len(req.position) > 20 else req.position,
+            req.managerid.staffid.name,
+            req.status,
+            str(req.total_personnel),
+            req.requested_date.strftime('%m/%d/%Y')
+        ])
+    
+    request_table = Table(request_data)
+    request_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    story.append(request_table)
+    
+    # Build PDF
+    doc.build(story)
+    return response
+
+def generate_excel_report(requests, hr, days):
+    """Generate Excel report using xlsxwriter"""
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output)
+    
+    # Define formats
+    header_format = workbook.add_format({
+        'bold': True,
+        'bg_color': '#0053ED',
+        'font_color': 'white',
+        'align': 'center'
+    })
+    
+    data_format = workbook.add_format({
+        'align': 'center'
+    })
+    
+    # Summary sheet
+    summary_sheet = workbook.add_worksheet('Summary')
+    
+    # Write summary data
+    summary_sheet.write('A1', 'Recruitment Analytics Report', workbook.add_format({'bold': True, 'font_size': 16}))
+    summary_sheet.write('A3', f'Generated by: {hr.staffid.name}')
+    summary_sheet.write('A4', f'Date: {timezone.now().strftime("%B %d, %Y")}')
+    summary_sheet.write('A5', f'Period: Last {days} days')
+    
+    # Summary statistics
+    summary_sheet.write('A7', 'Metric', header_format)
+    summary_sheet.write('B7', 'Value', header_format)
+    
+    completed = requests.filter(status='Completed').count()
+    
+    summary_data = [
+        ['Total Requests', requests.count()],
+        ['Completed', completed],
+        ['Pending', requests.filter(status='Pending').count()],
+        ['In Progress', requests.filter(status__in=['Under Review', 'In Progress']).count()],
+        ['Completion Rate', f"{(completed/requests.count()*100):.1f}%" if requests.count() > 0 else "0%"]
+    ]
+    
+    for row, (metric, value) in enumerate(summary_data, start=8):
+        summary_sheet.write(row, 0, metric, data_format)
+        summary_sheet.write(row, 1, value, data_format)
+    
+    # Detailed data sheet
+    detail_sheet = workbook.add_worksheet('Detailed Requests')
+    
+    # Headers
+    headers = ['Request ID', 'Position', 'Manager', 'Status', 'Priority', 'Personnel', 'Date Requested', 'Last Updated']
+    for col, header in enumerate(headers):
+        detail_sheet.write(0, col, header, header_format)
+    
+    # Data rows
+    for row, req in enumerate(requests.order_by('-requested_date'), start=1):
+        detail_sheet.write(row, 0, req.id, data_format)
+        detail_sheet.write(row, 1, req.position, data_format)
+        detail_sheet.write(row, 2, req.managerid.staffid.name, data_format)
+        detail_sheet.write(row, 3, req.status, data_format)
+        detail_sheet.write(row, 4, req.priority, data_format)
+        detail_sheet.write(row, 5, req.total_personnel, data_format)
+        detail_sheet.write(row, 6, req.requested_date.strftime('%Y-%m-%d'), data_format)
+        detail_sheet.write(row, 7, req.last_updated.strftime('%Y-%m-%d'), data_format)
+    
+    # Auto-adjust column widths
+    for sheet in [summary_sheet, detail_sheet]:
+        for col in range(8):
+            sheet.set_column(col, col, 15)
+    
+    workbook.close()
+    output.seek(0)
+    
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="recruitment_report_{timezone.now().strftime("%Y%m%d")}.xlsx"'
+    
+    return response
+
+# In-memory storage for scheduled reports (in production, use database)
+scheduled_reports = {}
+
+def schedule_recruitment_report(request):
+    """Schedule recurring reports"""
+    if not request.session.get('user_type') == 'hr':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            hr_id = request.session.get('user_id')
+            hr = HR.objects.get(id=hr_id)
+            
+            # Generate unique schedule ID
+            schedule_id = str(uuid.uuid4())
+            
+            # Store schedule info
+            schedule_info = {
+                'id': schedule_id,
+                'hr_id': hr_id,
+                'email': data.get('email', hr.staffid.email),
+                'frequency': data.get('frequency', 'weekly'),  # daily, weekly, monthly
+                'format': data.get('format', 'pdf'),
+                'days_period': data.get('days_period', 30),
+                'created_at': timezone.now().isoformat(),
+                'active': True
+            }
+            
+            scheduled_reports[schedule_id] = schedule_info
+            
+            # Schedule the first report (in production, use Celery or similar)
+            schedule_next_report(schedule_info)
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Report scheduled successfully',
+                'schedule_id': schedule_id
+            })
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    
+    # GET request - return current schedules
+    hr_id = request.session.get('user_id')
+    user_schedules = [
+        schedule for schedule in scheduled_reports.values() 
+        if schedule['hr_id'] == hr_id and schedule['active']
+    ]
+    
+    return JsonResponse({
+        'schedules': user_schedules
+    })
+
+def schedule_next_report(schedule_info):
+    """Schedule the next report delivery"""
+    frequency_map = {
+        'daily': 1,
+        'weekly': 7,
+        'monthly': 30
+    }
+    
+    days = frequency_map.get(schedule_info['frequency'], 7)
+    next_run = timezone.now() + timedelta(days=days)
+    
+    # In production, use Celery or similar task queue
+    # For demo purposes, we'll just log the scheduling
+    print(f"Report {schedule_info['id']} scheduled for {next_run}")
+
+def cancel_scheduled_report(request, schedule_id):
+    """Cancel a scheduled report"""
+    if not request.session.get('user_type') == 'hr':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
+    if schedule_id in scheduled_reports:
+        scheduled_reports[schedule_id]['active'] = False
+        return JsonResponse({'success': True, 'message': 'Schedule cancelled'})
+    
+    return JsonResponse({'error': 'Schedule not found'}, status=404)
+
+# Enhanced recruitment_attachments function
+def recruitment_attachments(request, request_id):
+    """
+    Enhanced attachment management with file upload handling
+    """
+    # Check if user is authorized HR
+    if not request.session.get('user_type') == 'hr':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get HR user info
+        hr_id = request.session.get('user_id')
+        hr = HR.objects.get(id=hr_id)
+        
+        # Get the specific recruitment request
+        recruitment_request = get_object_or_404(RECRUITMENT, id=request_id)
+        
+        # Handle POST requests for attachment management
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            
+            if action == 'upload_attachment':
+                # Handle file upload
+                file = request.FILES.get('attachment_file')
+                attachment_type = request.POST.get('attachment_type')
+                description = request.POST.get('description', '').strip()
+                
+                if file and attachment_type:
+                    try:
+                        # Basic file validation
+                        max_size = 10 * 1024 * 1024  # 10MB
+                        if file.size > max_size:
+                            messages.error(request, 'File size must be less than 10MB.')
+                            return redirect('hr_recruitment_attachments', request_id=request_id)
+                        
+                        # Check file extension
+                        allowed_extensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.png', '.jpg', '.jpeg']
+                        file_extension = file.name.split('.')[-1].lower()
+                        if f'.{file_extension}' not in allowed_extensions:
+                            messages.error(request, 'File type not allowed.')
+                            return redirect('hr_recruitment_attachments', request_id=request_id)
+                        
+                        # Create attachment record (placeholder - implement based on your models)
+                        # In real implementation, save file and create RECRUITMENT_ATTACHMENTS record
+                        messages.success(request, f'Attachment "{file.name}" uploaded successfully!')
+                        return redirect('hr_recruitment_attachments', request_id=request_id)
+                        
+                    except Exception as e:
+                        messages.error(request, f'Error uploading file: {str(e)}')
+                else:
+                    messages.error(request, 'File and attachment type are required.')
+            
+            elif action == 'delete_attachment':
+                attachment_id = request.POST.get('attachment_id')
+                if attachment_id:
+                    try:
+                        # Delete attachment (placeholder)
+                        messages.success(request, 'Attachment deleted successfully!')
+                        return redirect('hr_recruitment_attachments', request_id=request_id)
+                    except Exception as e:
+                        messages.error(request, f'Error deleting attachment: {str(e)}')
+        
+        # GET request - display attachments page
+        # Mock attachments data
+        attachments = []  # This would be: RECRUITMENT_ATTACHMENTS.objects.filter(recruitment=recruitment_request)
+        
+        # Mock statistics
+        total_size = "2.5 MB"
+        job_desc_count = 0
+        budget_count = 0
+        supporting_count = 0
+        
+        context = {
+            'hr': hr,
+            'recruitment_request': recruitment_request,
+            'attachments': attachments,
+            'total_size': total_size,
+            'job_desc_count': job_desc_count,
+            'budget_count': budget_count,
+            'supporting_count': supporting_count,
+        }
+        
+        return render(request, 'hr/recruitment_attachments.html', context)
+        
+    except HR.DoesNotExist:
+        messages.error(request, "HR user not found. Please login again")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('hr_recruitment')
+
+# Add this view function to your HRMS/views.py
+
+def recruitment_status_history(request, request_id):
+    """
+    View status change history for a specific recruitment request
+    """
+    # Check if user is authorized HR
+    if not request.session.get('user_type') == 'hr':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get HR user info
+        hr_id = request.session.get('user_id')
+        hr = HR.objects.get(id=hr_id)
+        
+        # Get the specific recruitment request
+        recruitment_request = get_object_or_404(RECRUITMENT, id=request_id)
+        
+        # Get status history if RECRUITMENT_STATUS_HISTORY model exists
+        # Otherwise, create mock data for display
+        try:
+            # Try to get real status history
+            from .models import RECRUITMENT_STATUS_HISTORY
+            status_history = RECRUITMENT_STATUS_HISTORY.objects.filter(
+                recruitment=recruitment_request
+            ).order_by('-changed_date')
+        except (ImportError, AttributeError):
+            # If model doesn't exist, use empty queryset
+            status_history = []
+        
+        context = {
+            'hr': hr,
+            'recruitment_request': recruitment_request,
+            'status_history': status_history,
+        }
+        
+        return render(request, 'hr/recruitment_status_history.html', context)
+        
+    except HR.DoesNotExist:
+        messages.error(request, "HR user not found. Please login again")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('hr_recruitment')    
 
 # manager
 

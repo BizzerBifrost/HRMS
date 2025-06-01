@@ -1,0 +1,872 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruitment Status History | HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            margin-right: 15px;
+            text-align: right;
+        }
+        
+        /* User dropdown styling */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        main {
+            flex: 1;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb {
+            margin-bottom: 20px;
+        }
+        
+        .breadcrumb a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Header Section */
+        .history-header {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .request-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .info-left h1 {
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        
+        .request-details {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .current-status {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-in-progress, .status-under-review {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-on-hold {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .info-right {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0045c4;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background-color: #138496;
+        }
+        
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        
+        /* Timeline Container */
+        .timeline-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+        }
+        
+        /* Main Timeline */
+        .timeline-main {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .section-header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .timeline-content {
+            padding: 30px;
+        }
+        
+        /* Timeline Items */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--secondary-color), #ddd);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -44px;
+            top: 25px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px var(--secondary-color);
+        }
+        
+        .timeline-item.status-created::before {
+            background-color: #28a745;
+            box-shadow: 0 0 0 3px #28a745;
+        }
+        
+        .timeline-item.status-pending::before {
+            background-color: #ffc107;
+            box-shadow: 0 0 0 3px #ffc107;
+        }
+        
+        .timeline-item.status-approved::before {
+            background-color: #28a745;
+            box-shadow: 0 0 0 3px #28a745;
+        }
+        
+        .timeline-item.status-rejected::before {
+            background-color: #dc3545;
+            box-shadow: 0 0 0 3px #dc3545;
+        }
+        
+        .timeline-item.status-completed::before {
+            background-color: #6f42c1;
+            box-shadow: 0 0 0 3px #6f42c1;
+        }
+        
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .timeline-title {
+            font-weight: bold;
+            color: var(--secondary-color);
+            font-size: 16px;
+        }
+        
+        .timeline-date {
+            font-size: 12px;
+            color: #666;
+            background: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+        }
+        
+        .timeline-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .timeline-meta span {
+            font-size: 13px;
+            color: #555;
+        }
+        
+        .timeline-user {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .timeline-reason {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border-left: 3px solid var(--secondary-color);
+            font-style: italic;
+        }
+        
+        .timeline-changes {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .change-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .sidebar-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .sidebar-content {
+            padding: 15px;
+        }
+        
+        /* Statistics */
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        /* Status Legend */
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px currentColor;
+        }
+        
+        .legend-created { color: #28a745; }
+        .legend-pending { color: #ffc107; }
+        .legend-approved { color: #28a745; }
+        .legend-rejected { color: #dc3545; }
+        .legend-completed { color: #6f42c1; }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+        
+        /* Messages */
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        
+        .messages .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .messages .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            background-color: var(--text-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .timeline-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .request-info {
+                flex-direction: column;
+            }
+            
+            .info-right {
+                justify-content: center;
+            }
+            
+            .timeline {
+                padding-left: 30px;
+            }
+            
+            .timeline::before {
+                left: 15px;
+            }
+            
+            .timeline-item::before {
+                left: -39px;
+            }
+            
+            .timeline-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .timeline-meta {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{% url 'hrmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ hr.staffid.name }}</strong></div>
+                <div>{{ hr.staffid.position }}</div>
+            </div>
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{% url 'hr_profile' %}">Profile</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="{% url 'hrmenu' %}">HR Dashboard</a> &gt; 
+            <a href="{% url 'hr_recruitment' %}">Recruitment</a> &gt; 
+            <a href="{% url 'hr_recruitment_details' recruitment_request.id %}">Request #{{ recruitment_request.id }}</a> &gt; 
+            Status History
+        </div>
+        
+        <!-- Header Section -->
+        <div class="history-header">
+            <div class="request-info">
+                <div class="info-left">
+                    <h1>Status History: {{ recruitment_request.position }}</h1>
+                    <div class="request-details">
+                        Request #{{ recruitment_request.id }} | Manager: {{ recruitment_request.managerid.staffid.name }} | 
+                        Created: {{ recruitment_request.requested_date|date:"M d, Y" }}
+                    </div>
+                    <div class="current-status">
+                        <span>Current Status:</span>
+                        <span class="status-badge status-{{ recruitment_request.status|lower|cut:' ' }}">
+                            {{ recruitment_request.status }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="info-right">
+                    <a href="{% url 'hr_recruitment_details' recruitment_request.id %}" class="btn btn-secondary">
+                        ← Back to Details
+                    </a>
+                    <a href="{% url 'hr_recruitment_process' recruitment_request.id %}" class="btn btn-primary">
+                         Process Request
+                    </a>
+                    <button class="btn btn-warning" onclick="exportHistory()">
+                         Export History
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="timeline-container">
+            <!-- Left Column: Timeline -->
+            <div class="timeline-main">
+                <div class="section-header">
+                    Complete Status History
+                    <span style="float: right; font-weight: normal; font-size: 14px;">
+                        {{ status_history.count|default:0 }} changes tracked
+                    </span>
+                </div>
+                
+                <div class="timeline-content">
+                    {% if status_history %}
+                    <div class="timeline">
+                        {% for history in status_history %}
+                        <div class="timeline-item status-{{ history.new_status|lower|cut:' ' }}">
+                            <div class="timeline-header">
+                                <div class="timeline-title">
+                                    {% if history.old_status %}
+                                        Status changed from "{{ history.old_status }}" to "{{ history.new_status }}"
+                                    {% else %}
+                                        Request created with status "{{ history.new_status }}"
+                                    {% endif %}
+                                </div>
+                                <div class="timeline-date">
+                                    {{ history.changed_date|date:"M d, Y g:i A" }}
+                                </div>
+                            </div>
+                            
+                            <div class="timeline-meta">
+                                <span>Changed by: <span class="timeline-user">{{ history.changed_by.staffid.name }}</span></span>
+                                <span>Duration in previous status: {{ history.duration|default:"N/A" }}</span>
+                            </div>
+                            
+                            {% if history.change_reason %}
+                            <div class="timeline-reason">
+                                <strong>Reason:</strong> {{ history.change_reason }}
+                            </div>
+                            {% endif %}
+                            
+                            {% if history.changes %}
+                            <div class="timeline-changes">
+                                {% for change in history.changes %}
+                                <span class="change-badge">{{ change }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% else %}
+                    <!-- Mock Timeline Data for Display -->
+                    <div class="timeline">
+                        <div class="timeline-item status-{{ recruitment_request.status|lower|cut:' ' }}">
+                            <div class="timeline-header">
+                                <div class="timeline-title">Current Status: {{ recruitment_request.status }}</div>
+                                <div class="timeline-date">{{ recruitment_request.last_updated|date:"M d, Y g:i A" }}</div>
+                            </div>
+                            <div class="timeline-meta">
+                                <span>Last updated: <span class="timeline-user">System</span></span>
+                                <span>Active since: {{ recruitment_request.days_since_request }} days</span>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item status-created">
+                            <div class="timeline-header">
+                                <div class="timeline-title">Request Created</div>
+                                <div class="timeline-date">{{ recruitment_request.requested_date|date:"M d, Y g:i A" }}</div>
+                            </div>
+                            <div class="timeline-meta">
+                                <span>Created by: <span class="timeline-user">{{ recruitment_request.managerid.staffid.name }}</span></span>
+                                <span>Initial Priority: {{ recruitment_request.priority }}</span>
+                            </div>
+                            <div class="timeline-reason">
+                                <strong>Initial Request:</strong> {{ recruitment_request.reason }}
+                            </div>
+                            <div class="timeline-changes">
+                                <span class="change-badge">Position: {{ recruitment_request.position }}</span>
+                                <span class="change-badge">Personnel: {{ recruitment_request.total_personnel }}</span>
+                                <span class="change-badge">Priority: {{ recruitment_request.priority }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right Column: Sidebar -->
+            <div class="sidebar">
+                <!-- Summary Statistics -->
+                <div class="sidebar-card">
+                    <div class="sidebar-header">History Summary</div>
+                    <div class="sidebar-content">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Changes:</span>
+                            <span class="stat-value">{{ status_history.count|default:1 }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Days Active:</span>
+                            <span class="stat-value">{{ recruitment_request.days_since_request }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Current Status:</span>
+                            <span class="stat-value">{{ recruitment_request.status }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Priority Level:</span>
+                            <span class="stat-value">{{ recruitment_request.priority }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Last Updated:</span>
+                            <span class="stat-value">
+                                {{ recruitment_request.last_updated|date:"M d" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Legend -->
+                <div class="sidebar-card">
+                    <div class="sidebar-header">Status Legend</div>
+                    <div class="sidebar-content">
+                        <div class="legend-item legend-created">
+                            <div class="legend-dot"></div>
+                            <span>Request Created</span>
+                        </div>
+                        <div class="legend-item legend-pending">
+                            <div class="legend-dot"></div>
+                            <span>Pending Review</span>
+                        </div>
+                        <div class="legend-item legend-approved">
+                            <div class="legend-dot"></div>
+                            <span>Approved/In Progress</span>
+                        </div>
+                        <div class="legend-item legend-rejected">
+                            <div class="legend-dot"></div>
+                            <span>Rejected/On Hold</span>
+                        </div>
+                        <div class="legend-item legend-completed">
+                            <div class="legend-dot"></div>
+                            <span>Completed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Insights -->
+                <div class="sidebar-card">
+                    <div class="sidebar-header">Timeline Insights</div>
+                    <div class="sidebar-content">
+                        <div style="font-size: 14px; line-height: 1.6;">
+                            <strong>Processing Time:</strong><br>
+                            {% if recruitment_request.days_since_request <= 7 %}
+                                🟢 On Track ({{ recruitment_request.days_since_request }} days)
+                            {% elif recruitment_request.days_since_request <= 30 %}
+                                🟡 Moderate ({{ recruitment_request.days_since_request }} days)
+                            {% else %}
+                                🔴 Needs Attention ({{ recruitment_request.days_since_request }} days)
+                            {% endif %}
+                            <br><br>
+                            
+                            <strong>Average Processing:</strong><br>
+                            Similar requests: 14-21 days<br><br>
+                            
+                            <strong>Next Milestone:</strong><br>
+                            {% if recruitment_request.status == 'Pending' %}
+                                Initial Review Due
+                            {% elif recruitment_request.status == 'Under Review' %}
+                                Decision Pending
+                            {% elif recruitment_request.status == 'Approved' %}
+                                Start Recruitment
+                            {% else %}
+                                Status Update
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="sidebar-card">
+                    <div class="sidebar-header">Quick Actions</div>
+                    <div class="sidebar-content">
+                        <a href="{% url 'hr_recruitment_notes' recruitment_request.id %}" class="btn btn-info" style="width: 100%; margin-bottom: 10px; justify-content: center;">
+                            📝 Add Note
+                        </a>
+                        <button type="button" class="btn btn-warning" onclick="generateReport()" style="width: 100%; margin-bottom: 10px; justify-content: center;">
+                            📊 Generate Report
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="printHistory()" style="width: 100%; justify-content: center;">
+                            🖨️ Print History
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+        
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        
+        function exportHistory() {
+            alert('Export history functionality will be implemented');
+        }
+        
+        function generateReport() {
+            alert('Generate detailed report functionality will be implemented');
+        }
+        
+        function printHistory() {
+            window.print();
+        }
+    </script>
+</body>
+</html>

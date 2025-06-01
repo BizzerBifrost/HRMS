@@ -4,63 +4,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recruitment Details - HRMS</title>
+    <title>Recruitment Request Details | HRMS</title>
     <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
     <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: Arial, sans-serif;
         }
-
+        
         body {
-            background-color: #F0F0F0;
+            background-color: var(--primary-color);
+            color: var(--text-color);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
-
-        /* Header */
-        .header {
-            background-color: #0053ED;
-            padding: 15px 30px;
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
+        
         .logo {
             width: 120px;
             height: auto;
         }
-
-        .user-info {
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
             display: flex;
             align-items: center;
-            gap: 15px;
-            color: white;
         }
-
-        .user-details {
+        
+        .user-info {
+            margin-right: 15px;
             text-align: right;
         }
-
-        .user-name {
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .user-position {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .user-menu {
+        
+        /* User dropdown styling */
+        .user-dropdown {
             position: relative;
+            display: inline-block;
         }
-
+        
         .user-image {
             width: 40px;
             height: 40px;
@@ -68,364 +72,454 @@
             cursor: pointer;
             border: 2px solid white;
         }
-
-        .dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            min-width: 150px;
-            z-index: 1000;
+        
+        .dropdown-content {
             display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
         }
-
-        .dropdown.show {
-            display: block;
-        }
-
-        .dropdown a {
-            display: block;
+        
+        .dropdown-content a {
+            color: var(--text-color);
             padding: 12px 16px;
             text-decoration: none;
-            color: #4A4A4A;
-            border-bottom: 1px solid #f0f0f0;
+            display: block;
+            border-radius: 5px;
         }
-
-        .dropdown a:hover {
-            background-color: #f8f9fa;
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
         }
-
-        .dropdown a:last-child {
-            border-bottom: none;
+        
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
         }
-
-        /* Main Content */
-        .main-container {
-            padding: 30px;
-            max-width: 1000px;
-            margin: 0 auto;
+        
+        .show {
+            display: block;
+        }
+        
+        main {
             flex: 1;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
         }
-
+        
+        /* Breadcrumb */
         .breadcrumb {
             margin-bottom: 20px;
-            color: #666;
         }
-
+        
         .breadcrumb a {
-            color: #0053ED;
+            color: var(--secondary-color);
             text-decoration: none;
         }
-
+        
         .breadcrumb a:hover {
             text-decoration: underline;
         }
-
-        .page-header {
+        
+        /* Header Section */
+        .details-header {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 25px;
             margin-bottom: 30px;
         }
-
-        .page-title {
-            color: #4A4A4A;
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .page-subtitle {
-            color: #666;
-            font-size: 16px;
-        }
-
-        /* Details Card */
-        .details-card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-left: 4px solid #0053ED;
-            margin-bottom: 20px;
-        }
-
-        .request-header {
+        
+        .request-title {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
         }
-
-        .position-info h2 {
-            color: #0053ED;
-            font-size: 24px;
+        
+        .title-left h1 {
+            color: var(--secondary-color);
             margin-bottom: 5px;
+            font-size: 28px;
         }
-
+        
         .request-id {
-            background: #f0f0f0;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 14px;
             color: #666;
-            font-weight: bold;
-        }
-
-        .details-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        .detail-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 3px solid #0053ED;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #4A4A4A;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-        }
-
-        .section-icon {
-            margin-right: 8px;
-            font-size: 20px;
-        }
-
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding: 8px 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .detail-item:last-child {
-            border-bottom: none;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: #4A4A4A;
-            font-size: 14px;
-        }
-
-        .detail-value {
-            color: #666;
-            font-size: 14px;
-            text-align: right;
-        }
-
-        .personnel-badge {
-            background: #E90000;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 12px;
-        }
-
-        .reason-section {
-            background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .reason-title {
             font-size: 16px;
-            font-weight: bold;
-            color: #4A4A4A;
             margin-bottom: 10px;
         }
-
-        .reason-text {
-            color: #666;
-            line-height: 1.6;
-            font-size: 14px;
-        }
-
-        /* Action Buttons */
-        .action-section {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .action-buttons {
+        
+        .title-right {
             display: flex;
-            gap: 15px;
-            justify-content: center;
+            gap: 10px;
             flex-wrap: wrap;
         }
-
+        
         .btn {
-            padding: 12px 25px;
+            padding: 10px 15px;
             border: none;
-            border-radius: 6px;
+            border-radius: 5px;
             cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-            transition: all 0.2s;
             text-decoration: none;
-            display: inline-block;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
         }
-
+        
         .btn-primary {
-            background-color: #0053ED;
+            background-color: var(--secondary-color);
             color: white;
         }
-
+        
         .btn-primary:hover {
-            background-color: #0041c7;
-            transform: translateY(-2px);
+            background-color: #0045c4;
         }
-
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background-color: #138496;
+        }
+        
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        
         .btn-secondary {
-            background-color: #4A4A4A;
+            background-color: #6c757d;
             color: white;
         }
-
+        
         .btn-secondary:hover {
-            background-color: #333;
-            transform: translateY(-2px);
+            background-color: #5a6268;
         }
-
-        .btn-outline {
-            background-color: transparent;
-            color: #0053ED;
-            border: 2px solid #0053ED;
+        
+        /* Status and Priority */
+        .status-priority {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
         }
-
-        .btn-outline:hover {
-            background-color: #0053ED;
+        
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-in-progress, .status-under-review {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .priority-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .priority-low {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .priority-standard {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .priority-high {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .priority-urgent {
+            background-color: #f5c6cb;
+            color: #721c24;
+        }
+        
+        .priority-critical {
+            background-color: #e2d9f3;
+            color: #6f42c1;
+        }
+        
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background-color: var(--secondary-color);
             color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            font-size: 16px;
         }
-
-        /* Footer */
-        .footer {
-            background-color: #4A4A4A;
+        
+        .card-content {
+            padding: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: var(--text-color);
+            min-width: 150px;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            flex: 1;
+            color: #333;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 20px;
+            border-left: 2px solid #dee2e6;
+            padding-left: 20px;
+            margin-left: 10px;
+        }
+        
+        .timeline-item:last-child {
+            border-left: none;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+        }
+        
+        .timeline-date {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .timeline-content {
+            font-size: 14px;
+        }
+        
+        /* Alert Messages */
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        /* Contact Card */
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .contact-icon {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Messages */
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        
+        .messages .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .messages .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            background-color: var(--text-color);
             color: white;
             text-align: center;
-            padding: 20px;
+            padding: 15px;
             margin-top: auto;
         }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .logo {
-                width: 100px;
-            }
-
-            .main-container {
-                padding: 20px;
-            }
-
-            .details-grid {
+        
+        /* Responsive Design */
+        @media (max-width: 968px) {
+            .content-grid {
                 grid-template-columns: 1fr;
             }
-
-            .request-header {
+            
+            .request-title {
                 flex-direction: column;
-                gap: 15px;
+                align-items: stretch;
             }
-
-            .action-buttons {
+            
+            .title-right {
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .info-row {
                 flex-direction: column;
             }
-
-            .user-details {
-                display: none;
+            
+            .info-label {
+                min-width: auto;
+                margin-bottom: 2px;
             }
-        }
-
-        /* Popup Animation */
-        .popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
-
-        .popup-content {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            animation: popupSlideIn 0.3s ease-out;
-        }
-
-        @keyframes popupSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-50px) scale(0.9);
+            
+            .status-priority {
+                flex-direction: column;
+                align-items: flex-start;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .popup-title {
-            font-size: 24px;
-            color: #0053ED;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-
-        .popup-message {
-            color: #666;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-
-        .popup-btn {
-            background-color: #0053ED;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
+    <header>
         <a href="{% url 'hrmenu' %}">
-            <img src="{% static 'img/logo.png' %}" alt="Company Logo" class="logo">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
         </a>
-        
-        <div class="user-info">
-            <div class="user-details">
-                <div class="user-name">{{ user_name }}</div>
-                <div class="user-position">{{ hr.staffid.position }}</div>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ hr.staffid.name }}</strong></div>
+                <div>{{ hr.staffid.position }}</div>
             </div>
-            <div class="user-menu">
-                <img src="{% static 'img/user.png' %}" alt="User" class="user-image" onclick="toggleDropdown()">
-                <div class="dropdown" id="userDropdown">
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
                     <a href="{% url 'hr_profile' %}">Profile</a>
                     <a href="{% url 'logout' %}">Logout</a>
                 </div>
@@ -433,139 +527,284 @@
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="main-container">
+    <main>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        <!-- Breadcrumb -->
         <div class="breadcrumb">
-            <a href="{% url 'hr_recruitment' %}">Recruitment Requests</a> > Request Details
+            <a href="{% url 'hrmenu' %}">HR Dashboard</a> &gt; 
+            <a href="{% url 'hr_recruitment' %}">Recruitment</a> &gt; 
+            Request #{{ recruitment_request.id }}
         </div>
-
-        <div class="page-header">
-            <h1 class="page-title">Recruitment Request Details</h1>
-            <p class="page-subtitle">Complete information about this hiring request</p>
-        </div>
-
-        <div class="details-card">
-            <div class="request-header">
-                <div class="position-info">
-                    <h2>{{ recruitment_request.position }}</h2>
-                    <p style="color: #666; margin-top: 5px;">Position to be filled</p>
-                </div>
-                <div class="request-id">Request ID: #{{ recruitment_request.id }}</div>
-            </div>
-
-            <div class="details-grid">
-                <div class="detail-section">
-                    <div class="section-title">
-                        <span class="section-icon">👤</span>
-                        Manager Information
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Manager Name:</span>
-                        <span class="detail-value">{{ manager_name }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Manager ID:</span>
-                        <span class="detail-value">{{ recruitment_request.managerid.id }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Position:</span>
-                        <span class="detail-value">{{ manager_position }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Email:</span>
-                        <span class="detail-value">{{ manager_email }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Phone:</span>
-                        <span class="detail-value">{{ manager_phone }}</span>
+        
+        <!-- Header Section -->
+        <div class="details-header">
+            <div class="request-title">
+                <div class="title-left">
+                    <h1>{{ recruitment_request.position }}</h1>
+                    <div class="request-id">Request ID: #{{ recruitment_request.id }}</div>
+                    <div class="status-priority">
+                        <span class="status-badge status-{{ recruitment_request.status|lower|cut:' ' }}">
+                            {{ recruitment_request.status }}
+                        </span>
+                        <span class="priority-badge priority-{{ recruitment_request.priority|lower }}">
+                            {{ recruitment_request.priority }} Priority
+                        </span>
                     </div>
                 </div>
-
-                <div class="detail-section">
-                    <div class="section-title">
-                        <span class="section-icon">📋</span>
-                        Request Details
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Position Required:</span>
-                        <span class="detail-value">{{ recruitment_request.position }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Personnel Needed:</span>
-                        <span class="personnel-badge">{{ recruitment_request.total_personnel }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Request Status:</span>
-                        <span class="detail-value" style="color: #E90000; font-weight: bold;">Pending Review</span>
-                    </div>
+                
+                <div class="title-right">
+                    <a href="{% url 'hr_recruitment_process' recruitment_request.id %}" class="btn btn-primary">
+                         Process Request
+                    </a>
+                    <a href="{% url 'hr_recruitment_notes' recruitment_request.id %}" class="btn btn-info">
+                         Add Notes
+                    </a>
+                    <a href="{% url 'hr_recruitment_attachments' recruitment_request.id %}" class="btn btn-warning">
+                         Attachments
+                    </a>
+                    <a href="{% url 'hr_recruitment_search' %}" class="btn btn-secondary">
+                        ← Back to List
+                    </a>
                 </div>
             </div>
-
-            {% if recruitment_request.reason %}
-            <div class="reason-section">
-                <div class="reason-title">📝 Justification & Reason</div>
-                <div class="reason-text">{{ recruitment_request.reason }}</div>
+            
+            <!-- Alert Messages -->
+            {% if recruitment_request.is_urgent %}
+            <div class="alert alert-warning">
+                <strong>⚠️ Urgent Request:</strong> This recruitment request has been marked as {{ recruitment_request.priority|lower }} priority.
+            </div>
+            {% endif %}
+            
+            {% if recruitment_request.is_overdue %}
+            <div class="alert alert-danger">
+                <strong>🕐 Overdue:</strong> This request has exceeded its expected completion date.
+            </div>
+            {% endif %}
+            
+            {% if recruitment_request.days_since_request > 30 %}
+            <div class="alert alert-info">
+                <strong>📅 Long Pending:</strong> This request has been pending for {{ recruitment_request.days_since_request }} days.
             </div>
             {% endif %}
         </div>
 
-        <div class="action-section">
-            <h3 style="margin-bottom: 20px; color: #4A4A4A;">Available Actions</h3>
-            <div class="action-buttons">
-                <a href="{% url 'hr_recruitment_process' recruitment_request.id %}" class="btn btn-primary">
-                    Process Request
-                </a>
-                <a href="{% url 'hr_recruitment' %}" class="btn btn-outline">
-                    Back to List
-                </a>
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Request Details -->
+                <div class="content-card">
+                    <div class="card-header">Request Information</div>
+                    <div class="card-content">
+                        <div class="info-row">
+                            <div class="info-label">Position Title:</div>
+                            <div class="info-value"><strong>{{ recruitment_request.position }}</strong></div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Number of Personnel:</div>
+                            <div class="info-value">{{ recruitment_request.total_personnel }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Employment Type:</div>
+                            <div class="info-value">{{ recruitment_request.employment_type|default:"Not specified" }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Department:</div>
+                            <div class="info-value">{{ recruitment_request.department|default:"Not specified" }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Work Location:</div>
+                            <div class="info-value">{{ recruitment_request.work_location|default:"Not specified" }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Remote Work Option:</div>
+                            <div class="info-value">{{ recruitment_request.remote_work_option|default:"On-site" }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Expected Timeline:</div>
+                            <div class="info-value">{{ recruitment_request.expected_timeline|default:"Not specified" }}</div>
+                        </div>
+                        {% if recruitment_request.salary_range_min or recruitment_request.salary_range_max %}
+                        <div class="info-row">
+                            <div class="info-label">Salary Range:</div>
+                            <div class="info-value">
+                                {% if recruitment_request.salary_range_min %}
+                                    RM{{ recruitment_request.salary_range_min|floatformat:2 }}
+                                {% endif %}
+                                {% if recruitment_request.salary_range_min and recruitment_request.salary_range_max %} - {% endif %}
+                                {% if recruitment_request.salary_range_max %}
+                                    RM{{ recruitment_request.salary_range_max|floatformat:2 }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Justification -->
+                <div class="content-card">
+                    <div class="card-header">Business Justification</div>
+                    <div class="card-content">
+                        <div class="info-row">
+                            <div class="info-label">Justification Type:</div>
+                            <div class="info-value">{{ recruitment_request.justification_type|default:"Not specified" }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Reason:</div>
+                            <div class="info-value">{{ recruitment_request.reason }}</div>
+                        </div>
+                        {% if recruitment_request.business_justification %}
+                        <div class="info-row">
+                            <div class="info-label">Detailed Justification:</div>
+                            <div class="info-value">{{ recruitment_request.business_justification }}</div>
+                        </div>
+                        {% endif %}
+                        {% if recruitment_request.budget_allocated %}
+                        <div class="info-row">
+                            <div class="info-label">Budget Allocated:</div>
+                            <div class="info-value">RM{{ recruitment_request.budget_allocated|floatformat:2 }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Job Requirements -->
+                {% if recruitment_request.job_description or recruitment_request.required_qualifications or recruitment_request.preferred_qualifications %}
+                <div class="content-card">
+                    <div class="card-header">Job Requirements</div>
+                    <div class="card-content">
+                        {% if recruitment_request.job_description %}
+                        <div class="info-row">
+                            <div class="info-label">Job Description:</div>
+                            <div class="info-value">{{ recruitment_request.job_description }}</div>
+                        </div>
+                        {% endif %}
+                        {% if recruitment_request.required_qualifications %}
+                        <div class="info-row">
+                            <div class="info-label">Required Qualifications:</div>
+                            <div class="info-value">{{ recruitment_request.required_qualifications }}</div>
+                        </div>
+                        {% endif %}
+                        {% if recruitment_request.preferred_qualifications %}
+                        <div class="info-row">
+                            <div class="info-label">Preferred Qualifications:</div>
+                            <div class="info-value">{{ recruitment_request.preferred_qualifications }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Manager Information -->
+                <div class="content-card">
+                    <div class="card-header">Requesting Manager</div>
+                    <div class="card-content">
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <div class="contact-icon">👤</div>
+                                <div><strong>{{ manager_name }}</strong></div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="contact-icon">💼</div>
+                                <div>{{ manager_position }}</div>
+                            </div>
+                            {% if manager_email %}
+                            <div class="contact-item">
+                                <div class="contact-icon">📧</div>
+                                <div><a href="mailto:{{ manager_email }}">{{ manager_email }}</a></div>
+                            </div>
+                            {% endif %}
+                            {% if manager_phone %}
+                            <div class="contact-item">
+                                <div class="contact-icon">📞</div>
+                                <div><a href="tel:{{ manager_phone }}">{{ manager_phone }}</a></div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="content-card">
+                    <div class="card-header">Request Timeline</div>
+                    <div class="card-content">
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-date">{{ recruitment_request.requested_date|date:"M d, Y" }}</div>
+                                <div class="timeline-content">Request submitted</div>
+                            </div>
+                            {% if recruitment_request.target_start_date %}
+                            <div class="timeline-item">
+                                <div class="timeline-date">{{ recruitment_request.target_start_date|date:"M d, Y" }}</div>
+                                <div class="timeline-content">Target start date</div>
+                            </div>
+                            {% endif %}
+                            {% if recruitment_request.expected_completion_date %}
+                            <div class="timeline-item">
+                                <div class="timeline-date">{{ recruitment_request.expected_completion_date|date:"M d, Y" }}</div>
+                                <div class="timeline-content">Expected completion</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="content-card">
+                    <div class="card-header">Quick Information</div>
+                    <div class="card-content">
+                        <div class="info-row">
+                            <div class="info-label">Days Since Request:</div>
+                            <div class="info-value">{{ recruitment_request.days_since_request }} days</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Last Updated:</div>
+                            <div class="info-value">{{ recruitment_request.last_updated|date:"M d, Y" }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Confidential:</div>
+                            <div class="info-value">{% if recruitment_request.is_confidential %}Yes{% else %}No{% endif %}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">External Posting:</div>
+                            <div class="info-value">{% if recruitment_request.external_posting_allowed %}Allowed{% else %}Internal Only{% endif %}</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System. All rights reserved.</p>
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
     </footer>
 
     <script>
-        // Popup animation
-        function closePopup() {
-            document.getElementById('welcomePopup').style.display = 'none';
-        }
-
-        // Auto close popup after 3 seconds
-        setTimeout(closePopup, 3000);
-
-        // User dropdown functionality
         function toggleDropdown() {
-            const dropdown = document.getElementById('userDropdown');
-            dropdown.classList.toggle('show');
+            document.getElementById('userDropdown').classList.toggle('show');
         }
-
-        // Close dropdown when clicking outside
+        
         window.onclick = function(event) {
             if (!event.target.matches('.user-image')) {
-                const dropdown = document.getElementById('userDropdown');
-                if (dropdown.classList.contains('show')) {
-                    dropdown.classList.remove('show');
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
                 }
             }
         }
-
-        // Smooth entrance animation
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.details-card, .action-section');
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                
-                setTimeout(() => {
-                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 200);
-            });
-        });
     </script>
 </body>
 </html>
