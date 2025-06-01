@@ -1,0 +1,665 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay Slip | HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            margin-right: 15px;
+            text-align: right;
+        }
+        
+        /* User dropdown styling */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        /* Arrow for dropdown */
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        main {
+            flex: 1;
+            padding: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .payslip-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+        
+        .payslip-header {
+            text-align: center;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+        }
+        
+        .payslip-title {
+            font-size: 18px;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+        
+        .pay-period {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .employee-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .info-group h3 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        
+        .info-value {
+            color: #666;
+        }
+        
+        .payroll-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .payroll-table th,
+        .payroll-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .payroll-table th {
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .payroll-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .payroll-table tbody tr:hover {
+            background-color: #e9ecef;
+        }
+        
+        .amount {
+            text-align: right;
+            font-weight: bold;
+        }
+        
+        .positive {
+            color: #28a745;
+        }
+        
+        .negative {
+            color: #dc3545;
+        }
+        
+        .total-row {
+            background-color: #e9ecef !important;
+            font-weight: bold;
+            border-top: 2px solid var(--secondary-color);
+        }
+        
+        .net-salary {
+            background-color: var(--secondary-color) !important;
+            color: white !important;
+            font-size: 18px;
+        }
+        
+        .summary-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .summary-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .summary-card h3 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+        }
+        
+        .download-section {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .download-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 0 10px;
+        }
+        
+        .download-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .print-btn {
+            background-color: #28a745;
+        }
+        
+        .no-payroll {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .no-payroll h2 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+        
+        .no-payroll p {
+            margin-bottom: 20px;
+        }
+        
+        footer {
+            background-color: var(--text-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+        
+        /* Messages styling */
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        
+        .messages .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .messages .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .employee-info {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .summary-section {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .payroll-table {
+                font-size: 14px;
+            }
+            
+            .payroll-table th,
+            .payroll-table td {
+                padding: 10px 8px;
+            }
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+            }
+            
+            header, footer, .back-btn, .download-section {
+                display: none;
+            }
+            
+            main {
+                max-width: none;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .payslip-container {
+                box-shadow: none;
+                margin: 0;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{% url 'staffmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ staff.name }}</strong></div>
+                <div>{{ staff.position }}</div>
+            </div>
+            <!-- User image dropdown -->
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        
+        <h1>My Pay Slip</h1>
+        
+        {% if payroll %}
+        <div class="payslip-container">
+            <!-- Pay Slip Header -->
+            <div class="payslip-header">
+                <div class="company-name">KOOP-KPMIM</div>
+                <div class="payslip-title">Employee Pay Slip</div>
+                <div class="pay-period">Pay Period: {{ current_month }}</div>
+            </div>
+            
+            <!-- Employee Information -->
+            <div class="employee-info">
+                <div class="info-group">
+                    <h3>Employee Details</h3>
+                    <div class="info-item">
+                        <span class="info-label">Employee ID:</span>
+                        <span class="info-value">{{ staff.id }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Name:</span>
+                        <span class="info-value">{{ staff.name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Position:</span>
+                        <span class="info-value">{{ staff.position }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">{{ staff.email|default:"Not provided" }}</span>
+                    </div>
+                </div>
+                
+                <div class="info-group">
+                    <h3>Payment Details</h3>
+                    <div class="info-item">
+                        <span class="info-label">Bank Account:</span>
+                        <span class="info-value">{{ staff.bank_number|default:"Not provided" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Pay Date:</span>
+                        <span class="info-value">{{ pay_date }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value">{{ staff.status|default:"Not specified" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payroll Details Table -->
+            <table class="payroll-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th class="amount">Amount (RM)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Earnings -->
+                    <tr>
+                        <td><strong>EARNINGS</strong></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Base Salary</td>
+                        <td class="amount positive">{{ payroll.base|floatformat:2 }}</td>
+                    </tr>
+                    {% if payroll.allowance > 0 %}
+                    <tr>
+                        <td>Allowance</td>
+                        <td class="amount positive">{{ payroll.allowance|floatformat:2 }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if payroll.bonus > 0 %}
+                    <tr>
+                        <td>Bonus</td>
+                        <td class="amount positive">{{ payroll.bonus|floatformat:2 }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr class="total-row">
+                        <td><strong>Total Earnings</strong></td>
+                        <td class="amount positive">{{ total_earnings|floatformat:2 }}</td>
+                    </tr>
+                    
+                    <!-- Deductions -->
+                    <tr>
+                        <td><strong>DEDUCTIONS</strong></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>EPF Employee Contribution (11%)</td>
+                        <td class="amount negative">{{ payroll.epf_employee|floatformat:2 }}</td>
+                    </tr>
+                    {% if payroll.pcb > 0 %}
+                    <tr>
+                        <td>Income Tax (PCB)</td>
+                        <td class="amount negative">{{ payroll.pcb|floatformat:2 }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr class="total-row">
+                        <td><strong>Total Deductions</strong></td>
+                        <td class="amount negative">{{ total_deductions|floatformat:2 }}</td>
+                    </tr>
+                    
+                    <!-- Net Salary -->
+                    <tr class="net-salary">
+                        <td><strong>NET SALARY</strong></td>
+                        <td class="amount"><strong>{{ payroll.net_salary|floatformat:2 }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <!-- Summary Section -->
+            <div class="summary-section">
+                <div class="summary-card">
+                    <h3>Employer Contributions</h3>
+                    <div class="summary-item">
+                        <span>EPF Employer (13%):</span>
+                        <span class="positive">RM {{ payroll.epf_employer|floatformat:2 }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>SOCSO (if applicable):</span>
+                        <span class="positive">RM 0.00</span>
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <h3>Year to Date</h3>
+                    <div class="summary-item">
+                        <span>Total Earnings:</span>
+                        <span>RM {{ ytd_earnings|floatformat:2 }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total EPF:</span>
+                        <span>RM {{ ytd_epf|floatformat:2 }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total Tax:</span>
+                        <span>RM {{ ytd_tax|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Download Section -->
+            <div class="download-section">
+                <p style="margin-bottom: 20px; color: #666;">
+                    <em>This is a computer-generated pay slip and does not require a signature.</em>
+                </p>
+                <button onclick="window.print()" class="download-btn print-btn">Print Pay Slip</button>
+                {% if payroll %}
+                <a href="{% url 'staff_payslip_pdf' %}" class="download-btn" style="text-decoration: none;">Download PDF</a>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% else %}
+        <div class="payslip-container">
+            <div class="no-payroll">
+                <h2>No Pay Slip Available</h2>
+                <p>Your payroll information has not been set up yet.</p>
+                <p>Please contact the HR department for assistance.</p>
+            </div>
+        </div>
+        {% endif %}
+    </main>
+
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Toggle dropdown menu
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+        
+        // Reset popup state when logging out
+        function resetPopupState() {
+            localStorage.removeItem('staffPopupShown');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        
+        // Show loading message for PDF download
+        function showPDFLoading() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Generating PDF...';
+            btn.disabled = true;
+            
+            // Re-enable button after 3 seconds
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 3000);
+        }
+        
+        // Download PDF function
+        function downloadPDF() {
+            // In a real implementation, this would generate and download a PDF
+            // For now, we'll just show a message
+            alert('PDF download functionality would be implemented here. Currently showing print version.');
+            window.print();
+        }
+
+        // Update the downloadPDF function in the HTML template
+        function downloadPDF() {
+            // Redirect to PDF generation view
+            window.location.href = "{% url 'staff_payslip_pdf' %}";
+        }
+    </script>
+</body>
+</html>

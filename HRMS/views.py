@@ -3873,3 +3873,283 @@ def staff_view_goals(request):
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('staffmenu')
       
+def staff_payslip(request):
+    """View for staff to view and download their pay slip"""
+    # Check if user is authenticated and is staff
+    if not request.session.get('user_type') == 'staff':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get staff information
+        staff_id = request.session.get('user_id')
+        staff = STAFF.objects.get(id=staff_id)
+        
+        # Get payroll information for this staff
+        try:
+            payroll = PAYROLL.objects.get(staffid=staff)
+            
+            # Calculate total earnings and deductions
+            total_earnings = payroll.base + payroll.allowance + payroll.bonus
+            total_deductions = payroll.epf_employee + payroll.pcb
+            
+            # Calculate year-to-date figures (simple calculation for demo)
+            # In a real system, you'd have multiple payroll records per year
+            current_month = timezone.now().month
+            ytd_earnings = total_earnings * current_month
+            ytd_epf = payroll.epf_employee * current_month
+            ytd_tax = payroll.pcb * current_month
+            
+            # Format current month and pay date
+            current_month_str = timezone.now().strftime('%B %Y')
+            pay_date = timezone.now().strftime('%B %d, %Y')
+            
+            context = {
+                'staff': staff,
+                'payroll': payroll,
+                'total_earnings': total_earnings,
+                'total_deductions': total_deductions,
+                'current_month': current_month_str,
+                'pay_date': pay_date,
+                'ytd_earnings': ytd_earnings,
+                'ytd_epf': ytd_epf,
+                'ytd_tax': ytd_tax,
+            }
+            
+        except PAYROLL.DoesNotExist:
+            # No payroll record found for this staff
+            context = {
+                'staff': staff,
+                'payroll': None,
+            }
+        
+        return render(request, 'staff/payslip.html', context)
+        
+    except STAFF.DoesNotExist:
+        messages.error(request, "Staff profile not found. Please login again.")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect('staffmenu')
+    
+def staff_payslip_pdf(request):
+    """Generate and download pay slip as PDF"""
+    # Check if user is authenticated and is staff
+    if not request.session.get('user_type') == 'staff':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    try:
+        # Get staff information
+        staff_id = request.session.get('user_id')
+        staff = STAFF.objects.get(id=staff_id)
+        
+        # Get payroll information
+        try:
+            payroll = PAYROLL.objects.get(staffid=staff)
+        except PAYROLL.DoesNotExist:
+            messages.error(request, "No payroll information found. Please contact HR.")
+            return redirect('staff_payslip')
+        
+        # Create PDF response
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="payslip_{staff.id}_{timezone.now().strftime("%Y_%m")}.pdf"'
+        
+        # Create PDF document
+        doc = SimpleDocTemplate(response, pagesize=A4, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
+        styles = getSampleStyleSheet()
+        story = []
+        
+        # Custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=20,
+            spaceAfter=30,
+            alignment=1,  # Center alignment
+            textColor=colors.HexColor('#0053ED')
+        )
+        
+        subtitle_style = ParagraphStyle(
+            'CustomSubtitle',
+            parent=styles['Normal'],
+            fontSize=14,
+            spaceAfter=20,
+            alignment=1,
+            textColor=colors.HexColor('#4A4A4A')
+        )
+        
+        section_style = ParagraphStyle(
+            'SectionHeader',
+            parent=styles['Heading2'],
+            fontSize=14,
+            spaceBefore=20,
+            spaceAfter=10,
+            textColor=colors.HexColor('#0053ED'),
+            borderWidth=1,
+            borderColor=colors.HexColor('#0053ED'),
+            borderPadding=5
+        )
+        
+        # Company Header
+        story.append(Paragraph("KOOP-KPMIM", title_style))
+        story.append(Paragraph("Employee Pay Slip", subtitle_style))
+        story.append(Paragraph(f"Pay Period: {timezone.now().strftime('%B %Y')}", styles['Normal']))
+        story.append(Spacer(1, 20))
+        
+        # Employee Information Table
+        employee_data = [
+            ['Employee Information', 'Payment Details'],
+            [f'Employee ID: {staff.id}', f'Pay Date: {timezone.now().strftime("%B %d, %Y")}'],
+            [f'Name: {staff.name}', f'Bank Account: {staff.bank_number or "Not provided"}'],
+            [f'Position: {staff.position}', f'Status: {staff.status or "Not specified"}'],
+            [f'Email: {staff.email or "Not provided"}', f'Phone: {staff.phone or "Not provided"}']
+        ]
+        
+        employee_table = Table(employee_data, colWidths=[3*inch, 3*inch])
+        employee_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0053ED')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP')
+        ]))
+        
+        story.append(employee_table)
+        story.append(Spacer(1, 30))
+        
+        # Calculate totals
+        total_earnings = payroll.base + payroll.allowance + payroll.bonus
+        total_deductions = payroll.epf_employee + payroll.pcb
+        
+        # Payroll Details Table
+        payroll_data = [
+            ['Description', 'Amount (RM)'],
+            ['EARNINGS', ''],
+            ['Base Salary', f'{payroll.base:.2f}'],
+        ]
+        
+        # Add allowance if > 0
+        if payroll.allowance > 0:
+            payroll_data.append(['Allowance', f'{payroll.allowance:.2f}'])
+        
+        # Add bonus if > 0
+        if payroll.bonus > 0:
+            payroll_data.append(['Bonus', f'{payroll.bonus:.2f}'])
+        
+        # Add total earnings
+        payroll_data.extend([
+            ['Total Earnings', f'{total_earnings:.2f}'],
+            ['', ''],
+            ['DEDUCTIONS', ''],
+            ['EPF Employee Contribution (11%)', f'{payroll.epf_employee:.2f}']
+        ])
+        
+        # Add PCB if > 0
+        if payroll.pcb > 0:
+            payroll_data.append(['Income Tax (PCB)', f'{payroll.pcb:.2f}'])
+        
+        # Add total deductions and net salary
+        payroll_data.extend([
+            ['Total Deductions', f'{total_deductions:.2f}'],
+            ['', ''],
+            ['NET SALARY', f'{payroll.net_salary:.2f}']
+        ])
+        
+        payroll_table = Table(payroll_data, colWidths=[4*inch, 2*inch])
+        
+        # Table styling
+        table_style = [
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0053ED')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
+        ]
+        
+        # Highlight section headers
+        earnings_row = 1
+        deductions_start = -1
+        net_salary_row = -1
+        
+        for i, row in enumerate(payroll_data):
+            if row[0] == 'EARNINGS':
+                table_style.append(('BACKGROUND', (0, i), (-1, i), colors.lightgrey))
+                table_style.append(('FONTNAME', (0, i), (-1, i), 'Helvetica-Bold'))
+            elif row[0] == 'DEDUCTIONS':
+                table_style.append(('BACKGROUND', (0, i), (-1, i), colors.lightgrey))
+                table_style.append(('FONTNAME', (0, i), (-1, i), 'Helvetica-Bold'))
+                deductions_start = i
+            elif row[0] == 'Total Earnings':
+                table_style.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor('#E0E0E0')))
+                table_style.append(('FONTNAME', (0, i), (-1, i), 'Helvetica-Bold'))
+            elif row[0] == 'Total Deductions':
+                table_style.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor('#E0E0E0')))
+                table_style.append(('FONTNAME', (0, i), (-1, i), 'Helvetica-Bold'))
+            elif row[0] == 'NET SALARY':
+                table_style.append(('BACKGROUND', (0, i), (-1, i), colors.HexColor('#0053ED')))
+                table_style.append(('TEXTCOLOR', (0, i), (-1, i), colors.whitesmoke))
+                table_style.append(('FONTNAME', (0, i), (-1, i), 'Helvetica-Bold'))
+                table_style.append(('FONTSIZE', (0, i), (-1, i), 14))
+                net_salary_row = i
+        
+        payroll_table.setStyle(TableStyle(table_style))
+        story.append(payroll_table)
+        story.append(Spacer(1, 30))
+        
+        # Additional Information
+        additional_info = [
+            ['Employer Contributions', 'Year to Date'],
+            [f'EPF Employer (13%): RM {payroll.epf_employer:.2f}', f'Total Earnings: RM {total_earnings * timezone.now().month:.2f}'],
+            [f'SOCSO (if applicable): RM 0.00', f'Total EPF: RM {payroll.epf_employee * timezone.now().month:.2f}'],
+            ['', f'Total Tax: RM {payroll.pcb * timezone.now().month:.2f}']
+        ]
+        
+        additional_table = Table(additional_info, colWidths=[3*inch, 3*inch])
+        additional_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#F0F0F0')),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP')
+        ]))
+        
+        story.append(additional_table)
+        story.append(Spacer(1, 40))
+        
+        # Footer
+        footer_style = ParagraphStyle(
+            'Footer',
+            parent=styles['Normal'],
+            fontSize=9,
+            alignment=1,
+            textColor=colors.grey
+        )
+        
+        story.append(Paragraph("This is a computer-generated pay slip and does not require a signature.", footer_style))
+        story.append(Paragraph(f"Generated on: {timezone.now().strftime('%B %d, %Y at %I:%M %p')}", footer_style))
+        
+        # Build PDF
+        doc.build(story)
+        return response
+        
+    except STAFF.DoesNotExist:
+        messages.error(request, "Staff profile not found. Please login again.")
+        return redirect('login')
+    except Exception as e:
+        messages.error(request, f"Error generating PDF: {str(e)}")
+        return redirect('staff_payslip')

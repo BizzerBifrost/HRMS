@@ -408,7 +408,6 @@
             <div class="user-dropdown">
                 <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
                 <div id="userDropdown" class="dropdown-content">
-                    <a href="{% url 'staff_profile' %}">Profile</a>
                     <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
                 </div>
             </div>

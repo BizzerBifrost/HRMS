@@ -369,16 +369,6 @@
     </style>
 </head>
 <body>
-    <!-- Popup Animation (shown once when page loads) -->
-    <div class="popup-container" id="welcomePopup">
-        <div class="popup-content">
-            <span class="popup-close" onclick="closePopup()">&times;</span>
-            <h2 style="color: var(--secondary-color); margin-bottom: 15px;">Personal Information</h2>
-            <p>Manage your personal details and account settings.</p>
-            <button class="btn" style="margin-top: 20px; width: auto;" onclick="closePopup()">Continue</button>
-        </div>
-    </div>
-
     <header>
         <a href="{% url 'staffmenu' %}">
             <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
@@ -392,7 +382,6 @@
             <div class="user-dropdown">
                 <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
                 <div id="userDropdown" class="dropdown-content">
-                    <a href="{% url 'staff_personal_info' %}">Profile</a>
                     <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
                 </div>
             </div>
