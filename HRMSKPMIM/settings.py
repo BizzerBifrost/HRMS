@@ -28,7 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
-    'hrmskpmim.pythonanywhere.com'
+    'hrmskpmim.pythonanywhere.com',
 ]
 
 
