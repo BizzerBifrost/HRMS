@@ -171,8 +171,7 @@
         
         .file-input-wrapper {
             position: relative;
-            display: inline-block;
-            cursor: pointer;
+            display: block;
             width: 100%;
         }
         
@@ -190,7 +189,6 @@
             background-color: #f8f9fa;
             transition: all 0.3s ease;
             cursor: pointer;
-            position: relative;
         }
         
         .file-input-label:hover {
@@ -199,7 +197,7 @@
             transform: scale(1.01);
         }
         
-        .file-input-label.drag-over {
+        .file-input-label.dragover {
             border-color: var(--secondary-color);
             background-color: rgba(0, 83, 237, 0.1);
             transform: scale(1.02);
@@ -376,8 +374,8 @@
                     <div class="file-input-wrapper">
                         <input type="file" id="attachment" name="attachment" class="file-input" 
                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt" onchange="showFileName()">
-                        <label for="attachment" class="file-input-label">
-                             Click to select file<br>
+                        <label for="attachment" class="file-input-label" id="fileLabel">
+                             Click to select file or drop and drag the file here<br>
                             <small>Supported formats: PDF, DOC, DOCX, JPG, PNG, TXT (Max 5MB)</small>
                         </label>
                     </div>
@@ -397,20 +395,14 @@
     </footer>
 
     <script>
-        // Popup functionality
-        function closePopup() {
-            document.getElementById('welcomePopup').style.display = 'none';
-            localStorage.setItem('staffFeedbackPopupShown', 'true');
+        // Toggle dropdown menu
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
         }
         
         // Reset popup state when logging out
         function resetPopupState() {
             localStorage.removeItem('staffFeedbackPopupShown');
-        }
-        
-        // Toggle dropdown menu
-        function toggleDropdown() {
-            document.getElementById('userDropdown').classList.toggle('show');
         }
         
         // Close dropdown when clicking outside
@@ -442,26 +434,46 @@
             }
         }
         
-        // Drag and drop functionality (based on working HR attachment code)
+        // Initialize drag and drop functionality
         function initializeDragAndDrop() {
-            const fileInputLabel = document.querySelector('.file-input-label');
+            const fileInputLabel = document.getElementById('fileLabel');
             const fileInput = document.getElementById('attachment');
             
-            fileInputLabel.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                this.classList.add('drag-over');
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                fileInputLabel.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
             });
             
-            fileInputLabel.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                this.classList.remove('drag-over');
+            // Highlight drop area when item is dragged over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                fileInputLabel.addEventListener(eventName, highlight, false);
             });
             
-            fileInputLabel.addEventListener('drop', function(e) {
+            ['dragleave', 'drop'].forEach(eventName => {
+                fileInputLabel.addEventListener(eventName, unhighlight, false);
+            });
+            
+            // Handle dropped files
+            fileInputLabel.addEventListener('drop', handleDrop, false);
+            
+            function preventDefaults(e) {
                 e.preventDefault();
-                this.classList.remove('drag-over');
+                e.stopPropagation();
+            }
+            
+            function highlight() {
+                fileInputLabel.classList.add('dragover');
+            }
+            
+            function unhighlight() {
+                fileInputLabel.classList.remove('dragover');
+            }
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
                 
-                const files = e.dataTransfer.files;
                 if (files.length > 0) {
                     // Validate file before setting
                     const file = files[0];
@@ -482,11 +494,15 @@
                         return;
                     }
                     
-                    // Set the files directly
-                    fileInput.files = files;
+                    // Create a new FileList-like object
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput.files = dataTransfer.files;
+                    
+                    // Show the selected file
                     showFileName();
                 }
-            });
+            }
         }
         
         // Form validation
@@ -509,14 +525,8 @@
             }
         });
         
-        // Check if user has seen popup before
+        // Initialize when page loads
         window.onload = function() {
-            if (localStorage.getItem('staffFeedbackPopupShown') !== 'true') {
-                document.getElementById('welcomePopup').style.display = 'flex';
-            } else {
-                document.getElementById('welcomePopup').style.display = 'none';
-            }
-            
             // Initialize drag and drop functionality
             initializeDragAndDrop();
         }
