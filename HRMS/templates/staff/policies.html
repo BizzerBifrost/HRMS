@@ -388,16 +388,6 @@
     </style>
 </head>
 <body>
-    <!-- Popup Animation (shown once when page loads) -->
-    <div class="popup-container" id="welcomePopup">
-        <div class="popup-content">
-            <span class="popup-close" onclick="closePopup()">&times;</span>
-            <h2 style="color: var(--secondary-color); margin-bottom: 15px;">Company Policies</h2>
-            <p>Welcome to the company policies section. Here you can view all current organizational policies and procedures.</p>
-            <button class="back-btn" style="margin-top: 20px; width: auto;" onclick="closePopup()">Continue</button>
-        </div>
-    </div>
-
     <header>
         <a href="{% url 'staffmenu' %}">
             <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
@@ -425,8 +415,6 @@
             {% endfor %}
         </ul>
         {% endif %}
-        
-        <a href="{% url 'staffmenu' %}" class="back-btn">← Back to Dashboard</a>
         
         <h1>Company Policies & Procedures</h1>
         

@@ -373,7 +373,7 @@
             flex-wrap: wrap;
         }
         
-        .action-links a {
+        .action-links a, .action-links span {
             padding: 4px 8px;
             border-radius: 3px;
             text-decoration: none;
@@ -398,6 +398,14 @@
         
         .btn-process:hover {
             background-color: #218838;
+        }
+        
+        .btn-process.disabled {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+            pointer-events: none;
         }
         
         .btn-notes {
@@ -770,9 +778,13 @@
                             </td>
                             <td>
                                 <div class="action-links">
-                                    <a href="{% url 'hr_recruitment_details' request.id %}" class="btn-view" title="View Details"></a>
-                                    <a href="{% url 'hr_recruitment_process' request.id %}" class="btn-process" title="Process"></a>
-                                    <a href="{% url 'hr_recruitment_notes' request.id %}" class="btn-notes" title="Notes"></a>
+                                    <a href="{% url 'hr_recruitment_details' request.id %}" class="btn-view" title="View Details">👁</a>
+                                    {% if request.status == 'Completed' or request.status == 'Rejected' %}
+                                        <span class="btn-process disabled" title="Cannot process {{ request.status|lower }} requests">⚙</span>
+                                    {% else %}
+                                        <a href="{% url 'hr_recruitment_process' request.id %}" class="btn-process" title="Process">⚙</a>
+                                    {% endif %}
+                                    <a href="{% url 'hr_recruitment_notes' request.id %}" class="btn-notes" title="Notes">📝</a>
                                 </div>
                             </td>
                         </tr>
@@ -861,8 +873,6 @@
             const checkboxes = document.querySelectorAll('.row-checkbox:checked');
             const selectedCount = checkboxes.length;
             
-            document.getElementById('selectedCount').textContent = selectedCount;
-            
             // Update select all checkbox state
             const allCheckboxes = document.querySelectorAll('.row-checkbox');
             const selectAllCheckbox = document.getElementById('selectAll');
@@ -884,10 +894,6 @@
             document.getElementById('selectAll').checked = false;
             updateSelection();
         }
-        
-        
-        
-        
         
         function exportResults() {
             alert('Export all results (functionality to be implemented)');

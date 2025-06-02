@@ -551,43 +551,12 @@
                 </tbody>
             </table>
             
-            <!-- Summary Section -->
-            <div class="summary-section">
-                <div class="summary-card">
-                    <h3>Employer Contributions</h3>
-                    <div class="summary-item">
-                        <span>EPF Employer (13%):</span>
-                        <span class="positive">RM {{ payroll.epf_employer|floatformat:2 }}</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>SOCSO (if applicable):</span>
-                        <span class="positive">RM 0.00</span>
-                    </div>
-                </div>
-                
-                <div class="summary-card">
-                    <h3>Year to Date</h3>
-                    <div class="summary-item">
-                        <span>Total Earnings:</span>
-                        <span>RM {{ ytd_earnings|floatformat:2 }}</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Total EPF:</span>
-                        <span>RM {{ ytd_epf|floatformat:2 }}</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Total Tax:</span>
-                        <span>RM {{ ytd_tax|floatformat:2 }}</span>
-                    </div>
-                </div>
-            </div>
             
             <!-- Download Section -->
             <div class="download-section">
                 <p style="margin-bottom: 20px; color: #666;">
                     <em>This is a computer-generated pay slip and does not require a signature.</em>
                 </p>
-                <button onclick="window.print()" class="download-btn print-btn">Print Pay Slip</button>
                 {% if payroll %}
                 <a href="{% url 'staff_payslip_pdf' %}" class="download-btn" style="text-decoration: none;">Download PDF</a>
                 {% endif %}

@@ -214,6 +214,18 @@
             background-color: #218838;
         }
         
+        .btn-disabled {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .btn-disabled:hover {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+        
         /* Requests Table */
         .requests-section {
             background: white;
@@ -291,6 +303,11 @@
             color: #0c5460;
         }
         
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
         .priority-high {
             color: var(--accent-color);
             font-weight: bold;
@@ -336,6 +353,14 @@
         
         .btn-process:hover {
             background-color: #218838;
+        }
+        
+        .btn-process.disabled {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+            pointer-events: none;
         }
         
         /* Empty State */
@@ -540,7 +565,7 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="status-badge {% if request.status == 'Pending' %}status-pending{% elif request.status == 'Approved' %}status-approved{% elif request.status == 'Rejected' %}status-rejected{% else %}status-in-progress{% endif %}">
+                                <span class="status-badge {% if request.status == 'Pending' %}status-pending{% elif request.status == 'Approved' %}status-approved{% elif request.status == 'Rejected' %}status-rejected{% elif request.status == 'Completed' %}status-completed{% else %}status-in-progress{% endif %}">
                                     {{ request.status }}
                                 </span>
                             </td>
@@ -551,7 +576,11 @@
                             <td>
                                 <div class="action-links">
                                     <a href="{% url 'hr_recruitment_details' request.id %}" class="btn-view">View</a>
-                                    <a href="{% url 'hr_recruitment_process' request.id %}" class="btn-process">Process</a>
+                                    {% if request.status == 'Completed' or request.status == 'Rejected' %}
+                                        <span class="btn-process disabled" title="Cannot process {{ request.status|lower }} requests">Process</span>
+                                    {% else %}
+                                        <a href="{% url 'hr_recruitment_process' request.id %}" class="btn-process">Process</a>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

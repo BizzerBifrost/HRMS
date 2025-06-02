@@ -228,6 +228,19 @@
             background-color: #5a6268;
         }
         
+        .btn-disabled {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .btn-disabled:hover {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+        
         /* Status and Priority */
         .status-priority {
             display: flex;
@@ -423,6 +436,12 @@
             color: #0c5460;
         }
         
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
         /* Contact Card */
         .contact-info {
             display: flex;
@@ -560,9 +579,15 @@
                 </div>
                 
                 <div class="title-right">
-                    <a href="{% url 'hr_recruitment_process' recruitment_request.id %}" class="btn btn-primary">
-                         Process Request
-                    </a>
+                    {% if recruitment_request.status == 'Completed' or recruitment_request.status == 'Rejected' %}
+                        <span class="btn btn-disabled" title="Cannot process {{ recruitment_request.status|lower }} requests">
+                             Process Request
+                        </span>
+                    {% else %}
+                        <a href="{% url 'hr_recruitment_process' recruitment_request.id %}" class="btn btn-primary">
+                             Process Request
+                        </a>
+                    {% endif %}
                     <a href="{% url 'hr_recruitment_notes' recruitment_request.id %}" class="btn btn-info">
                          Add Notes
                     </a>
@@ -576,19 +601,29 @@
             </div>
             
             <!-- Alert Messages -->
-            {% if recruitment_request.is_urgent %}
+            {% if recruitment_request.status == 'Completed' %}
+            <div class="alert alert-success">
+                <strong>✅ Request Completed:</strong> This recruitment request has been completed and is no longer available for processing.
+            </div>
+            {% elif recruitment_request.status == 'Rejected' %}
+            <div class="alert alert-danger">
+                <strong>❌ Request Rejected:</strong> This recruitment request has been rejected and is no longer available for processing.
+            </div>
+            {% endif %}
+            
+            {% if recruitment_request.is_urgent and recruitment_request.status != 'Completed' and recruitment_request.status != 'Rejected' %}
             <div class="alert alert-warning">
                 <strong>⚠️ Urgent Request:</strong> This recruitment request has been marked as {{ recruitment_request.priority|lower }} priority.
             </div>
             {% endif %}
             
-            {% if recruitment_request.is_overdue %}
+            {% if recruitment_request.is_overdue and recruitment_request.status != 'Completed' and recruitment_request.status != 'Rejected' %}
             <div class="alert alert-danger">
                 <strong>🕐 Overdue:</strong> This request has exceeded its expected completion date.
             </div>
             {% endif %}
             
-            {% if recruitment_request.days_since_request > 30 %}
+            {% if recruitment_request.days_since_request > 30 and recruitment_request.status != 'Completed' and recruitment_request.status != 'Rejected' %}
             <div class="alert alert-info">
                 <strong>📅 Long Pending:</strong> This request has been pending for {{ recruitment_request.days_since_request }} days.
             </div>
