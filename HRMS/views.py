@@ -3809,6 +3809,21 @@ def staff_leave_application(request):
     try:
         staff = STAFF.objects.get(id=staff_id)
         
+        # Check if staff is part of any team (either as member or manager)
+        # Check if staff is a team member
+        is_team_member = TEAM_MEMBERSHIP.objects.filter(staff=staff).exists()
+        
+        # Check if staff is a manager (team leader)
+        is_team_manager = False
+        try:
+            manager = MANAGER.objects.get(staffid=staff)
+            is_team_manager = TEAM.objects.filter(managerid=manager).exists()
+        except MANAGER.DoesNotExist:
+            is_team_manager = False
+        
+        # Staff has team if they are either a team member or team manager
+        has_team = is_team_member or is_team_manager
+        
         # Get or create leave balance for the staff
         leave_balance, created = LEAVE_BALANCE.objects.get_or_create(
             staffid=staff,
@@ -3823,6 +3838,16 @@ def staff_leave_application(request):
         leave_balance.update_leave_available()
         
         if request.method == 'POST':
+            # Only process POST if staff has a team
+            if not has_team:
+                messages.error(request, 'You cannot apply for leave without being assigned to a team.')
+                return render(request, 'staff/leave_application.html', {
+                    'staff': staff,
+                    'has_team': has_team,
+                    'leave_balance': leave_balance,
+                    'today': timezone.now().date()
+                })
+            
             start_date_str = request.POST.get('start_date')
             end_date_str = request.POST.get('end_date')
             reason = request.POST.get('reason', '').strip()
@@ -3832,6 +3857,7 @@ def staff_leave_application(request):
                 messages.error(request, 'All fields are required.')
                 return render(request, 'staff/leave_application.html', {
                     'staff': staff,
+                    'has_team': has_team,
                     'leave_balance': leave_balance,
                     'today': timezone.now().date()
                 })
@@ -3845,6 +3871,7 @@ def staff_leave_application(request):
                     messages.error(request, 'Invalid date format.')
                     return render(request, 'staff/leave_application.html', {
                         'staff': staff,
+                        'has_team': has_team,
                         'leave_balance': leave_balance,
                         'today': timezone.now().date()
                     })
@@ -3854,6 +3881,7 @@ def staff_leave_application(request):
                     messages.error(request, 'Start date cannot be after end date.')
                     return render(request, 'staff/leave_application.html', {
                         'staff': staff,
+                        'has_team': has_team,
                         'leave_balance': leave_balance,
                         'today': timezone.now().date()
                     })
@@ -3863,6 +3891,7 @@ def staff_leave_application(request):
                     messages.error(request, 'Leave application cannot be for past dates.')
                     return render(request, 'staff/leave_application.html', {
                         'staff': staff,
+                        'has_team': has_team,
                         'leave_balance': leave_balance,
                         'today': timezone.now().date()
                     })
@@ -3875,6 +3904,7 @@ def staff_leave_application(request):
                     messages.error(request, f'Insufficient leave balance. You have {leave_balance.leave_available} days available, but requested {total_days} days.')
                     return render(request, 'staff/leave_application.html', {
                         'staff': staff,
+                        'has_team': has_team,
                         'leave_balance': leave_balance,
                         'today': timezone.now().date()
                     })
@@ -3891,6 +3921,7 @@ def staff_leave_application(request):
                     messages.error(request, 'You already have a leave application for the selected date range.')
                     return render(request, 'staff/leave_application.html', {
                         'staff': staff,
+                        'has_team': has_team,
                         'leave_balance': leave_balance,
                         'today': timezone.now().date()
                     })
@@ -3911,6 +3942,7 @@ def staff_leave_application(request):
                 messages.error(request, f'Invalid date provided: {str(e)}')
                 return render(request, 'staff/leave_application.html', {
                     'staff': staff,
+                    'has_team': has_team,
                     'leave_balance': leave_balance,
                     'today': timezone.now().date()
                 })
@@ -3918,6 +3950,7 @@ def staff_leave_application(request):
                 messages.error(request, f'An error occurred while processing your application: {str(e)}')
                 return render(request, 'staff/leave_application.html', {
                     'staff': staff,
+                    'has_team': has_team,
                     'leave_balance': leave_balance,
                     'today': timezone.now().date()
                 })
@@ -3925,6 +3958,7 @@ def staff_leave_application(request):
         # GET request - show the form
         context = {
             'staff': staff,
+            'has_team': has_team,
             'leave_balance': leave_balance,
             'today': timezone.now().date()
         }
@@ -3948,6 +3982,26 @@ def staff_leave_status(request):
     try:
         staff = STAFF.objects.get(id=staff_id)
         
+        # Check if staff is part of any team (either as member or manager)
+        # Check if staff is a team member
+        is_team_member = TEAM_MEMBERSHIP.objects.filter(staff=staff).exists()
+        
+        # Check if staff is a manager (team leader)
+        is_team_manager = False
+        try:
+            manager = MANAGER.objects.get(staffid=staff)
+            is_team_manager = TEAM.objects.filter(managerid=manager).exists()
+        except MANAGER.DoesNotExist:
+            is_team_manager = False
+        
+        # Staff has team if they are either a team member or team manager
+        has_team = is_team_member or is_team_manager
+        
+        # If staff doesn't have a team, redirect to leave application with error
+        if not has_team:
+            messages.error(request, 'You cannot view leave status without being assigned to a team.')
+            return redirect('staff_leave_application')
+        
         # Get all leave applications for this staff, ordered by most recent first
         leave_applications = TIMEOFF.objects.filter(staffid=staff).order_by('-id')
         
@@ -3966,13 +4020,13 @@ def staff_leave_status(request):
         
         context = {
             'staff': staff,
+            'has_team': has_team,
             'leave_applications': leave_applications,
             'leave_balance': leave_balance,
         }
         
         return render(request, 'staff/leave_status.html', context)
         
-    
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('staffmenu')

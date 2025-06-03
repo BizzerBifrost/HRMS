@@ -134,6 +134,34 @@
             margin-bottom: 30px;
         }
         
+        .no-team-container {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .no-team-container h2 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        
+        .no-team-container p {
+            color: #856404;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        .no-team-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -201,6 +229,8 @@
             font-size: 16px;
             transition: all 0.3s ease;
             margin-right: 10px;
+            text-decoration: none;
+            display: inline-block;
         }
         
         .btn-secondary:hover {
@@ -364,6 +394,14 @@
         
         <h1>Leave Application</h1>
         
+        {% if not has_team %}
+        <!-- No Team Message -->
+        <div class="no-team-container">
+            <div class="no-team-icon">👥</div>
+            <h2>Team Assignment Required</h2>
+            <p>You have not have any team. Ask your manager to include you in your team first.</p>
+        </div>
+        {% else %}
         <!-- Leave Balance Display -->
         {% if leave_balance %}
         <div class="leave-balance">
@@ -415,13 +453,16 @@
                 
                 <div style="margin-top: 25px;">
                     <button type="submit" class="btn">Submit Application</button>
-                    
                 </div>
                 
             </form>
             
         </div>
-        <a href="{% url 'staff_leave_status' %}"><button class="btn-secondary">View Status</button></a>
+        {% endif %}
+        
+        {% if has_team %}
+        <a href="{% url 'staff_leave_status' %}" class="btn-secondary">View Status</a>
+        {% endif %}
     </main>
 
     <footer>
@@ -469,27 +510,29 @@
             }
         }
         
-        // Date validation
-        document.getElementById('start_date').addEventListener('change', function() {
-            var startDate = this.value;
-            var endDateInput = document.getElementById('end_date');
-            endDateInput.min = startDate;
+        // Date validation - only run if form exists
+        if (document.getElementById('start_date')) {
+            document.getElementById('start_date').addEventListener('change', function() {
+                var startDate = this.value;
+                var endDateInput = document.getElementById('end_date');
+                endDateInput.min = startDate;
+                
+                // Clear end date if it's before start date
+                if (endDateInput.value && endDateInput.value < startDate) {
+                    endDateInput.value = '';
+                }
+            });
             
-            // Clear end date if it's before start date
-            if (endDateInput.value && endDateInput.value < startDate) {
-                endDateInput.value = '';
-            }
-        });
-        
-        document.getElementById('end_date').addEventListener('change', function() {
-            var endDate = this.value;
-            var startDate = document.getElementById('start_date').value;
-            
-            if (startDate && endDate < startDate) {
-                alert('End date cannot be before start date');
-                this.value = '';
-            }
-        });
+            document.getElementById('end_date').addEventListener('change', function() {
+                var endDate = this.value;
+                var startDate = document.getElementById('start_date').value;
+                
+                if (startDate && endDate < startDate) {
+                    alert('End date cannot be before start date');
+                    this.value = '';
+                }
+            });
+        }
     </script>
 </body>
 </html>
