@@ -1718,15 +1718,17 @@ def recruitment_notes(request, request_id):
             if action == 'add_note':
                 note_type = request.POST.get('note_type')
                 note_content = request.POST.get('note_content', '').strip()
-                visible_to_manager = request.POST.get('visible_to_manager') == '1'
                 
                 if note_type and note_content:
                     try:
-                        # Check if RECRUITMENT_NOTES model exists, if not use a simple approach
-                        # For now, we'll create a basic note system
-                        # You may need to create the RECRUITMENT_NOTES model as defined in models.py
-                        
-                        # Placeholder for note creation - implement based on your models
+                        # Create new note
+                        RECRUITMENT_NOTES.objects.create(
+                            recruitment=recruitment_request,
+                            note_type=note_type,
+                            note_content=note_content,
+                            created_by=hr,
+                            is_visible_to_manager=False  # Always False since only HR can see notes
+                        )
                         messages.success(request, f'Note of type "{note_type}" added successfully!')
                         return redirect('hr_recruitment_notes', request_id=request_id)
                         
@@ -1739,11 +1741,15 @@ def recruitment_notes(request, request_id):
                 note_id = request.POST.get('note_id')
                 note_type = request.POST.get('note_type')
                 note_content = request.POST.get('note_content', '').strip()
-                visible_to_manager = request.POST.get('visible_to_manager') == '1'
                 
                 if note_id and note_type and note_content:
                     try:
-                        # Placeholder for note editing
+                        # Get and update the note
+                        note = get_object_or_404(RECRUITMENT_NOTES, id=note_id, recruitment=recruitment_request)
+                        note.note_type = note_type
+                        note.note_content = note_content
+                        note.save()
+                        
                         messages.success(request, 'Note updated successfully!')
                         return redirect('hr_recruitment_notes', request_id=request_id)
                     except Exception as e:
@@ -1756,7 +1762,10 @@ def recruitment_notes(request, request_id):
                 
                 if note_id:
                     try:
-                        # Placeholder for note deletion
+                        # Get and delete the note
+                        note = get_object_or_404(RECRUITMENT_NOTES, id=note_id, recruitment=recruitment_request)
+                        note.delete()
+                        
                         messages.success(request, 'Note deleted successfully!')
                         return redirect('hr_recruitment_notes', request_id=request_id)
                     except Exception as e:
@@ -1765,12 +1774,15 @@ def recruitment_notes(request, request_id):
                     messages.error(request, 'Invalid note ID.')
         
         # GET request - display notes page
-        # For now, we'll create mock data since RECRUITMENT_NOTES might not be implemented yet
         notes = RECRUITMENT_NOTES.objects.filter(recruitment=recruitment_request).order_by('-created_date')
         
-        # Mock statistics
+        # Calculate statistics
         hr_internal_count = notes.filter(note_type='HR Internal').count()
-        manager_visible_count = notes.filter(is_visible_to_manager=True).count()
+        status_update_count = notes.filter(note_type='Status Update').count()
+        interview_note_count = notes.filter(note_type='Interview Note').count()
+        general_count = notes.filter(note_type='General').count()
+        
+        # Get unique note authors
         note_authors = notes.values('created_by__staffid__name').distinct()
         
         context = {
@@ -1778,12 +1790,17 @@ def recruitment_notes(request, request_id):
             'recruitment_request': recruitment_request,
             'notes': notes,
             'hr_internal_count': hr_internal_count,
-            'manager_visible_count': manager_visible_count,
+            'status_update_count': status_update_count,
+            'interview_note_count': interview_note_count,
+            'general_count': general_count,
             'note_authors': note_authors,
         }
         
         return render(request, 'hr/recruitment_notes.html', context)
     
+    except HR.DoesNotExist:
+        messages.error(request, "HR user not found. Please login again.")
+        return redirect('login')
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('hr_recruitment')

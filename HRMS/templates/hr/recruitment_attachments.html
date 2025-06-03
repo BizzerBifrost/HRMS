@@ -628,7 +628,7 @@
                 <div class="info-left">
                     <h1>Attachments: {{ recruitment_request.position }}</h1>
                     <div class="request-details">
-                        Request #{{ recruitment_request.id }} | Manager: {{ recruitment_request.managerid.staffid.name }}
+                        Request #{{ recruitment_request.id }} | Manager: {{ recruitment_request.managerid.staffid.name }} | Status: {{ recruitment_request.status }}
                     </div>
                 </div>
                 
@@ -636,9 +636,15 @@
                     <a href="{% url 'hr_recruitment_details' recruitment_request.id %}" class="btn btn-secondary">
                         ← Back to Details
                     </a>
+                    {% if recruitment_request.status != 'Completed' and recruitment_request.status != 'Rejected' %}
                     <a href="{% url 'hr_recruitment_process' recruitment_request.id %}" class="btn btn-primary">
                         ⚙️ Process Request
                     </a>
+                    {% else %}
+                    <span class="btn btn-secondary" style="opacity: 0.6; cursor: not-allowed;">
+                        ⚙️ Request {{ recruitment_request.status }}
+                    </span>
+                    {% endif %}
                     <a href="{% url 'hr_recruitment_notes' recruitment_request.id %}" class="btn btn-info">
                         📝 Notes
                     </a>

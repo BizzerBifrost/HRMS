@@ -335,11 +335,6 @@
             color: #0c5460;
         }
         
-        .note-type-manager-feedback {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        
         .note-type-status-update {
             background-color: #d4edda;
             color: #155724;
@@ -363,11 +358,6 @@
         .note-date {
             font-size: 12px;
             color: #666;
-        }
-        
-        .note-visibility {
-            font-size: 11px;
-            color: #999;
         }
         
         .note-actions {
@@ -618,7 +608,7 @@
                 <div class="info-left">
                     <h1>Notes: {{ recruitment_request.position }}</h1>
                     <div class="request-details">
-                        Request #{{ recruitment_request.id }} | Manager: {{ recruitment_request.managerid.staffid.name }}
+                        Request #{{ recruitment_request.id }} | Manager: {{ recruitment_request.managerid.staffid.name }} | Status: {{ recruitment_request.status }}
                     </div>
                 </div>
                 
@@ -626,9 +616,15 @@
                     <a href="{% url 'hr_recruitment_details' recruitment_request.id %}" class="btn btn-secondary">
                         ← Back to Details
                     </a>
+                    {% if recruitment_request.status != 'Completed' and recruitment_request.status != 'Rejected' %}
                     <a href="{% url 'hr_recruitment_process' recruitment_request.id %}" class="btn btn-primary">
                         ⚙️ Process Request
                     </a>
+                    {% else %}
+                    <span class="btn btn-secondary" style="opacity: 0.6; cursor: not-allowed;">
+                        ⚙️ Request {{ recruitment_request.status }}
+                    </span>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -650,7 +646,6 @@
                                 <select id="note_type" name="note_type" class="form-control" required>
                                     <option value="">Select note type</option>
                                     <option value="HR Internal">HR Internal Note</option>
-                                    <option value="Manager Feedback">Manager Feedback</option>
                                     <option value="Status Update">Status Update</option>
                                     <option value="Interview Note">Interview Note</option>
                                     <option value="General">General Note</option>
@@ -661,13 +656,6 @@
                                 <label for="note_content">Note Content</label>
                                 <textarea id="note_content" name="note_content" class="form-control" 
                                         placeholder="Enter your note here..." required></textarea>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" name="visible_to_manager" value="1">
-                                    Make this note visible to the requesting manager
-                                </label>
                             </div>
                             
                             <button type="submit" class="btn btn-success">
@@ -692,7 +680,7 @@
                     <div class="notes-content">
                         {% if notes %}
                             {% for note in notes %}
-                            <div class="note-item" data-note-id="{{ note.id }}">
+                            <div class="note-item" data-note-id="{{ note.id }}" data-note-type="{{ note.note_type }}" data-note-author="{{ note.created_by.staffid.name }}">
                                 <div class="note-header">
                                     <div class="note-meta">
                                         <span class="note-type note-type-{{ note.note_type|lower|cut:' ' }}">
@@ -700,17 +688,10 @@
                                         </span>
                                         <div class="note-author">{{ note.created_by.staffid.name }}</div>
                                         <div class="note-date">{{ note.created_date|date:"M d, Y g:i A" }}</div>
-                                        <div class="note-visibility">
-                                            {% if note.is_visible_to_manager %}
-                                                👁️ Visible to Manager
-                                            {% else %}
-                                                🔒 HR Internal Only
-                                            {% endif %}
-                                        </div>
                                     </div>
                                     
                                     <div class="note-actions">
-                                        <button type="button" class="btn btn-warning" onclick="editNote({{ note.id }})">
+                                        <button type="button" class="btn btn-warning" onclick="editNote({{ note.id }}, '{{ note.note_type }}', '{{ note.note_content|escapejs }}')">
                                              Edit
                                         </button>
                                         <button type="button" class="btn btn-danger" onclick="deleteNote({{ note.id }})">
@@ -744,19 +725,9 @@
                             <select id="filter_type" onchange="filterNotes()">
                                 <option value="">All Types</option>
                                 <option value="HR Internal">HR Internal</option>
-                                <option value="Manager Feedback">Manager Feedback</option>
                                 <option value="Status Update">Status Update</option>
                                 <option value="Interview Note">Interview Note</option>
                                 <option value="General">General</option>
-                            </select>
-                        </div>
-                        
-                        <div class="filter-group">
-                            <label for="filter_visibility">Visibility</label>
-                            <select id="filter_visibility" onchange="filterNotes()">
-                                <option value="">All Notes</option>
-                                <option value="manager_visible">Manager Visible</option>
-                                <option value="hr_only">HR Internal Only</option>
                             </select>
                         </div>
                         
@@ -765,7 +736,7 @@
                             <select id="filter_author" onchange="filterNotes()">
                                 <option value="">All Authors</option>
                                 {% for author in note_authors %}
-                                <option value="{{ author.created_by.staffid.name }}">{{ author.created_by.staffid.name }}</option>
+                                <option value="{{ author.created_by__staffid__name }}">{{ author.created_by__staffid__name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -789,8 +760,16 @@
                             <span class="stat-value">{{ hr_internal_count }}</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-label">Manager Visible:</span>
-                            <span class="stat-value">{{ manager_visible_count }}</span>
+                            <span class="stat-label">Status Updates:</span>
+                            <span class="stat-value">{{ status_update_count }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Interview Notes:</span>
+                            <span class="stat-value">{{ interview_note_count }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">General Notes:</span>
+                            <span class="stat-value">{{ general_count }}</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Last Updated:</span>
@@ -812,179 +791,13 @@
                         <button type="button" class="btn btn-primary" onclick="addStatusNote()" style="width: 100%; margin-bottom: 10px;">
                             📝 Add Status Update
                         </button>
-                        <button type="button" class="btn btn-warning" onclick="exportNotes()" style="width: 100%; margin-bottom: 10px;">
-                            📤 Export Notes
+                        <button type="button" class="btn btn-warning" onclick="addInterviewNote()" style="width: 100%; margin-bottom: 10px;">
+                            💼 Add Interview Note
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="printNotes()" style="width: 100%;">
+                        <button type="button" class="btn btn-secondary" onclick="window.print()" style="width: 100%;">
                             🖨️ Print Notes
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
-
-    <!-- Edit Note Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">Edit Note</div>
-            <div class="modal-body">
-                <form id="editNoteForm">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="edit_note">
-                    <input type="hidden" id="edit_note_id" name="note_id">
-                    
-                    <div class="form-group">
-                        <label for="edit_note_type">Note Type</label>
-                        <select id="edit_note_type" name="note_type" class="form-control" required>
-                            <option value="HR Internal">HR Internal Note</option>
-                            <option value="Manager Feedback">Manager Feedback</option>
-                            <option value="Status Update">Status Update</option>
-                            <option value="Interview Note">Interview Note</option>
-                            <option value="General">General Note</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="edit_note_content">Note Content</label>
-                        <textarea id="edit_note_content" name="note_content" class="form-control" required></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="edit_visible_to_manager" name="visible_to_manager" value="1">
-                            Make this note visible to the requesting manager
-                        </label>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-                <button type="button" class="btn btn-success" onclick="saveEditedNote()">Save Changes</button>
-            </div>
-        </div>
-    </div>
-
-    <footer>
-        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
-    </footer>
-
-    <script>
-        function toggleDropdown() {
-            document.getElementById('userDropdown').classList.toggle('show');
-        }
-        
-        window.onclick = function(event) {
-            if (!event.target.matches('.user-image')) {
-                var dropdowns = document.getElementsByClassName('dropdown-content');
-                for (var i = 0; i < dropdowns.length; i++) {
-                    var openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
-            }
-            
-            // Close modal if clicked outside
-            if (event.target.classList.contains('modal')) {
-                closeEditModal();
-            }
-        }
-        
-        function clearForm() {
-            document.getElementById('addNoteForm').reset();
-        }
-        
-        function editNote(noteId) {
-            // This would normally fetch note details via AJAX
-            // For now, we'll just open the modal
-            document.getElementById('edit_note_id').value = noteId;
-            document.getElementById('editModal').style.display = 'block';
-            
-            // In a real implementation, you would populate the form with existing note data
-            alert('Edit functionality would be implemented here with AJAX to fetch note details');
-        }
-        
-        function deleteNote(noteId) {
-            if (confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
-                // Create a form to submit the delete request
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.innerHTML = `
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="delete_note">
-                    <input type="hidden" name="note_id" value="${noteId}">
-                `;
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
-        
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-        
-        function saveEditedNote() {
-            document.getElementById('editNoteForm').submit();
-            closeEditModal();
-        }
-        
-        function filterNotes() {
-            const typeFilter = document.getElementById('filter_type').value;
-            const visibilityFilter = document.getElementById('filter_visibility').value;
-            const authorFilter = document.getElementById('filter_author').value;
-            
-            const notes = document.querySelectorAll('.note-item');
-            
-            notes.forEach(note => {
-                let show = true;
-                
-                // Type filter
-                if (typeFilter) {
-                    const noteType = note.querySelector('.note-type').textContent.trim();
-                    if (noteType !== typeFilter) show = false;
-                }
-                
-                // Visibility filter
-                if (visibilityFilter) {
-                    const visibility = note.querySelector('.note-visibility').textContent;
-                    if (visibilityFilter === 'manager_visible' && !visibility.includes('Visible to Manager')) {
-                        show = false;
-                    }
-                    if (visibilityFilter === 'hr_only' && visibility.includes('Visible to Manager')) {
-                        show = false;
-                    }
-                }
-                
-                // Author filter
-                if (authorFilter) {
-                    const author = note.querySelector('.note-author').textContent;
-                    if (author !== authorFilter) show = false;
-                }
-                
-                note.style.display = show ? 'block' : 'none';
-            });
-        }
-        
-        function clearFilters() {
-            document.getElementById('filter_type').value = '';
-            document.getElementById('filter_visibility').value = '';
-            document.getElementById('filter_author').value = '';
-            filterNotes();
-        }
-        
-        function addStatusNote() {
-            document.getElementById('note_type').value = 'Status Update';
-            document.getElementById('note_content').focus();
-        }
-        
-        function exportNotes() {
-            alert('Export notes functionality would be implemented here');
-        }
-        
-        function printNotes() {
-            window.print();
-        }
-    </script>
-</body>
-</html>
