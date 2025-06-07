@@ -118,7 +118,7 @@ The HRMS for KOOP-KPMIM is designed to digitize HR operations, replacing manual 
 
 3. **Install Dependencies**
    ```bash
-   pip install -m requirements.txt
+   pip install -r requirements.txt
    pip install django
    pip install pillow  # For image handling
    # Add other required packages
