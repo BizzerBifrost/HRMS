@@ -3118,20 +3118,6 @@ def get_malaysia_date():
 # Update the relevant parts of your team_goals view:
 def team_goals(request):
     """View for managers to create, edit, and manage team goals using TEAM_GOALS model"""
-    # ... existing code ...
-    
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        
-        if action == 'add_goal':
-            # ... existing validation code ...
-            
-            # Check if target date is not in the past (using Malaysia time)
-            malaysia_today = get_malaysia_date()
-            if target_date_parsed < malaysia_today:
-                messages.error(request, 'Target date cannot be in the past.')
-                return redirect('team_goals')
-            
     
     # Check if user is authenticated and is a manager
     if not request.session.get('user_type') == 'manager':
@@ -3179,8 +3165,9 @@ def team_goals(request):
                             messages.error(request, 'Invalid target date format.')
                             return redirect('team_goals')
                         
-                        # Check if target date is not in the past
-                        if target_date_parsed < timezone.now().date():
+                        # Check if target date is not in the past (using Malaysia time)
+                        malaysia_today = get_malaysia_date()
+                        if target_date_parsed < malaysia_today:
                             messages.error(request, 'Target date cannot be in the past.')
                             return redirect('team_goals')
                         
@@ -3224,6 +3211,12 @@ def team_goals(request):
                         
                         if not target_date_parsed:
                             messages.error(request, 'Invalid target date format.')
+                            return redirect('team_goals')
+                        
+                        # Check if target date is not in the past (using Malaysia time) only for new dates
+                        malaysia_today = get_malaysia_date()
+                        if target_date_parsed < malaysia_today and target_date_parsed != goal.target_date:
+                            messages.error(request, 'Target date cannot be in the past.')
                             return redirect('team_goals')
                         
                         # Parse progress percentage
@@ -3293,9 +3286,21 @@ def team_goals(request):
         
         return render(request, 'manager/team_goals.html', context)
     
+    except MANAGER.DoesNotExist:
+        messages.error(request, "Manager profile not found. Please login again.")
+        return redirect('login')
+    except TEAM.DoesNotExist:
+        messages.error(request, "No team assigned to this manager.")
+        return redirect('managermenu')
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('managermenu')
+
+
+def get_malaysia_date():
+    """Get current date in Malaysia timezone"""
+    malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
+    return timezone.now().astimezone(malaysia_tz).date()
     
 # Add this function to your HRMS/views.py file
 
