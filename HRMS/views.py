@@ -4160,12 +4160,10 @@ def team_management(request):
         
         return render(request, 'manager/team_management.html', context)
         
-    except MANAGER.DoesNotExist:
-        messages.error(request, "Manager profile not found. Please login again.")
-        return redirect('login')
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('managermenu')
+
     
 def staff_view_goals(request):
     """View for staff to view team goals set by their manager"""

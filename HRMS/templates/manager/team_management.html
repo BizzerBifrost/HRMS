@@ -493,6 +493,8 @@
             
             <form method="POST" action="{% url 'team_management' %}">
                 {% csrf_token %}
+                <input type="hidden" name="action" value="edit_team">
+
                 <div class="form-group">
                     <label for="team_name">Team Name</label>
                     <input type="text" id="team_name" name="team_name" class="form-control" 
