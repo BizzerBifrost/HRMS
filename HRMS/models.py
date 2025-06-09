@@ -147,7 +147,7 @@ class TIMEOFF(models.Model):
     status = models.TextField(choices=STATUS, default='Pending')
     reason = models.TextField()
     total_days = models.IntegerField(default=0)
-    staffid = models.ForeignKey(STAFF, on_delete=models.CASCADE)
+    staffid = models.ForeignKey(STAFF, on_delete=models.SET_NULL, null=True, blank=True)
     
     def save(self, *args, **kwargs):
         # Calculate total days
@@ -307,7 +307,7 @@ class RECRUITMENT(models.Model):
 class RECRUITMENT_NOTES(models.Model):
     """Model to track notes and comments on recruitment requests"""
     id = models.AutoField(primary_key=True)
-    recruitment = models.ForeignKey(RECRUITMENT, on_delete=models.CASCADE, related_name='notes')
+    recruitment = models.ForeignKey(RECRUITMENT, on_delete=models.SET_NULL, null=True, blank=True, related_name='notes')
     
     NOTE_TYPE_CHOICES = [
         ('HR Internal', 'hr_internal'),
@@ -319,7 +319,7 @@ class RECRUITMENT_NOTES(models.Model):
     note_type = models.TextField(choices=NOTE_TYPE_CHOICES, default='General')
     
     note_content = models.TextField()
-    created_by = models.ForeignKey('HR', on_delete=models.CASCADE)
+    created_by = models.ForeignKey('HR', on_delete=models.SET_NULL, null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     is_visible_to_manager = models.BooleanField(default=False)
     
@@ -333,11 +333,11 @@ class RECRUITMENT_NOTES(models.Model):
 class RECRUITMENT_STATUS_HISTORY(models.Model):
     """Model to track status changes in recruitment requests"""
     id = models.AutoField(primary_key=True)
-    recruitment = models.ForeignKey(RECRUITMENT, on_delete=models.CASCADE, related_name='status_history')
+    recruitment = models.ForeignKey(RECRUITMENT, on_delete=models.SET_NULL, null=True, blank=True, related_name='status_history')
     
     old_status = models.TextField(blank=True)
     new_status = models.TextField()
-    changed_by = models.ForeignKey('HR', on_delete=models.CASCADE)
+    changed_by = models.ForeignKey('HR', on_delete=models.SET_NULL, null=True, blank=True)
     changed_date = models.DateTimeField(auto_now_add=True)
     change_reason = models.TextField(blank=True)
     
@@ -351,11 +351,11 @@ class RECRUITMENT_STATUS_HISTORY(models.Model):
 class RECRUITMENT_ATTACHMENTS(models.Model):
     """Model to handle file attachments for recruitment requests"""
     id = models.AutoField(primary_key=True)
-    recruitment = models.ForeignKey(RECRUITMENT, on_delete=models.CASCADE, related_name='attachments')
+    recruitment = models.ForeignKey(RECRUITMENT, on_delete=models.SET_NULL, null=True, blank=True, related_name='attachments')
     
     file_name = models.TextField()
     file_path = models.FileField(upload_to='recruitment_attachments/', null=True, blank=True)
-    uploaded_by = models.ForeignKey('HR', on_delete=models.CASCADE)
+    uploaded_by = models.ForeignKey('HR', on_delete=models.SET_NULL, null=True, blank=True)
     uploaded_date = models.DateTimeField(auto_now_add=True)
     
     ATTACHMENT_TYPE_CHOICES = [
