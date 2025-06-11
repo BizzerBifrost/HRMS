@@ -557,25 +557,24 @@ def delete_user(request):
 
 def validate_password_strength(password):
     """
-    Validates that the password meets the required strength criteria:
+    Validate password strength requirements:
     - At least 8 characters
-    - Contains at least one uppercase letter
-    - Contains at least one number
-    - Contains at least one special character
+    - Contains uppercase letter
+    - Contains digit
+    - Contains special character
     """
+    import re
+    
     if len(password) < 8:
         return False
     
-    # Check for uppercase letter
-    if not any(char.isupper() for char in password):
+    if not re.search(r'[A-Z]', password):
         return False
     
-    # Check for digit
-    if not any(char.isdigit() for char in password):
+    if not re.search(r'[0-9]', password):
         return False
     
-    # Check for special character
-    if not any(not char.isalnum() for char in password):
+    if not re.search(r'[^A-Za-z0-9]', password):
         return False
     
     return True
@@ -3973,7 +3972,7 @@ def staffmenu(request):
         return redirect('login')
     
 def staff_personal_info(request):
-    """View for staff to view and update their personal information"""
+    """View for staff to view and update their personal information, including experience and education"""
     # Check if user is authenticated and is staff
     if not request.session.get('user_type') == 'staff':
         request.session.flush()
@@ -3985,119 +3984,219 @@ def staff_personal_info(request):
         staff_id = request.session.get('user_id')
         staff = STAFF.objects.get(id=staff_id)
         
-        # Get or create address information
+        # Get related records
         try:
             address = ADDRESS.objects.get(staffid=staff)
         except ADDRESS.DoesNotExist:
             address = None
         
+        # Get experience and education records
+        experiences = EXPERIENCE.objects.filter(staffid=staff).order_by('-id')
+        educations = EDUCATION.objects.filter(staffid=staff).order_by('-date_received')
+        
+        # Handle POST requests
         if request.method == 'POST':
             section = request.POST.get('section')
             
             if section == 'basic_info':
                 # Update basic information
-                name = request.POST.get('name', '').strip()
-                email = request.POST.get('email', '').strip()
-                phone = request.POST.get('phone', '').strip()
-                gender = request.POST.get('gender', '')
-                status = request.POST.get('status', '')
-                bank_number = request.POST.get('bank_number', '').strip()
-                emergency_contact = request.POST.get('emergency_contact', '').strip()
-                
-                # Validate required fields
-                if not name:
-                    messages.error(request, 'Name is required.')
-                    return render(request, 'staff/personal_info.html', {
-                        'staff': staff,
-                        'address': address
-                    })
-                
-                # Validate email format if provided
-                if email:
-                    import re
-                    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-                    if not re.match(email_pattern, email):
-                        messages.error(request, 'Please enter a valid email address.')
-                        return render(request, 'staff/personal_info.html', {
-                            'staff': staff,
-                            'address': address
-                        })
-                
-                # Validate phone number if provided
-                if phone:
-                    # Remove spaces and special characters for validation
-                    phone_clean = re.sub(r'[^\d+]', '', phone)
-                    if len(phone_clean) < 10 or len(phone_clean) > 15:
-                        messages.error(request, 'Please enter a valid phone number (10-15 digits).')
-                        return render(request, 'staff/personal_info.html', {
-                            'staff': staff,
-                            'address': address
-                        })
-                
                 try:
-                    # Update staff information
-                    staff.name = name
-                    staff.email = email
-                    staff.phone = phone
-                    staff.gender = gender
-                    staff.status = status
-                    staff.bank_number = bank_number
-                    staff.emergency_contact = emergency_contact
-                    staff.save()
+                    staff.name = request.POST.get('name', '').strip()
+                    staff.email = request.POST.get('email', '').strip()
+                    staff.phone = request.POST.get('phone', '').strip()
+                    staff.gender = request.POST.get('gender', '')
+                    staff.status = request.POST.get('status', '')
+                    staff.bank_number = request.POST.get('bank_number', '').strip()
+                    staff.emergency_contact = request.POST.get('emergency_contact', '').strip()
                     
-                    messages.success(request, 'Your personal information has been updated successfully!')
+                    # Validate required fields
+                    if not staff.name:
+                        messages.error(request, 'Full name is required.')
+                        return render(request, 'staff/personal_info.html', {
+                            'staff': staff,
+                            'address': address,
+                            'experiences': experiences,
+                            'educations': educations
+                        })
+                    
+                    staff.save()
+                    messages.success(request, 'Your basic information has been updated successfully!')
                     
                 except Exception as e:
-                    messages.error(request, f'Error updating personal information: {str(e)}')
+                    messages.error(request, f'Error updating basic information: {str(e)}')
             
             elif section == 'address':
-                # Update address information
-                address1 = request.POST.get('address1', '').strip()
-                address2 = request.POST.get('address2', '').strip()
-                poscode_str = request.POST.get('poscode', '').strip()
-                state = request.POST.get('state', '').strip()
-                
-                # Validate postal code if provided
-                poscode = None
-                if poscode_str:
-                    try:
-                        poscode = int(poscode_str)
-                        if poscode < 10000 or poscode > 99999:
-                            messages.error(request, 'Please enter a valid 5-digit postal code.')
-                            return render(request, 'staff/personal_info.html', {
-                                'staff': staff,
-                                'address': address
-                            })
-                    except ValueError:
-                        messages.error(request, 'Please enter a valid postal code (numbers only).')
-                        return render(request, 'staff/personal_info.html', {
-                            'staff': staff,
-                            'address': address
-                        })
-                
+                # Update or create address
                 try:
-                    # Update or create address
+                    address_data = {
+                        'address1': request.POST.get('address1', '').strip(),
+                        'address2': request.POST.get('address2', '').strip(),
+                        'poscode': request.POST.get('poscode', '') or 0,
+                        'state': request.POST.get('state', '').strip(),
+                    }
+                    
                     if address:
                         # Update existing address
-                        address.address1 = address1
-                        address.address2 = address2
-                        address.poscode = poscode if poscode else 0
-                        address.state = state
+                        for field, value in address_data.items():
+                            setattr(address, field, value)
                         address.save()
                     else:
                         # Create new address
                         address = ADDRESS.objects.create(
                             staffid=staff,
-                            address1=address1,
-                            address2=address2,
-                            poscode=poscode if poscode else 0,
-                            state=state
+                            **address_data
                         )
                     
                     messages.success(request, 'Your address information has been updated successfully!')
                     
                 except Exception as e:
-                    messages.error(request, f'Error updating address information: {str(e)}')
+                    messages.error(request, f'Error updating address: {str(e)}')
+            
+            elif section == 'add_experience':
+                # Add new experience
+                try:
+                    detail = request.POST.get('detail', '').strip()
+                    
+                    if not detail:
+                        messages.error(request, 'Experience details are required.')
+                    elif len(detail) < 10:
+                        messages.error(request, 'Experience details must be at least 10 characters long.')
+                    else:
+                        EXPERIENCE.objects.create(
+                            staffid=staff,
+                            detail=detail
+                        )
+                        messages.success(request, 'Experience has been added successfully!')
+                    
+                except Exception as e:
+                    messages.error(request, f'Error adding experience: {str(e)}')
+            
+            elif section == 'edit_experience':
+                # Edit existing experience
+                try:
+                    experience_id = request.POST.get('experience_id')
+                    detail = request.POST.get('detail', '').strip()
+                    
+                    if not experience_id:
+                        messages.error(request, 'Experience ID is required.')
+                    elif not detail:
+                        messages.error(request, 'Experience details are required.')
+                    elif len(detail) < 10:
+                        messages.error(request, 'Experience details must be at least 10 characters long.')
+                    else:
+                        experience = EXPERIENCE.objects.get(id=experience_id, staffid=staff)
+                        experience.detail = detail
+                        experience.save()
+                        messages.success(request, 'Experience has been updated successfully!')
+                    
+                except EXPERIENCE.DoesNotExist:
+                    messages.error(request, 'Experience not found.')
+                except Exception as e:
+                    messages.error(request, f'Error updating experience: {str(e)}')
+            
+            elif section == 'delete_experience':
+                # Delete experience
+                try:
+                    experience_id = request.POST.get('experience_id')
+                    
+                    if not experience_id:
+                        messages.error(request, 'Experience ID is required.')
+                    else:
+                        experience = EXPERIENCE.objects.get(id=experience_id, staffid=staff)
+                        experience.delete()
+                        messages.success(request, 'Experience has been deleted successfully!')
+                    
+                except EXPERIENCE.DoesNotExist:
+                    messages.error(request, 'Experience not found.')
+                except Exception as e:
+                    messages.error(request, f'Error deleting experience: {str(e)}')
+            
+            elif section == 'add_education':
+                # Add new education
+                try:
+                    certification = request.POST.get('certification', '').strip()
+                    date_received = request.POST.get('date_received', '').strip()
+                    
+                    if not certification:
+                        messages.error(request, 'Certification/Degree is required.')
+                    elif len(certification) < 3:
+                        messages.error(request, 'Certification name must be at least 3 characters long.')
+                    elif not date_received:
+                        messages.error(request, 'Date received is required.')
+                    else:
+                        # Validate date is not in the future
+                        from datetime import datetime
+                        received_date = datetime.strptime(date_received, '%Y-%m-%d').date()
+                        today = datetime.now().date()
+                        
+                        if received_date > today:
+                            messages.error(request, 'Date received cannot be in the future.')
+                        else:
+                            EDUCATION.objects.create(
+                                staffid=staff,
+                                certification=certification,
+                                date_received=received_date
+                            )
+                            messages.success(request, 'Education record has been added successfully!')
+                    
+                except ValueError:
+                    messages.error(request, 'Invalid date format.')
+                except Exception as e:
+                    messages.error(request, f'Error adding education: {str(e)}')
+            
+            elif section == 'edit_education':
+                # Edit existing education
+                try:
+                    education_id = request.POST.get('education_id')
+                    certification = request.POST.get('certification', '').strip()
+                    date_received = request.POST.get('date_received', '').strip()
+                    
+                    if not education_id:
+                        messages.error(request, 'Education ID is required.')
+                    elif not certification:
+                        messages.error(request, 'Certification/Degree is required.')
+                    elif len(certification) < 3:
+                        messages.error(request, 'Certification name must be at least 3 characters long.')
+                    elif not date_received:
+                        messages.error(request, 'Date received is required.')
+                    else:
+                        # Validate date is not in the future
+                        from datetime import datetime
+                        received_date = datetime.strptime(date_received, '%Y-%m-%d').date()
+                        today = datetime.now().date()
+                        
+                        if received_date > today:
+                            messages.error(request, 'Date received cannot be in the future.')
+                        else:
+                            education = EDUCATION.objects.get(id=education_id, staffid=staff)
+                            education.certification = certification
+                            education.date_received = received_date
+                            education.save()
+                            messages.success(request, 'Education record has been updated successfully!')
+                    
+                except EDUCATION.DoesNotExist:
+                    messages.error(request, 'Education record not found.')
+                except ValueError:
+                    messages.error(request, 'Invalid date format.')
+                except Exception as e:
+                    messages.error(request, f'Error updating education: {str(e)}')
+            
+            elif section == 'delete_education':
+                # Delete education
+                try:
+                    education_id = request.POST.get('education_id')
+                    
+                    if not education_id:
+                        messages.error(request, 'Education ID is required.')
+                    else:
+                        education = EDUCATION.objects.get(id=education_id, staffid=staff)
+                        education.delete()
+                        messages.success(request, 'Education record has been deleted successfully!')
+                    
+                except EDUCATION.DoesNotExist:
+                    messages.error(request, 'Education record not found.')
+                except Exception as e:
+                    messages.error(request, f'Error deleting education: {str(e)}')
             
             elif section == 'password':
                 # Change password
@@ -4110,15 +4209,19 @@ def staff_personal_info(request):
                     messages.error(request, 'Current password is incorrect.')
                     return render(request, 'staff/personal_info.html', {
                         'staff': staff,
-                        'address': address
+                        'address': address,
+                        'experiences': experiences,
+                        'educations': educations
                     })
                 
-                # Validate new password
+                # Validate new password confirmation
                 if new_password != confirm_password:
-                    messages.error(request, 'New password and confirm password do not match.')
+                    messages.error(request, 'New passwords do not match.')
                     return render(request, 'staff/personal_info.html', {
                         'staff': staff,
-                        'address': address
+                        'address': address,
+                        'experiences': experiences,
+                        'educations': educations
                     })
                 
                 # Validate password strength
@@ -4126,7 +4229,9 @@ def staff_personal_info(request):
                     messages.error(request, 'Password must be at least 8 characters with a capital letter, number, and symbol.')
                     return render(request, 'staff/personal_info.html', {
                         'staff': staff,
-                        'address': address
+                        'address': address,
+                        'experiences': experiences,
+                        'educations': educations
                     })
                 
                 # Check if new password is different from current
@@ -4134,7 +4239,9 @@ def staff_personal_info(request):
                     messages.error(request, 'New password must be different from current password.')
                     return render(request, 'staff/personal_info.html', {
                         'staff': staff,
-                        'address': address
+                        'address': address,
+                        'experiences': experiences,
+                        'educations': educations
                     })
                 
                 try:
@@ -4150,28 +4257,39 @@ def staff_personal_info(request):
             else:
                 messages.error(request, 'Invalid form submission.')
             
-            # Refresh address after potential creation
+            # Refresh data after any modifications
             try:
                 address = ADDRESS.objects.get(staffid=staff)
             except ADDRESS.DoesNotExist:
                 address = None
             
+            experiences = EXPERIENCE.objects.filter(staffid=staff).order_by('-id')
+            educations = EDUCATION.objects.filter(staffid=staff).order_by('-date_received')
+            
             return render(request, 'staff/personal_info.html', {
                 'staff': staff,
-                'address': address
+                'address': address,
+                'experiences': experiences,
+                'educations': educations
             })
         
         # GET request - display the personal information page
         context = {
             'staff': staff,
             'address': address,
+            'experiences': experiences,
+            'educations': educations,
         }
         
         return render(request, 'staff/personal_info.html', context)
         
+    except STAFF.DoesNotExist:
+        messages.error(request, "Staff profile not found. Please login again.")
+        return redirect('login')
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect('staffmenu')
+
 
 def staff_leave_application(request):
     # Check if user is authenticated and is staff

@@ -12,6 +12,9 @@
             --secondary-color: #0053ED;
             --accent-color: #E90000;
             --text-color: #4A4A4A;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
         }
         
         * {
@@ -227,6 +230,27 @@
             background-color: #5a6268;
         }
         
+        .btn-success {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #0045c4;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+        
         hr {
             margin: 30px 0;
             border: 0;
@@ -314,6 +338,92 @@
             display: none;
         }
         
+        /* Experience and Education Lists */
+        .record-list {
+            margin-bottom: 20px;
+        }
+        
+        .record-item {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .record-item:hover {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .record-content {
+            margin-bottom: 10px;
+        }
+        
+        .record-title {
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+        }
+        
+        .record-date {
+            color: #6c757d;
+            font-size: 14px;
+            font-style: italic;
+        }
+        
+        .record-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .no-records {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px dashed #ddd;
+        }
+        
+        /* Add New Record Form */
+        .add-record-form {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .add-record-form.active {
+            display: block;
+        }
+        
+        .add-record-form .section-title {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            font-size: 16px;
+            border: none;
+            padding: 0;
+        }
+        
+        /* Edit Record Form */
+        .edit-record-form {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .edit-record-form.active {
+            display: block;
+        }
+        
         footer {
             background-color: var(--text-color);
             color: white;
@@ -365,6 +475,26 @@
         @keyframes scaleIn {
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            main {
+                padding: 15px;
+            }
+            
+            .profile-container {
+                padding: 20px;
+            }
+            
+            .record-actions {
+                flex-direction: column;
+            }
+            
+            .btn-sm {
+                width: 100%;
+                margin-bottom: 5px;
+            }
         }
     </style>
 </head>
@@ -576,6 +706,148 @@
             </div>
         </div>
         
+        <!-- Work Experience Section -->
+        <div class="profile-container">
+            <h2 class="section-title">Work Experience</h2>
+            
+            <!-- Add New Experience Form -->
+            <div class="add-record-form" id="addExperienceForm">
+                <h3 class="section-title">Add New Experience</h3>
+                <form method="POST" action="{% url 'staff_personal_info' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="section" value="add_experience">
+                    
+                    <div class="form-group">
+                        <label for="experience_detail">Experience Details *</label>
+                        <textarea id="experience_detail" name="detail" class="form-control" rows="4" placeholder="e.g., Software Developer at ABC Company (2020-2023) - Developed web applications using Django and React" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn">Add Experience</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleAddForm('addExperienceForm')">Cancel</button>
+                </form>
+            </div>
+            
+            <!-- Experience List -->
+            <div class="record-list">
+                {% if experiences %}
+                    {% for experience in experiences %}
+                    <div class="record-item" id="experience-{{ experience.id }}">
+                        <div class="record-content">
+                            <div class="record-title">Experience #{{ forloop.counter }}</div>
+                            <div class="record-details">{{ experience.detail }}</div>
+                        </div>
+                        <div class="record-actions">
+                            <button class="btn btn-sm" onclick="toggleEditExperience({{ experience.id }})">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteExperience({{ experience.id }})">Delete</button>
+                        </div>
+                        
+                        <!-- Edit Experience Form -->
+                        <div class="edit-record-form" id="editExperienceForm-{{ experience.id }}">
+                            <form method="POST" action="{% url 'staff_personal_info' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="section" value="edit_experience">
+                                <input type="hidden" name="experience_id" value="{{ experience.id }}">
+                                
+                                <div class="form-group">
+                                    <label for="edit_experience_detail_{{ experience.id }}">Experience Details *</label>
+                                    <textarea id="edit_experience_detail_{{ experience.id }}" name="detail" class="form-control" rows="4" required>{{ experience.detail }}</textarea>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-sm">Save Changes</button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEditExperience({{ experience.id }})">Cancel</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="info-display">
+                        <div class="info-row">
+                            <span class="info-value">Not provided</span>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <button type="button" class="btn" onclick="toggleAddForm('addExperienceForm')">{% if experiences %}Add New Experience{% else %}Add Experience{% endif %}</button>
+        </div>
+        
+        <!-- Education Section -->
+        <div class="profile-container">
+            <h2 class="section-title">Education & Certifications</h2>
+            
+            <!-- Add New Education Form -->
+            <div class="add-record-form" id="addEducationForm">
+                <h3 class="section-title">Add New Education/Certification</h3>
+                <form method="POST" action="{% url 'staff_personal_info' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="section" value="add_education">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="certification">Certification/Degree *</label>
+                            <input type="text" id="certification" name="certification" class="form-control" placeholder="e.g., Bachelor of Computer Science, AWS Certified Solutions Architect" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="date_received">Date Received *</label>
+                            <input type="date" id="date_received" name="date_received" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Add Education</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleAddForm('addEducationForm')">Cancel</button>
+                </form>
+            </div>
+            
+            <!-- Education List -->
+            <div class="record-list">
+                {% if educations %}
+                    {% for education in educations %}
+                    <div class="record-item" id="education-{{ education.id }}">
+                        <div class="record-content">
+                            <div class="record-title">{{ education.certification }}</div>
+                            <div class="record-date">Received: {{ education.date_received|date:"F d, Y" }}</div>
+                        </div>
+                        <div class="record-actions">
+                            <button class="btn btn-sm" onclick="toggleEditEducation({{ education.id }})">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteEducation({{ education.id }})">Delete</button>
+                        </div>
+                        
+                        <!-- Edit Education Form -->
+                        <div class="edit-record-form" id="editEducationForm-{{ education.id }}">
+                            <form method="POST" action="{% url 'staff_personal_info' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="section" value="edit_education">
+                                <input type="hidden" name="education_id" value="{{ education.id }}">
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="edit_certification_{{ education.id }}">Certification/Degree *</label>
+                                        <input type="text" id="edit_certification_{{ education.id }}" name="certification" class="form-control" value="{{ education.certification }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="edit_date_received_{{ education.id }}">Date Received *</label>
+                                        <input type="date" id="edit_date_received_{{ education.id }}" name="date_received" class="form-control" value="{{ education.date_received|date:'Y-m-d' }}" required>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-sm">Save Changes</button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="toggleEditEducation({{ education.id }})">Cancel</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="info-display">
+                        <div class="info-row">
+                            <span class="info-value">Not provided</span>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <button type="button" class="btn" onclick="toggleAddForm('addEducationForm')">{% if educations %}Add New Education{% else %}Add Education{% endif %}</button>
+        </div>
+        
         <!-- Change Password Section -->
         <div class="profile-container">
             <h2 class="section-title">Change Password</h2>
@@ -644,9 +916,13 @@
         // Check if user has seen popup before
         window.onload = function() {
             if (localStorage.getItem('staffPersonalInfoPopupShown') !== 'true') {
-                document.getElementById('welcomePopup').style.display = 'flex';
+                if(document.getElementById('welcomePopup')) {
+                    document.getElementById('welcomePopup').style.display = 'flex';
+                }
             } else {
-                document.getElementById('welcomePopup').style.display = 'none';
+                if(document.getElementById('welcomePopup')) {
+                    document.getElementById('welcomePopup').style.display = 'none';
+                }
             }
         }
         
@@ -659,6 +935,106 @@
         function cancelEdit(section) {
             document.getElementById(section + 'View').classList.remove('editing');
             document.getElementById(section + 'Edit').classList.remove('active');
+        }
+        
+        // Add record form toggle
+        function toggleAddForm(formId) {
+            const form = document.getElementById(formId);
+            if (form.classList.contains('active')) {
+                form.classList.remove('active');
+                // Clear form fields
+                form.querySelectorAll('input, textarea').forEach(field => {
+                    if (field.type !== 'hidden' && field.type !== 'submit') {
+                        field.value = '';
+                    }
+                });
+            } else {
+                // Hide other add forms first
+                document.querySelectorAll('.add-record-form').forEach(otherForm => {
+                    otherForm.classList.remove('active');
+                });
+                form.classList.add('active');
+            }
+        }
+        
+        // Experience management functions
+        function toggleEditExperience(experienceId) {
+            const editForm = document.getElementById('editExperienceForm-' + experienceId);
+            editForm.classList.toggle('active');
+        }
+        
+        function deleteExperience(experienceId) {
+            if (confirm('Are you sure you want to delete this experience? This action cannot be undone.')) {
+                // Create a form to submit the delete request
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = "{% url 'staff_personal_info' %}";
+                
+                // Add CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+                
+                // Add section
+                const sectionInput = document.createElement('input');
+                sectionInput.type = 'hidden';
+                sectionInput.name = 'section';
+                sectionInput.value = 'delete_experience';
+                form.appendChild(sectionInput);
+                
+                // Add experience ID
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'experience_id';
+                idInput.value = experienceId;
+                form.appendChild(idInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        // Education management functions
+        function toggleEditEducation(educationId) {
+            const editForm = document.getElementById('editEducationForm-' + educationId);
+            editForm.classList.toggle('active');
+        }
+        
+        function deleteEducation(educationId) {
+            if (confirm('Are you sure you want to delete this education record? This action cannot be undone.')) {
+                // Create a form to submit the delete request
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = "{% url 'staff_personal_info' %}";
+                
+                // Add CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+                
+                // Add section
+                const sectionInput = document.createElement('input');
+                sectionInput.type = 'hidden';
+                sectionInput.name = 'section';
+                sectionInput.value = 'delete_education';
+                form.appendChild(sectionInput);
+                
+                // Add education ID
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'education_id';
+                idInput.value = educationId;
+                form.appendChild(idInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
         }
         
         // Password strength checker
@@ -713,6 +1089,55 @@
                     break;
             }
         }
+        
+        // Form validation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add form validation for experience and education forms
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const section = form.querySelector('input[name="section"]');
+                    if (section) {
+                        const sectionValue = section.value;
+                        
+                        // Validate experience forms
+                        if (sectionValue === 'add_experience' || sectionValue === 'edit_experience') {
+                            const detailField = form.querySelector('textarea[name="detail"]');
+                            if (detailField && detailField.value.trim().length < 10) {
+                                e.preventDefault();
+                                alert('Experience details must be at least 10 characters long.');
+                                detailField.focus();
+                                return false;
+                            }
+                        }
+                        
+                        // Validate education forms
+                        if (sectionValue === 'add_education' || sectionValue === 'edit_education') {
+                            const certField = form.querySelector('input[name="certification"]');
+                            const dateField = form.querySelector('input[name="date_received"]');
+                            
+                            if (certField && certField.value.trim().length < 3) {
+                                e.preventDefault();
+                                alert('Certification name must be at least 3 characters long.');
+                                certField.focus();
+                                return false;
+                            }
+                            
+                            if (dateField && dateField.value) {
+                                const selectedDate = new Date(dateField.value);
+                                const today = new Date();
+                                if (selectedDate > today) {
+                                    e.preventDefault();
+                                    alert('Date received cannot be in the future.');
+                                    dateField.focus();
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html>
