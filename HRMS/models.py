@@ -229,7 +229,6 @@ class RECRUITMENT(models.Model):
     # Job Details
     job_description = models.TextField(blank=True, default='')
     required_qualifications = models.TextField(blank=True, default='')
-    preferred_qualifications = models.TextField(blank=True, default='')
     salary_range_min = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     salary_range_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
@@ -255,7 +254,7 @@ class RECRUITMENT(models.Model):
     
     # Business Justification
     business_justification = models.TextField(blank=True, default='')
-    budget_allocated = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    
     
     JUSTIFICATION_TYPE_CHOICES = [
         ('New Position', 'new_position'),
@@ -392,7 +391,6 @@ class TEAM_MEMBERSHIP(models.Model):
     def __str__(self):
         return f"{self.staff} in {self.team}"
 
-
 def get_malaysia_time():
     """Get current time in Malaysia timezone"""
     malaysia_tz = pytz.timezone('Asia/Kuala_Lumpur')
@@ -468,7 +466,6 @@ class POLICIES(models.Model):
 
 # admin
 class ADMIN(models.Model):
-
     id = models.TextField(primary_key=True)
     name = models.TextField()
     password = models.TextField()
