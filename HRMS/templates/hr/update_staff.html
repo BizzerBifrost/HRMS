@@ -218,23 +218,6 @@
             border: 1px solid #f5c6cb;
         }
         
-        .password-strength {
-            margin-top: 5px;
-            font-size: 14px;
-        }
-        
-        .strength-weak {
-            color: #dc3545;
-        }
-        
-        .strength-medium {
-            color: #ffc107;
-        }
-        
-        .strength-strong {
-            color: #28a745;
-        }
-        
         .form-text {
             font-size: 12px;
             margin-top: 5px;
@@ -366,7 +349,7 @@
                            min="0" 
                            max="365" 
                            required>
-                    <small class="form-text text-muted">
+                    <small class="form-text">
                         Current entitlement: {{ leave_balance.annual_leave }} days. 
                         Changing this will automatically adjust the available leave balance.
                     </small>
@@ -385,11 +368,6 @@
     </footer>
 
     <script>
-        // Popup functionality
-        function closePopup() {
-            document.getElementById('welcomePopup').style.display = 'none';
-        }
-        
         // Toggle dropdown menu
         function toggleDropdown() {
             document.getElementById('userDropdown').classList.toggle('show');
@@ -406,12 +384,6 @@
                     }
                 }
             }
-        }
-        
-        // Check if user has seen popup before
-        window.onload = function() {
-            // Show popup when page loads
-            document.getElementById('welcomePopup').style.display = 'flex';
         }
         
         // Form validation

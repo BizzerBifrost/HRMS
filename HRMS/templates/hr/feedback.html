@@ -126,6 +126,91 @@
             margin-bottom: 30px;
         }
 
+        /* Search Section */
+        .search-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0053ED;
+        }
+
+        .search-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-search {
+            background-color: #0053ED;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-search:hover {
+            background-color: #0041c7;
+        }
+
+        .btn-clear {
+            background-color: #6c757d;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-clear:hover {
+            background-color: #545b62;
+            color: white;
+        }
+
+        .search-info {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background-color: #e7f3ff;
+            border-left: 4px solid #0053ED;
+            border-radius: 0 5px 5px 0;
+            font-size: 14px;
+            color: #0053ED;
+        }
+
         /* Tabs */
         .tabs {
             display: flex;
@@ -353,6 +438,25 @@
                 flex: 1;
                 min-width: 120px;
             }
+
+            .search-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-input-group {
+                min-width: auto;
+            }
+
+            .search-buttons {
+                justify-content: stretch;
+            }
+
+            .btn-search,
+            .btn-clear {
+                flex: 1;
+                text-align: center;
+            }
         }
 
         /* Popup Animation */
@@ -398,19 +502,41 @@
         <h1 class="page-title">Employee Feedback Management</h1>
         <p class="page-subtitle">Review and manage feedback and complaints from employees</p>
 
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-container">
+                <div class="search-input-group">
+                    <input 
+                        type="number" 
+                        id="searchInput" 
+                        class="search-input" 
+                        placeholder="Type Feedback ID for instant search (e.g., 1, 2, 3...)" 
+                        min="1"
+                    >
+                </div>
+                <div class="search-buttons">
+                    <button type="button" id="clearSearch" class="btn-clear" style="display: none;">✕ Clear</button>
+                </div>
+            </div>
+            
+            <div class="search-info" id="searchInfo" style="display: none;">
+                <!-- Search results info will be updated by JavaScript -->
+            </div>
+        </div>
+
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab active" onclick="showTab('unsolved')">
-                Unsolved ({{ unsolved_count }})
+            <button class="tab active" onclick="showTab('unsolved')" id="unsolvedTab">
+                Unsolved (<span id="unsolvedCount">{{ unsolved_count }}</span>)
             </button>
-            <button class="tab" onclick="showTab('solved')">
-                Solved ({{ solved_count }})
+            <button class="tab" onclick="showTab('solved')" id="solvedTab">
+                Solved (<span id="solvedCount">{{ solved_count }}</span>)
             </button>
         </div>
 
         <!-- Unsolved Feedback Tab -->
         <div id="unsolved" class="tab-content active">
-            <div class="feedback-grid">
+            <div class="feedback-grid" id="unsolvedGrid">
                 {% if unsolved_feedback %}
                     {% for feedback in unsolved_feedback %}
                     <div class="feedback-card" id="feedback-{{ feedback.id }}">
@@ -443,7 +569,7 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                <div class="no-feedback">
+                <div class="no-feedback" id="noUnsolvedFeedback">
                     <div class="no-feedback-icon">✅</div>
                     <h3>No Unsolved Feedback</h3>
                     <p>All feedback and complaints have been addressed!</p>
@@ -454,7 +580,7 @@
 
         <!-- Solved Feedback Tab -->
         <div id="solved" class="tab-content">
-            <div class="feedback-grid">
+            <div class="feedback-grid" id="solvedGrid">
                 {% if solved_feedback %}
                     {% for feedback in solved_feedback %}
                     <div class="feedback-card" id="feedback-{{ feedback.id }}">
@@ -480,7 +606,7 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                <div class="no-feedback">
+                <div class="no-feedback" id="noSolvedFeedback">
                     <div class="no-feedback-icon">📝</div>
                     <h3>No Solved Feedback</h3>
                     <p>No feedback has been marked as solved yet.</p>
@@ -584,7 +710,177 @@
             return cookieValue;
         }
 
-        
+        // Real-time search functionality
+        let searchTimeout;
+        const searchInput = document.getElementById('searchInput');
+        const clearButton = document.getElementById('clearSearch');
+        const searchInfo = document.getElementById('searchInfo');
+        const unsolvedGrid = document.getElementById('unsolvedGrid');
+        const solvedGrid = document.getElementById('solvedGrid');
+        const unsolvedCount = document.getElementById('unsolvedCount');
+        const solvedCount = document.getElementById('solvedCount');
+
+        // Store original data for reset
+        const originalUnsolvedHTML = unsolvedGrid.innerHTML;
+        const originalSolvedHTML = solvedGrid.innerHTML;
+        const originalUnsolvedCount = unsolvedCount.textContent;
+        const originalSolvedCount = solvedCount.textContent;
+
+        // Real-time search as user types
+        searchInput.addEventListener('input', function() {
+            const searchValue = this.value.trim();
+            
+            // Clear previous timeout
+            clearTimeout(searchTimeout);
+            
+            // Debounce search to avoid too many requests
+            searchTimeout = setTimeout(function() {
+                if (searchValue === '') {
+                    resetToOriginal();
+                } else {
+                    performSearch(searchValue);
+                }
+            }, 300); // 300ms delay after user stops typing
+        });
+
+        // Clear search functionality
+        clearButton.addEventListener('click', function() {
+            searchInput.value = '';
+            resetToOriginal();
+        });
+
+        function performSearch(searchQuery) {
+            // Show loading state
+            showLoadingState();
+            
+            // Make AJAX request
+            fetch(`/hr/feedback/search/?search=${encodeURIComponent(searchQuery)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateFeedbackDisplay(data);
+                        updateSearchInfo(data);
+                        showClearButton(true);
+                    } else {
+                        console.error('Search failed:', data.message);
+                        showErrorState();
+                    }
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    showErrorState();
+                });
+        }
+
+        function updateFeedbackDisplay(data) {
+            // Update unsolved feedback
+            unsolvedGrid.innerHTML = generateFeedbackHTML(data.unsolved_feedback, 'unsolved');
+            
+            // Update solved feedback
+            solvedGrid.innerHTML = generateFeedbackHTML(data.solved_feedback, 'solved');
+            
+            // Update counts
+            unsolvedCount.textContent = data.unsolved_count;
+            solvedCount.textContent = data.solved_count;
+        }
+
+        function generateFeedbackHTML(feedbackList, type) {
+            if (feedbackList.length === 0) {
+                const isUnsolved = type === 'unsolved';
+                return `
+                    <div class="no-feedback">
+                        <div class="no-feedback-icon">🔍</div>
+                        <h3>No ${isUnsolved ? 'Unsolved' : 'Solved'} Feedback Found</h3>
+                        <p>Your search didn't return any ${isUnsolved ? 'unsolved' : 'solved'} feedback. Try a different search term.</p>
+                    </div>
+                `;
+            }
+
+            let html = '';
+            feedbackList.forEach(feedback => {
+                const attachmentHTML = feedback.attachment ? `
+                    <div class="feedback-attachment">
+                        <a href="${feedback.attachment}" class="attachment-link" target="_blank">
+                            📎 View Attachment
+                        </a>
+                    </div>
+                ` : '';
+
+                const actionHTML = (feedback.category === 'Complaint' && feedback.status === 'Unsolved') ? `
+                    <div class="status-actions">
+                        <button class="btn btn-solve" onclick="updateStatus('${feedback.id}', 'Solved')">
+                            Mark as Solved
+                        </button>
+                    </div>
+                ` : '';
+
+                html += `
+                    <div class="feedback-card" id="feedback-${feedback.id}">
+                        <div class="feedback-header">
+                            <div class="feedback-id">Feedback #${feedback.id}</div>
+                            <div class="feedback-category category-${feedback.category.toLowerCase()}">
+                                ${feedback.category}
+                            </div>
+                        </div>
+                        <div class="feedback-text">${feedback.text}</div>
+                        ${attachmentHTML}
+                        <div class="feedback-footer">
+                            <div class="status-badge status-${feedback.status.toLowerCase()}">
+                                ${feedback.status}
+                            </div>
+                            ${actionHTML}
+                        </div>
+                    </div>
+                `;
+            });
+
+            return html;
+        }
+
+        function updateSearchInfo(data) {
+            const totalResults = data.unsolved_count + data.solved_count;
+            
+            if (totalResults > 0) {
+                searchInfo.innerHTML = `
+                    Search results for Feedback ID "${data.search_query}": Found ${totalResults} result(s)
+                `;
+                searchInfo.style.display = 'block';
+            } else {
+                searchInfo.innerHTML = `
+                    No feedback found with ID "${data.search_query}". Please check the ID and try again.
+                `;
+                searchInfo.style.display = 'block';
+            }
+        }
+
+        function resetToOriginal() {
+            unsolvedGrid.innerHTML = originalUnsolvedHTML;
+            solvedGrid.innerHTML = originalSolvedHTML;
+            unsolvedCount.textContent = originalUnsolvedCount;
+            solvedCount.textContent = originalSolvedCount;
+            searchInfo.style.display = 'none';
+            showClearButton(false);
+        }
+
+        function showClearButton(show) {
+            clearButton.style.display = show ? 'block' : 'none';
+        }
+
+        function showLoadingState() {
+            unsolvedGrid.innerHTML = '<div class="no-feedback"><div class="no-feedback-icon">⏳</div><h3>Searching...</h3><p>Please wait while we search for your feedback.</p></div>';
+            solvedGrid.innerHTML = '<div class="no-feedback"><div class="no-feedback-icon">⏳</div><h3>Searching...</h3><p>Please wait while we search for your feedback.</p></div>';
+        }
+
+        function showErrorState() {
+            unsolvedGrid.innerHTML = '<div class="no-feedback"><div class="no-feedback-icon">❌</div><h3>Search Error</h3><p>An error occurred while searching. Please try again.</p></div>';
+            solvedGrid.innerHTML = '<div class="no-feedback"><div class="no-feedback-icon">❌</div><h3>Search Error</h3><p>An error occurred while searching. Please try again.</p></div>';
+        }
+
+        // Search form enhancement
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus search input on page load
+            searchInput.focus();
+        });
     </script>
 </body>
 </html>

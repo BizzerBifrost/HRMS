@@ -1,0 +1,502 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User | HRMS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    <style>
+        :root {
+            --primary-color: #F0F0F0;
+            --secondary-color: #0053ED;
+            --accent-color: #E90000;
+            --text-color: #4A4A4A;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                width: 100px;
+            }
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info {
+            margin-right: 15px;
+            text-align: right;
+        }
+        
+        /* User dropdown styling */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .dropdown-content a {
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+        
+        .dropdown-content a:hover {
+            background-color: var(--primary-color);
+        }
+        
+        .dropdown-content::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            border-width: 0 10px 10px 10px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+        
+        .show {
+            display: block;
+        }
+        
+        main {
+            flex: 1;
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .user-type-badge {
+            display: inline-block;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .form-section h3 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
+        }
+        
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234A4A4A' d='M6 9l6-6H0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
+        }
+        
+        .readonly-field {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.2s;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #0045c4;
+        }
+        
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .form-text {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #6c757d;
+        }
+        
+        footer {
+            background-color: var(--text-color);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{% url 'adminmenu' %}">
+            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
+        </a>
+        <div class="header-right">
+            <div class="user-info">
+                <div><strong>{{ admin.name }}</strong></div>
+                <div>Administrator</div>
+            </div>
+            <div class="user-dropdown">
+                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
+                <div id="userDropdown" class="dropdown-content">
+                    <a href="{% url 'admin_profile' %}">Profile</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <h1>Edit User</h1>
+        
+        <div class="user-type-badge">{{ user_data.type|title }}</div>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="container">
+            <form method="POST" action="{% url 'update_user' %}">
+                {% csrf_token %}
+                <input type="hidden" name="user_type" value="{{ user_data.type }}">
+                <input type="hidden" name="user_id" value="{{ user_data.id }}">
+                
+                <!-- Basic Information Section -->
+                <div class="form-section">
+                    <h3>Basic Information</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id">User ID</label>
+                            <input type="text" id="id" name="id" class="form-control readonly-field" value="{{ user_data.id }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="name">Full Name *</label>
+                            <input type="text" id="name" name="name" class="form-control" value="{{ user_data.name }}" placeholder="e.g., John Doe Smith" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="position">Position *</label>
+                            <input type="text" id="position" name="position" class="form-control" value="{{ user_data.position }}" placeholder="e.g., Software Developer" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" class="form-control" value="{{ user_data.email }}" placeholder="e.g., john@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Phone *</label>
+                            <input type="tel" id="phone" name="phone" class="form-control" value="{{ user_data.phone }}" placeholder="e.g., +60123456789" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="date_of_birth">Date of Birth *</label>
+                            <input type="date" id="date_of_birth" name="date_of_birth" class="form-control" value="{{ user_data.date_of_birth|date:'Y-m-d' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender" class="form-control">
+                                <option value="">-- Select Gender --</option>
+                                <option value="Male" {% if user_data.gender == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if user_data.gender == 'Female' %}selected{% endif %}>Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Marital Status</label>
+                            <select id="status" name="status" class="form-control">
+                                <option value="">-- Select Status --</option>
+                                <option value="Single" {% if user_data.status == 'Single' %}selected{% endif %}>Single</option>
+                                <option value="Married" {% if user_data.status == 'Married' %}selected{% endif %}>Married</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bank_number">Bank Account Number</label>
+                            <input type="text" id="bank_number" name="bank_number" class="form-control" value="{{ user_data.bank_number }}" placeholder="e.g., 1234567890">
+                        </div>
+                        <div class="form-group">
+                            <label for="emergency_contact">Emergency Contact</label>
+                            <input type="text" id="emergency_contact" name="emergency_contact" class="form-control" value="{{ user_data.emergency_contact }}" placeholder="e.g., +60123456789">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Address Information Section -->
+                <div class="form-section">
+                    <h3>Address Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="address1">Address Line 1</label>
+                        <input type="text" id="address1" name="address1" class="form-control" value="{{ address_data.address1 }}" placeholder="e.g., 123 Main Street">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address2">Address Line 2</label>
+                        <input type="text" id="address2" name="address2" class="form-control" value="{{ address_data.address2 }}" placeholder="e.g., Apartment 4B">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="poscode">Postal Code</label>
+                            <input type="number" id="poscode" name="poscode" class="form-control" value="{% if address_data.poscode and address_data.poscode != 0 %}{{ address_data.poscode }}{% endif %}" placeholder="e.g., 50000">
+                        </div>
+                        <div class="form-group">
+                            <label for="state">State</label>
+                            <select id="state" name="state" class="form-control">
+                                <option value="">-- Select State --</option>
+                                <option value="Johor" {% if address_data.state == 'Johor' %}selected{% endif %}>Johor</option>
+                                <option value="Kedah" {% if address_data.state == 'Kedah' %}selected{% endif %}>Kedah</option>
+                                <option value="Kelantan" {% if address_data.state == 'Kelantan' %}selected{% endif %}>Kelantan</option>
+                                <option value="Melaka" {% if address_data.state == 'Melaka' %}selected{% endif %}>Melaka</option>
+                                <option value="Negeri Sembilan" {% if address_data.state == 'Negeri Sembilan' %}selected{% endif %}>Negeri Sembilan</option>
+                                <option value="Pahang" {% if address_data.state == 'Pahang' %}selected{% endif %}>Pahang</option>
+                                <option value="Penang" {% if address_data.state == 'Penang' %}selected{% endif %}>Penang</option>
+                                <option value="Perak" {% if address_data.state == 'Perak' %}selected{% endif %}>Perak</option>
+                                <option value="Perlis" {% if address_data.state == 'Perlis' %}selected{% endif %}>Perlis</option>
+                                <option value="Sabah" {% if address_data.state == 'Sabah' %}selected{% endif %}>Sabah</option>
+                                <option value="Sarawak" {% if address_data.state == 'Sarawak' %}selected{% endif %}>Sarawak</option>
+                                <option value="Selangor" {% if address_data.state == 'Selangor' %}selected{% endif %}>Selangor</option>
+                                <option value="Terengganu" {% if address_data.state == 'Terengganu' %}selected{% endif %}>Terengganu</option>
+                                <option value="Kuala Lumpur" {% if address_data.state == 'Kuala Lumpur' %}selected{% endif %}>Kuala Lumpur</option>
+                                <option value="Labuan" {% if address_data.state == 'Labuan' %}selected{% endif %}>Labuan</option>
+                                <option value="Putrajaya" {% if address_data.state == 'Putrajaya' %}selected{% endif %}>Putrajaya</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button type="submit" class="btn">Update User</button>
+                    <a href="{% url 'user_management' %}" class="back-btn">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Toggle dropdown menu
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
+        
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-image')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        
+        // Form validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            
+            form.addEventListener('submit', function(event) {
+                const requiredFields = ['name', 'position', 'phone', 'email', 'date_of_birth'];
+                let isValid = true;
+                
+                requiredFields.forEach(field => {
+                    const input = document.getElementById(field);
+                    if (!input.value.trim()) {
+                        input.style.borderColor = '#E90000';
+                        isValid = false;
+                    } else {
+                        input.style.borderColor = '#ddd';
+                    }
+                });
+                
+                if (!isValid) {
+                    alert('Please fill in all required fields.');
+                    event.preventDefault();
+                    return false;
+                }
+                
+                // Validate postal code
+                const postalCode = document.getElementById('poscode').value;
+                if (postalCode && (parseInt(postalCode) < 0 || parseInt(postalCode) > 99999)) {
+                    alert('Please enter a valid postal code (5 digits).');
+                    event.preventDefault();
+                    return false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

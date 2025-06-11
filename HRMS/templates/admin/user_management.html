@@ -475,6 +475,39 @@
             margin-top: 5px;
         }
     </style>
+    <style>
+        /* Add styles for edit button */
+        .edit-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .edit-btn:hover {
+            background-color: #218838;
+            opacity: 0.9;
+        }
+
+        /* Update the action column styling */
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            white-space: nowrap; /* Prevent button wrapping */
+        }
+
+        /* Style for action buttons container */
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        </style>
 </head>
 <body>
     <!-- Delete Confirmation Popup -->
@@ -570,7 +603,10 @@
                                 <td>{{ staff.name }}</td>
                                 <td>{{ staff.position }}</td>
                                 <td>
-                                    <button class="delete-btn" onclick="confirmDelete('staff', '{{ staff.id }}')">Delete</button>
+                                    <div class="action-buttons">
+                                        <button class="edit-btn" onclick="window.location.href='{% url 'edit_user' 'staff' staff.id %}'">Edit</button>
+                                        <button class="delete-btn" onclick="confirmDelete('staff', '{{ staff.id }}')">Delete</button>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
@@ -606,7 +642,9 @@
                                 <td>{{ manager.staffid.name }}</td>
                                 <td>{{ manager.staffid.position }}</td>
                                 <td>
-                                    <button class="delete-btn" onclick="confirmDelete('manager', '{{ manager.id }}')">Delete</button>
+                                    <div class="action-buttons">
+                                        <button class="delete-btn" onclick="confirmDelete('manager', '{{ manager.id }}')">Delete</button>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
@@ -642,7 +680,9 @@
                                 <td>{{ hr.staffid.name }}</td>
                                 <td>{{ hr.staffid.position }}</td>
                                 <td>
-                                    <button class="delete-btn" onclick="confirmDelete('hr', '{{ hr.id }}')">Delete</button>
+                                    <div class="action-buttons">
+                                        <button class="delete-btn" onclick="confirmDelete('hr', '{{ hr.id }}')">Delete</button>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}

@@ -312,11 +312,6 @@ def adminmenu(request):
         # Render the admin menu page with the context
         return render(request, 'admin/adminmenu.html', context)
     
-    except ADMIN.DoesNotExist:
-        # If admin record doesn't exist, log out and redirect
-        request.session.flush()
-        messages.error(request, "Admin account not found. Please login again.")
-        return redirect('login')
     except Exception as e:
         # Handle any other exceptions
         request.session.flush()
@@ -586,6 +581,301 @@ def validate_password_strength(password):
     return True
 
 
+def edit_user(request, user_type, user_id):
+    """View for editing user information"""
+    if not request.session.get('user_type') == 'admin':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    admin_id = request.session.get('user_id')
+    admin = ADMIN.objects.get(id=admin_id)
+    
+    # Get user based on type
+    user = None
+    user_data = {}
+    address_data = {}
+    
+    try:
+        if user_type == 'staff':
+            user = STAFF.objects.get(id=user_id)
+            # Get address if exists
+            try:
+                address = ADDRESS.objects.get(staffid=user)
+                address_data = {
+                    'address1': address.address1,
+                    'address2': address.address2,
+                    'poscode': address.poscode,
+                    'state': address.state,
+                }
+            except ADDRESS.DoesNotExist:
+                address_data = {
+                    'address1': '',
+                    'address2': '',
+                    'poscode': '',
+                    'state': '',
+                }
+            
+            user_data = {
+                'id': user.id,
+                'name': user.name,
+                'position': user.position,
+                'phone': user.phone,
+                'email': user.email,
+                'status': user.status,
+                'gender': user.gender,
+                'date_of_birth': user.date_of_birth,
+                'bank_number': user.bank_number,
+                'emergency_contact': user.emergency_contact,
+                'type': 'staff'
+            }
+            
+        elif user_type == 'manager':
+            user = MANAGER.objects.get(id=user_id)
+            staff = user.staffid
+            # Get address if exists
+            try:
+                address = ADDRESS.objects.get(staffid=staff)
+                address_data = {
+                    'address1': address.address1,
+                    'address2': address.address2,
+                    'poscode': address.poscode,
+                    'state': address.state,
+                }
+            except ADDRESS.DoesNotExist:
+                address_data = {
+                    'address1': '',
+                    'address2': '',
+                    'poscode': '',
+                    'state': '',
+                }
+            
+            user_data = {
+                'id': user.id,
+                'name': staff.name,
+                'position': staff.position,
+                'phone': staff.phone,
+                'email': staff.email,
+                'status': staff.status,
+                'gender': staff.gender,
+                'date_of_birth': staff.date_of_birth,
+                'bank_number': staff.bank_number,
+                'emergency_contact': staff.emergency_contact,
+                'staff_id': staff.id,
+                'type': 'manager'
+            }
+            
+        elif user_type == 'hr':
+            user = HR.objects.get(id=user_id)
+            staff = user.staffid
+            # Get address if exists
+            try:
+                address = ADDRESS.objects.get(staffid=staff)
+                address_data = {
+                    'address1': address.address1,
+                    'address2': address.address2,
+                    'poscode': address.poscode,
+                    'state': address.state,
+                }
+            except ADDRESS.DoesNotExist:
+                address_data = {
+                    'address1': '',
+                    'address2': '',
+                    'poscode': '',
+                    'state': '',
+                }
+            
+            user_data = {
+                'id': user.id,
+                'name': staff.name,
+                'position': staff.position,
+                'phone': staff.phone,
+                'email': staff.email,
+                'status': staff.status,
+                'gender': staff.gender,
+                'date_of_birth': staff.date_of_birth,
+                'bank_number': staff.bank_number,
+                'emergency_contact': staff.emergency_contact,
+                'staff_id': staff.id,
+                'type': 'hr'
+            }
+            
+        else:
+            messages.error(request, 'Invalid user type!')
+            return redirect('user_management')
+            
+    except (STAFF.DoesNotExist, MANAGER.DoesNotExist, HR.DoesNotExist):
+        messages.error(request, f'User {user_id} not found!')
+        return redirect('user_management')
+    
+    context = {
+        'admin': admin,
+        'user_data': user_data,
+        'address_data': address_data,
+        'user_type': user_type,
+        'user_id': user_id
+    }
+    
+    return render(request, 'admin/edit_user.html', context)
+
+def update_user(request):
+    """Handle updating user information"""
+    if not request.session.get('user_type') == 'admin':
+        request.session.flush()
+        messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    if request.method == 'POST':
+        user_type = request.POST.get('user_type')
+        user_id = request.POST.get('user_id')
+        name = request.POST.get('name')
+        position = request.POST.get('position')
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+        status = request.POST.get('status')
+        gender = request.POST.get('gender')
+        date_of_birth = request.POST.get('date_of_birth')
+        bank_number = request.POST.get('bank_number')
+        emergency_contact = request.POST.get('emergency_contact')
+        
+        # Address fields
+        address1 = request.POST.get('address1')
+        address2 = request.POST.get('address2')
+        poscode = request.POST.get('poscode')
+        state = request.POST.get('state')
+        
+        # Validate required fields
+        if not all([user_type, user_id, name, position, phone, email, date_of_birth]):
+            messages.error(request, 'Required fields cannot be empty!')
+            return redirect('edit_user', user_type=user_type, user_id=user_id)
+        
+        # Validate date format
+        try:
+            from datetime import datetime
+            datetime.strptime(date_of_birth, '%Y-%m-%d')
+        except ValueError:
+            messages.error(request, 'Please enter a valid date of birth (YYYY-MM-DD)!')
+            return redirect('edit_user', user_type=user_type, user_id=user_id)
+        
+        # Validate postal code if provided
+        if poscode:
+            try:
+                poscode = int(poscode)
+            except ValueError:
+                messages.error(request, 'Please enter a valid postal code!')
+                return redirect('edit_user', user_type=user_type, user_id=user_id)
+        else:
+            poscode = 0  # Default value from your model
+        
+        try:
+            if user_type == 'staff':
+                staff = STAFF.objects.get(id=user_id)
+                staff.name = name
+                staff.position = position
+                staff.phone = phone
+                staff.email = email
+                staff.status = status
+                staff.gender = gender
+                staff.date_of_birth = date_of_birth
+                staff.bank_number = bank_number
+                staff.emergency_contact = emergency_contact
+                staff.save()
+                
+                # Update or create address
+                address, created = ADDRESS.objects.get_or_create(
+                    staffid=staff,
+                    defaults={
+                        'address1': address1,
+                        'address2': address2,
+                        'poscode': poscode,
+                        'state': state,
+                    }
+                )
+                if not created:
+                    address.address1 = address1
+                    address.address2 = address2
+                    address.poscode = poscode
+                    address.state = state
+                    address.save()
+                
+                messages.success(request, f'Staff user {name} updated successfully!')
+                
+            elif user_type == 'manager':
+                manager = MANAGER.objects.get(id=user_id)
+                staff = manager.staffid
+                staff.name = name
+                staff.position = position
+                staff.phone = phone
+                staff.email = email
+                staff.status = status
+                staff.gender = gender
+                staff.date_of_birth = date_of_birth
+                staff.bank_number = bank_number
+                staff.emergency_contact = emergency_contact
+                staff.save()
+                
+                # Update or create address
+                address, created = ADDRESS.objects.get_or_create(
+                    staffid=staff,
+                    defaults={
+                        'address1': address1,
+                        'address2': address2,
+                        'poscode': poscode,
+                        'state': state,
+                    }
+                )
+                if not created:
+                    address.address1 = address1
+                    address.address2 = address2
+                    address.poscode = poscode
+                    address.state = state
+                    address.save()
+                
+                messages.success(request, f'Manager user {name} updated successfully!')
+                
+            elif user_type == 'hr':
+                hr = HR.objects.get(id=user_id)
+                staff = hr.staffid
+                staff.name = name
+                staff.position = position
+                staff.phone = phone
+                staff.email = email
+                staff.status = status
+                staff.gender = gender
+                staff.date_of_birth = date_of_birth
+                staff.bank_number = bank_number
+                staff.emergency_contact = emergency_contact
+                staff.save()
+                
+                # Update or create address
+                address, created = ADDRESS.objects.get_or_create(
+                    staffid=staff,
+                    defaults={
+                        'address1': address1,
+                        'address2': address2,
+                        'poscode': poscode,
+                        'state': state,
+                    }
+                )
+                if not created:
+                    address.address1 = address1
+                    address.address2 = address2
+                    address.poscode = poscode
+                    address.state = state
+                    address.save()
+                
+                messages.success(request, f'HR user {name} updated successfully!')
+                
+            else:
+                messages.error(request, 'Invalid user type!')
+                
+        except (STAFF.DoesNotExist, MANAGER.DoesNotExist, HR.DoesNotExist):
+            messages.error(request, f'User {user_id} not found!')
+        except Exception as e:
+            messages.error(request, f'Error updating user: {str(e)}')
+    
+    return redirect('user_management')
+
 # hr
 def hrmenu(request):
     # Check if user is authorized as HR
@@ -829,10 +1119,24 @@ def hr_profile(request):
     return render(request, 'hr/profile.html', context)
 
 def update_staff(request, staff_id):
-    """View for updating staff information"""
+    """View for updating staff information - HR version"""
     if not request.session.get('user_type') == 'hr':
         request.session.flush()
         messages.error(request, "You do not have permission to view this page. Please login again")
+        return redirect('login')
+    
+    # Get HR user from session
+    hr_id = request.session.get('user_id')
+    if not hr_id:
+        request.session.flush()
+        messages.error(request, "Session expired. Please login again")
+        return redirect('login')
+    
+    try:
+        hr = HR.objects.get(id=hr_id)
+    except HR.DoesNotExist:
+        request.session.flush()
+        messages.error(request, "HR user not found. Please login again")
         return redirect('login')
     
     try:
@@ -850,15 +1154,20 @@ def update_staff(request, staff_id):
         leave_balance.save()
     
     if request.method == 'POST':
-        # Get form data
+        # Get form data matching the HTML template
         name = request.POST.get('name', '').strip()
         position = request.POST.get('position', '').strip()
         gender = request.POST.get('gender', '')
         annual_leave = request.POST.get('annual_leave', '').strip()
         
-        # Password handling
-        new_password = request.POST.get('password', '').strip()
-        confirm_password = request.POST.get('confirm_password', '').strip()
+        # Validate required fields
+        if not name or not position:
+            messages.error(request, 'Name and position are required fields.')
+            return render(request, 'hr/update_staff.html', {
+                'staff': staff, 
+                'hr': hr, 
+                'leave_balance': leave_balance
+            })
         
         try:
             # Update staff information
@@ -872,8 +1181,14 @@ def update_staff(request, staff_id):
                     annual_leave_int = int(annual_leave)
                     if annual_leave_int < 0:
                         messages.error(request, 'Annual leave cannot be negative.')
-                        hr_id = request.session.get('user_id')
-                        hr = HR.objects.get(id=hr_id)
+                        return render(request, 'hr/update_staff.html', {
+                            'staff': staff, 
+                            'hr': hr, 
+                            'leave_balance': leave_balance
+                        })
+                    
+                    if annual_leave_int > 365:
+                        messages.error(request, 'Annual leave cannot exceed 365 days.')
                         return render(request, 'hr/update_staff.html', {
                             'staff': staff, 
                             'hr': hr, 
@@ -904,8 +1219,6 @@ def update_staff(request, staff_id):
                     
                 except ValueError:
                     messages.error(request, 'Please enter a valid number for annual leave.')
-                    hr_id = request.session.get('user_id')
-                    hr = HR.objects.get(id=hr_id)
                     return render(request, 'hr/update_staff.html', {
                         'staff': staff, 
                         'hr': hr, 
@@ -919,8 +1232,6 @@ def update_staff(request, staff_id):
             
         except Exception as e:
             messages.error(request, f'Error updating staff: {str(e)}')
-            hr_id = request.session.get('user_id')
-            hr = HR.objects.get(id=hr_id)
             return render(request, 'hr/update_staff.html', {
                 'staff': staff, 
                 'hr': hr, 
@@ -928,9 +1239,6 @@ def update_staff(request, staff_id):
             })
     
     # GET request - display the form
-    hr_id = request.session.get('user_id')
-    hr = HR.objects.get(id=hr_id)
-    
     context = {
         'staff': staff,
         'hr': hr,
@@ -1318,30 +1626,94 @@ def hr_feedback(request):
         messages.error(request, "HR profile not found. Please login again.")
         return redirect('login')
     
-    # Get all feedback, separated by status
-    unsolved_feedback = FEEDBACK.objects.filter(status='Unsolved').order_by('-id')
-    solved_feedback = FEEDBACK.objects.filter(status='Solved').order_by('-id')
+    # Get all feedback for initial page load
+    all_feedback = FEEDBACK.objects.all().order_by('-id')
+    
+    # Separate by status
+    unsolved_feedback = all_feedback.filter(status='Unsolved')
+    solved_feedback = all_feedback.filter(status='Solved')
     
     # Filter complaints specifically
     unsolved_complaints = unsolved_feedback.filter(category='Complaint')
     solved_complaints = solved_feedback.filter(category='Complaint')
     
-    # Get all feedback (both complaints and feedback)
-    all_unsolved = unsolved_feedback
-    all_solved = solved_feedback
-    
     context = {
         'hr_name': hr_name,
         'hr_position': hr_position,
-        'unsolved_feedback': all_unsolved,
-        'solved_feedback': all_solved,
+        'unsolved_feedback': unsolved_feedback,
+        'solved_feedback': solved_feedback,
         'unsolved_complaints': unsolved_complaints,
         'solved_complaints': solved_complaints,
-        'unsolved_count': all_unsolved.count(),
-        'solved_count': all_solved.count(),
+        'unsolved_count': unsolved_feedback.count(),
+        'solved_count': solved_feedback.count(),
     }
     
     return render(request, 'hr/feedback.html', context)
+
+def hr_feedback_search(request):
+    """AJAX endpoint for real-time feedback search"""
+    # Check if user is HR
+    if not request.session.get('user_type') == 'hr':
+        return JsonResponse({'success': False, 'message': 'Unauthorized access'})
+    
+    if request.method == 'GET':
+        search_query = request.GET.get('search', '').strip()
+        
+        try:
+            # Start with all feedback
+            all_feedback = FEEDBACK.objects.all()
+            
+            # Apply search filter if search query exists
+            if search_query:
+                try:
+                    # Try exact ID match
+                    feedback_id = int(search_query)
+                    all_feedback = all_feedback.filter(id=feedback_id)
+                except ValueError:
+                    # If not a valid integer, return empty queryset
+                    all_feedback = FEEDBACK.objects.none()
+            
+            # Separate by status
+            unsolved_feedback = all_feedback.filter(status='Unsolved').order_by('-id')
+            solved_feedback = all_feedback.filter(status='Solved').order_by('-id')
+            
+            # Prepare response data
+            unsolved_data = []
+            for feedback in unsolved_feedback:
+                unsolved_data.append({
+                    'id': feedback.id,
+                    'category': feedback.category,
+                    'text': feedback.text,
+                    'status': feedback.status,
+                    'attachment': feedback.attachment.url if feedback.attachment else None,
+                    'attachment_name': feedback.attachment.name if feedback.attachment else None,
+                })
+            
+            solved_data = []
+            for feedback in solved_feedback:
+                solved_data.append({
+                    'id': feedback.id,
+                    'category': feedback.category,
+                    'text': feedback.text,
+                    'status': feedback.status,
+                    'attachment': feedback.attachment.url if feedback.attachment else None,
+                    'attachment_name': feedback.attachment.name if feedback.attachment else None,
+                })
+            
+            return JsonResponse({
+                'success': True,
+                'unsolved_feedback': unsolved_data,
+                'solved_feedback': solved_data,
+                'unsolved_count': len(unsolved_data),
+                'solved_count': len(solved_data),
+                'search_query': search_query,
+                'search_performed': bool(search_query),
+            })
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
 def update_feedback_status(request):
     # Check if user is HR
