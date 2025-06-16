@@ -598,7 +598,7 @@
                 <div class="form-group">
                     <label for="search">General Search</label>
                     <input type="text" id="search" name="search" class="form-control" 
-                           placeholder="Search by position, reason, or manager name" 
+                           placeholder="Search by position, or manager name" 
                            value="{{ search_query }}">
                 </div>
                 
@@ -669,14 +669,8 @@
                 <a href="{% url 'hr_recruitment_search' %}" class="btn btn-secondary">
                      Clear Filters
                 </a>
-                <button type="button" class="btn btn-success" onclick="exportResults()">
-                     Export Results
-                </button>
-                
             </div>
         </div>
-        
-        
         
         <!-- Results Header -->
         <div class="results-header">

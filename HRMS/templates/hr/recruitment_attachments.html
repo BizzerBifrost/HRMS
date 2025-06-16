@@ -638,15 +638,15 @@
                     </a>
                     {% if recruitment_request.status != 'Completed' and recruitment_request.status != 'Rejected' %}
                     <a href="{% url 'hr_recruitment_process' recruitment_request.id %}" class="btn btn-primary">
-                        ⚙️ Process Request
+                        Process Request
                     </a>
                     {% else %}
                     <span class="btn btn-secondary" style="opacity: 0.6; cursor: not-allowed;">
-                        ⚙️ Request {{ recruitment_request.status }}
+                        Request {{ recruitment_request.status }}
                     </span>
                     {% endif %}
                     <a href="{% url 'hr_recruitment_notes' recruitment_request.id %}" class="btn btn-info">
-                        📝 Notes
+                        Notes
                     </a>
                 </div>
             </div>
@@ -705,10 +705,10 @@
                             </div>
                             
                             <button type="submit" class="btn btn-success" id="uploadBtn" disabled>
-                                📤 Upload Attachment
+                                Upload Attachment
                             </button>
                             <button type="button" class="btn btn-secondary" onclick="clearUploadForm()">
-                                🔄 Clear Form
+                                Clear Form
                             </button>
                         </form>
                     </div>
@@ -837,28 +837,7 @@
                             • Maximum size: 10MB<br>
                             • Formats: PDF, DOC, XLS, Images<br>
                             • Clear, readable documents<br><br>
-                            
-                            <strong>Security:</strong><br>
-                            • Files are scanned for viruses<br>
-                            • Access controlled by permissions<br>
-                            • Automatic backup included
                         </div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="sidebar-card">
-                    <div class="sidebar-header">Quick Actions</div>
-                    <div class="sidebar-content">
-                        <button type="button" class="btn btn-primary" onclick="bulkDownload()" style="width: 100%; margin-bottom: 10px;">
-                            📦 Download All
-                        </button>
-                        <button type="button" class="btn btn-warning" onclick="exportList()" style="width: 100%; margin-bottom: 10px;">
-                            📋 Export List
-                        </button>
-                        <button type="button" class="btn btn-secondary" onclick="printList()" style="width: 100%;">
-                            🖨️ Print List
-                        </button>
                     </div>
                 </div>
             </div>

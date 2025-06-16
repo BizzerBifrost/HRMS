@@ -564,19 +564,19 @@
             <h4>Quick Actions</h4>
             <div class="action-buttons">
                 <button type="button" class="btn btn-success" onclick="quickAction('acknowledge')">
-                    ✅ Acknowledge Request
+                    Acknowledge Request
                 </button>
                 <button type="button" class="btn btn-info" onclick="quickAction('under_review')">
-                    🔍 Mark Under Review
+                    Mark Under Review
                 </button>
                 <button type="button" class="btn btn-warning" onclick="quickAction('on_hold')">
-                    ⏸️ Put On Hold
+                    Put On Hold
                 </button>
                 <button type="button" class="btn btn-primary" onclick="quickAction('approved')">
-                    ✅ Approve Request
+                    Approve Request
                 </button>
                 <button type="button" class="btn btn-danger" onclick="quickAction('rejected')">
-                    ❌ Reject Request
+                    Reject Request
                 </button>
             </div>
         </div>
@@ -620,82 +620,7 @@
                         </div>
                         
                         <button type="submit" class="btn btn-primary">
-                            💾 Update Status
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Timeline & Assignment -->
-            <div class="process-card">
-                <div class="card-header">Timeline & Assignment</div>
-                <div class="card-content">
-                    <form method="POST" id="timelineForm">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="update_timeline">
-                        
-                        <div class="form-group">
-                            <label for="target_start_date">Target Start Date</label>
-                            <input type="date" id="target_start_date" name="target_start_date" 
-                                   class="form-control" value="{{ recruitment_request.target_start_date|date:'Y-m-d' }}">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="expected_completion">Expected Completion</label>
-                            <input type="date" id="expected_completion" name="expected_completion" 
-                                   class="form-control" value="{{ recruitment_request.expected_completion_date|date:'Y-m-d' }}">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="assigned_hr">Assign to HR Personnel</label>
-                            <select id="assigned_hr" name="assigned_hr" class="form-control">
-                                <option value="">Select HR Personnel</option>
-                                <option value="current" selected>{{ hr.staffid.name }} (Current)</option>
-                                <!-- Add other HR personnel options here -->
-                            </select>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-info">
-                            📅 Update Timeline
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Communication -->
-            <div class="process-card">
-                <div class="card-header">Communication</div>
-                <div class="card-content">
-                    <form method="POST" id="communicationForm">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="send_communication">
-                        
-                        <div class="form-group">
-                            <label for="communication_type">Communication Type</label>
-                            <select id="communication_type" name="communication_type" class="form-control">
-                                <option value="status_update">Status Update</option>
-                                <option value="request_info">Request More Information</option>
-                                <option value="approval_notification">Approval Notification</option>
-                                <option value="rejection_notification">Rejection Notification</option>
-                                <option value="general">General Communication</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="message">Message to Manager</label>
-                            <textarea id="message" name="message" class="form-control" 
-                                    placeholder="Enter your message to the requesting manager..."></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" name="urgent_flag" value="1">
-                                Mark as urgent communication
-                            </label>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary">
-                            📧 Send Message
+                            Update Status
                         </button>
                     </form>
                 </div>
@@ -712,36 +637,19 @@
                                  Add Notes
                             </a>
                             <a href="#" class="btn btn-warning">
-                                📎 Manage Attachments
+                                Manage Attachments
                             </a>
                         </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label>Documentation</label>
-                        <div style="margin-top: 10px;">
-                            <button type="button" class="btn btn-secondary" onclick="generateReport()">
-                                📊 Generate Report
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="exportData()">
-                                📤 Export Data
-                            </button>
-                        </div>
-                    </div>
                     
                     <div class="form-group">
                         <label>Danger Zone</label>
                         <div style="margin-top: 10px;">
                             <button type="button" class="btn btn-danger" onclick="confirmDelete()">
-                                🗑️ Delete Request
+                                Delete Request
                             </button>
                         </div>
-                    </div>
-                    
-                    <div class="form-group" style="margin-top: 30px;">
-                        <a href="{% url 'hr_recruitment_details' recruitment_request.id %}" class="btn btn-secondary">
-                            ← Back to Details
-                        </a>
                     </div>
                 </div>
             </div>
