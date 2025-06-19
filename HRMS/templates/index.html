@@ -6,199 +6,177 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KOOP-KPMIM HRMS</title>
     <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="64x64">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/3.3.2/tailwind.min.js"></script>
+    
+    <!-- Custom CSS for exact color matching and animations -->
     <style>
-        /* Global Styles */
+        /* Custom color variables for Tailwind */
         :root {
             --main-color: #F0F0F0;
             --secondary-color: #0053ED;
             --accent-color: #E90000;
+            --text-dark: #333;
+            --footer-color: #4A4A4A;
         }
         
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--main-color);
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+        /* Custom Tailwind color classes */
+        .bg-main { background-color: var(--main-color) !important; }
+        .bg-secondary-custom { background-color: var(--secondary-color) !important; }
+        .bg-accent { background-color: var(--accent-color) !important; }
+        .bg-footer { background-color: var(--footer-color) !important; }
+        .text-secondary-custom { color: var(--secondary-color) !important; }
+        .text-accent { color: var(--accent-color) !important; }
+        .text-dark-custom { color: var(--text-dark) !important; }
+        .border-secondary-custom { border-color: var(--secondary-color) !important; }
+        .border-accent { border-color: var(--accent-color) !important; }
         
-        /* Header Styles */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #0053ED;
-            padding: 10px 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
+        /* Custom font family */
+        .font-segoe { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
-        .logo {
-            width: 120px;
-            height: auto;
-        }
-        
-        .login-link {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 8px 16px;
-            transition: color 0.3s;
-        }
-
-        .login-link:hover {
-            color:var(--accent-color);
-            text-decoration: underline;
-        }
-        
-        
-        /* Main Content Styles */
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            text-align: center;
-            flex: 1;
-        }
-        
-        .welcome-container {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 1s forwards;
-        }
-        
-        .welcome-title {
-            color: var(--secondary-color);
-            font-size: 2.5rem;
-            margin-bottom: 16px;
-        }
-        
-        .welcome-subtitle {
-            color: var(--accent-color);
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-        }
-        
-        .card-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-        }
-        
-        .info-card {
-            background-color: white;
-            border-radius: 8px;
-            padding: 24px;
-            width: 300px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-            border-top: 4px solid var(--secondary-color);
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        
-        .info-card:nth-child(2) {
-            border-top-color: var(--accent-color);
-            animation: fadeInUp 1s forwards 0.2s;
-        }
-        
-        .info-card:nth-child(1) {
-            animation: fadeInUp 1s forwards 0.1s;
-        }
-        
-        .info-card:nth-child(3) {
-            animation: fadeInUp 1s forwards 0.3s;
-        }
-        
-        .info-card h3 {
-            color: var(--secondary-color);
-            margin-top: 0;
-        }
-        
-        /* Footer Styles */
-        .footer {
-            background-color: #4A4A4A;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            margin-top: auto;
-        }
-        
-        /* Animation Keyframes */
+        /* Custom animations */
         @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
         
-        /* Responsive Adjustments */
-        @media (max-width: 768px) {
-            .header {
-                padding: 10px;
-            }
-            
-            .logo {
-                width: 100px;
-            }
-            
-            .welcome-title {
-                font-size: 1.8rem;
-            }
-            
-            .welcome-subtitle {
-                font-size: 1rem;
-            }
-            
-            .card-container {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .info-card {
-                width: 100%;
-                max-width: 320px;
-            }
+        .animate-fade-in-up {
+            animation: fadeInUp 1s forwards;
+        }
+        
+        .animate-delay-100 {
+            animation-delay: 0.1s;
+        }
+        
+        .animate-delay-200 {
+            animation-delay: 0.2s;
+        }
+        
+        .animate-delay-300 {
+            animation-delay: 0.3s;
+        }
+        
+        /* Initial hidden state for animated elements */
+        .opacity-0-initial {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        /* Hover effects */
+        .login-link:hover {
+            color: var(--accent-color) !important;
+            text-decoration: underline !important;
         }
     </style>
 </head>
-<body>
-    <!-- Header with Logo and Login Button -->
-    <header class="header">
-        <a href="{%url 'index' %}"><img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo"></a>
-        <a href="{% url 'login' %}" class="login-link">Login</a>
+<body class="bg-main font-segoe text-dark-custom d-flex flex-column min-vh-100">
+    
+    <!-- Header with Bootstrap navbar and Tailwind styling -->
+    <header class="bg-secondary-custom shadow-sm">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid px-4 py-2">
+                <!-- Logo -->
+                <a class="navbar-brand" href="{%url 'index' %}">
+                    <img src="{% static 'img/logo.png' %}" 
+                         alt="KOOP-KPMIM Logo" 
+                         style="width: 120px; height: auto;" 
+                         class="d-none d-md-block">
+                    <img src="{% static 'img/logo.png' %}" 
+                         alt="KOOP-KPMIM Logo" 
+                         style="width: 100px; height: auto;" 
+                         class="d-block d-md-none">
+                </a>
+                
+                <!-- Login Link -->
+                <a href="{% url 'login' %}" 
+                   class="text-white text-decoration-none fw-medium px-3 py-2 login-link transition-colors duration-300">
+                    Login
+                </a>
+            </div>
+        </nav>
     </header>
     
-    <!-- Main Content with Welcome Message -->
-    <main class="main-container">
-        <div class="welcome-container">
-            <h1 class="welcome-title">Welcome to Human Resources Management System (HRMS)</h1>
-            <p class="welcome-subtitle">Streamlining HR operations for KOOP-KPMIM</p>
-        </div>
-        
-        <div class="card-container">
-            <div class="info-card">
-                <h3>Employee Portal</h3>
-                <p>Access your personal information, view pay slips, submit time-off requests and submit review to the HR.</p>
-            </div>
-            
-            <div class="info-card">
-                <h3>Manager Portal</h3>
-                <p>Approve leave requests, set team goals and request new hires.</p>
-            </div>
-            
-            <div class="info-card">
-                <h3>HR Administration</h3>
-                <p>Manage employee records, process payroll, update policies, oversee recruitment and handle reviews.</p>
+    <!-- Main Content -->
+    <main class="flex-grow-1">
+        <div class="container" style="max-width: 1200px;">
+            <div class="text-center py-5">
+                
+                <!-- Welcome Section with fade-in animation -->
+                <div class="opacity-0-initial animate-fade-in-up mb-5">
+                    <h1 class="text-secondary-custom display-4 mb-3 fw-bold">
+                        Welcome to Human Resources Management System (HRMS)
+                    </h1>
+                    <p class="text-accent fs-5 mb-0">
+                        Streamlining HR operations for KOOP-KPMIM
+                    </p>
+                </div>
+                
+                <!-- Cards Section using Bootstrap grid and cards -->
+                <div class="row justify-content-center g-4 mt-4">
+                    
+                    <!-- Employee Portal Card -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card h-100 shadow-sm border-0 opacity-0-initial animate-fade-in-up animate-delay-100"
+                             style="border-top: 4px solid var(--secondary-color) !important;">
+                            <div class="card-body p-4">
+                                <h3 class="card-title text-secondary-custom mb-3">Employee Portal</h3>
+                                <p class="card-text text-muted">
+                                    Access your personal information, view pay slips, submit time-off requests and submit review to the HR.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Manager Portal Card -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card h-100 shadow-sm border-0 opacity-0-initial animate-fade-in-up animate-delay-200"
+                             style="border-top: 4px solid var(--accent-color) !important;">
+                            <div class="card-body p-4">
+                                <h3 class="card-title text-secondary-custom mb-3">Manager Portal</h3>
+                                <p class="card-text text-muted">
+                                    Approve leave requests, set team goals and request new hires.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- HR Administration Card -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card h-100 shadow-sm border-0 opacity-0-initial animate-fade-in-up animate-delay-300"
+                             style="border-top: 4px solid var(--secondary-color) !important;">
+                            <div class="card-body p-4">
+                                <h3 class="card-title text-secondary-custom mb-3">HR Administration</h3>
+                                <p class="card-text text-muted">
+                                    Manage employee records, process payroll, update policies, oversee recruitment and handle reviews.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
             </div>
         </div>
     </main>
     
-    <!-- Footer -->
-    <footer class="footer">
-        <p>© 2025 KOOP-KPMIM HRMS | AMANAH • PROGRESIF • PROFESIONAL</p>
+    <!-- Footer using Bootstrap and Tailwind -->
+    <footer class="bg-footer text-white text-center py-4 mt-auto">
+        <div class="container">
+            <p class="mb-0">© 2025 KOOP-KPMIM HRMS | AMANAH • PROGRESIF • PROFESIONAL</p>
+        </div>
     </footer>
+
+    <!-- Bootstrap JavaScript (Optional - for interactive components) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
 </body>
 </html>

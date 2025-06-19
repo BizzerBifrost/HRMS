@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Profile | HRMS</title>
     <link rel="icon" type="image/x-icon" href="{% static 'img/title.png' %}" sizes="32x32 48x48 64x64">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/3.3.2/tailwind.min.js"></script>
+    
+    <!-- Custom CSS -->
     <style>
         :root {
             --primary-color: #F0F0F0;
@@ -14,64 +22,14 @@
             --text-color: #4A4A4A;
         }
         
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
+        .bg-primary-custom { background-color: var(--primary-color) !important; }
+        .bg-secondary-custom { background-color: var(--secondary-color) !important; }
+        .text-secondary-custom { color: var(--secondary-color) !important; }
+        .text-custom { color: var(--text-color) !important; }
+        .bg-footer { background-color: var(--text-color) !important; }
+        .font-arial { font-family: Arial, sans-serif; }
         
-        body {
-            background-color: var(--primary-color);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        header {
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            width: 120px;
-            height: auto;
-        }
-        
-        @media (max-width: 768px) {
-            .logo {
-                width: 100px;
-            }
-        }
-        
-        .header-right {
-            display: flex;
-            align-items: center;
-        }
-        
-        .user-info {
-            margin-right: 15px;
-            text-align: right;
-        }
-        
-        /* User dropdown styling */
-        .user-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .user-image {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid white;
-        }
+        .btn-custom:hover { background-color: #0045c4 !important; }
         
         .dropdown-content {
             display: none;
@@ -93,11 +51,8 @@
             border-radius: 5px;
         }
         
-        .dropdown-content a:hover {
-            background-color: var(--primary-color);
-        }
+        .dropdown-content a:hover { background-color: var(--primary-color); }
         
-        /* Arrow for dropdown */
         .dropdown-content::before {
             content: "";
             position: absolute;
@@ -108,239 +63,156 @@
             border-color: transparent transparent white transparent;
         }
         
-        .show {
-            display: block;
-        }
+        .show { display: block !important; }
         
-        main {
-            flex: 1;
-            padding: 30px;
-            max-width: 1000px;
-            margin: 0 auto;
-            width: 100%;
-        }
-        
-        h1 {
-            color: var(--secondary-color);
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
-        
-        .profile-container {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: var(--text-color);
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 10px 15px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            font-size: 16px;
-        }
-        
-        .form-control:focus {
-            outline: none;
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 2px rgba(0, 83, 237, 0.2);
-        }
-        
-        .btn {
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            transition: background-color 0.2s;
-        }
-        
-        .btn:hover {
-            background-color: #0045c4;
-        }
-        
-        hr {
-            margin: 30px 0;
-            border: 0;
-            border-top: 1px solid #ddd;
-        }
-        
-        .back-btn {
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        
-        .back-btn:hover {
-            background-color: #5a6268;
-        }
-        
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-        
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        /* Password strength indicator styles */
-        .password-strength {
-            margin-top: 5px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        
-        .strength-weak {
-            color: #dc3545;
-        }
-        
-        .strength-medium {
-            color: #ffc107;
-        }
-        
-        .strength-strong {
-            color: #28a745;
-        }
-        
-        footer {
-            background-color: var(--text-color);
-            color: white;
-            text-align: center;
-            padding: 15px;
-            margin-top: auto;
-        }
+        .password-strength { margin-top: 5px; font-size: 14px; }
+        .strength-weak { color: #dc3545; }
+        .strength-medium { color: #ffc107; }
+        .strength-strong { color: #28a745; }
     </style>
 </head>
-<body>
-    <header>
-        <a href="{% url 'adminmenu' %}">
-            <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" class="logo">
-        </a>
-        <div class="header-right">
-            <div class="user-info">
-                <div><strong>{{ admin.name }}</strong></div>
-                <div>Administrator</div>
-            </div>
-            <!-- User image dropdown -->
-            <div class="user-dropdown">
-                <img src="{% static 'img/user.png' %}" alt="User Profile" class="user-image" onclick="toggleDropdown()">
-                <div id="userDropdown" class="dropdown-content">
-                    <a href="{% url 'admin_profile' %}">Profile</a>
-                    <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+<body class="bg-primary-custom font-arial text-custom d-flex flex-column min-vh-100">
+    
+    <!-- Header -->
+    <header class="bg-secondary-custom text-white">
+        <div class="container-fluid px-4 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{% url 'adminmenu' %}">
+                    <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" 
+                         style="width: 120px; height: auto;" class="d-none d-md-block">
+                    <img src="{% static 'img/logo.png' %}" alt="KOOP-KPMIM Logo" 
+                         style="width: 100px; height: auto;" class="d-block d-md-none">
+                </a>
+                
+                <div class="d-flex align-items-center">
+                    <div class="text-end me-3">
+                        <div><strong>{{ admin.name }}</strong></div>
+                        <div>Administrator</div>
+                    </div>
+                    
+                    <div class="position-relative d-inline-block">
+                        <img src="{% static 'img/user.png' %}" alt="User Profile" 
+                             class="rounded-circle border border-2 border-white" 
+                             style="width: 40px; height: 40px; cursor: pointer;" onclick="toggleDropdown()">
+                        <div id="userDropdown" class="dropdown-content">
+                            <a href="{% url 'admin_profile' %}">Profile</a>
+                            <a href="{% url 'logout' %}" onclick="resetPopupState()">Logout</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <main>
-        <h1>Admin Profile Settings</h1>
-        
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %}">
-                {{ message }}
+    <!-- Main Content -->
+    <main class="flex-grow-1">
+        <div class="container" style="max-width: 1200px;">
+            <div class="px-4 py-5">
+                
+                <h1 class="text-secondary-custom mb-4 fw-bold" style="font-size: 28px;">
+                    Admin Profile Settings
+                </h1>
+                
+                <!-- Messages -->
+                {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                    <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-danger{% endif %} border" role="alert">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card shadow border-0 mb-4" style="border-radius: 10px;">
+                            <div class="card-body p-4">
+                                <h2 class="text-secondary-custom mb-4">Update Profile Information</h2>
+                                <form method="POST" action="{% url 'admin_profile' %}">
+                                    {% csrf_token %}
+                                    
+                                    <div class="mb-3">
+                                        <label for="admin_id" class="form-label fw-bold text-custom">Admin ID</label>
+                                        <input type="text" id="admin_id" class="form-control border-2" 
+                                               value="{{ admin.id }}" readonly style="background-color: #f8f9fa;">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="name" class="form-label fw-bold text-custom">Name</label>
+                                        <input type="text" id="name" name="name" class="form-control border-2" 
+                                               value="{{ admin.name }}" placeholder="Enter your full name" required>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn text-white fw-bold px-4 py-2 btn-custom"
+                                            style="background-color: var(--secondary-color);">
+                                        Update Profile
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div class="card shadow border-0" style="border-radius: 10px;">
+                            <div class="card-body p-4">
+                                <h2 class="text-secondary-custom mb-4">Change Password</h2>
+                                <form method="POST" action="{% url 'admin_profile' %}">
+                                    {% csrf_token %}
+                                    
+                                    <div class="mb-3">
+                                        <label for="current_password" class="form-label fw-bold text-custom">Current Password</label>
+                                        <input type="password" id="current_password" name="current_password" 
+                                               class="form-control border-2" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="new_password" class="form-label fw-bold text-custom">New Password</label>
+                                        <input type="password" id="new_password" name="new_password" 
+                                               class="form-control border-2" required oninput="checkPasswordStrength()" minlength="8">
+                                        <div id="password-strength" class="password-strength"></div>
+                                        <small class="form-text text-muted">Password must be at least 8 characters with a capital letter, number, and symbol.</small>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="confirm_password" class="form-label fw-bold text-custom">Confirm New Password</label>
+                                        <input type="password" id="confirm_password" name="confirm_password" 
+                                               class="form-control border-2" required>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn text-white fw-bold px-4 py-2 btn-custom"
+                                            style="background-color: var(--secondary-color);">
+                                        Change Password
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            {% endfor %}
         </div>
-        {% endif %}
-        
-        <div class="profile-container">
-            <h2>Update Profile Information</h2>
-            <form method="POST" action="{% url 'admin_profile' %}">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="admin_id">Admin ID</label>
-                    <input type="text" id="admin_id" class="form-control" value="{{ admin.id }}" readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" id="name" name="name" class="form-control" value="{{ admin.name }}" placeholder="Enter your full name" required>
-                </div>
-                
-                <button type="submit" class="btn">Update Profile</button>
-            </form>
-            
-            <hr>
-            
-            <h2>Change Password</h2>
-            <form method="POST" action="{% url 'admin_profile' %}">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="current_password">Current Password</label>
-                    <input type="password" id="current_password" name="current_password" class="form-control" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="new_password">New Password</label>
-                    <input type="password" id="new_password" name="new_password" class="form-control" required oninput="checkPasswordStrength()" minlength="8">
-                    <div id="password-strength" class="password-strength"></div>
-                    <small class="form-text text-muted">Password must be at least 8 characters with a capital letter, number, and symbol.</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="confirm_password">Confirm New Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
-                </div>
-                
-                <button type="submit" class="btn">Change Password</button>
-            </form>
-        </div>
-        
     </main>
 
-    <footer>
-        <p>&copy; 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+    <!-- Footer -->
+    <footer class="bg-footer text-white text-center py-3 mt-auto">
+        <div class="container">
+            <p class="mb-0">© 2025 KOOP-KPMIM Human Resources Management System | All Rights Reserved</p>
+        </div>
     </footer>
 
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
     <script>
-        // Toggle dropdown menu
         function toggleDropdown() {
             document.getElementById('userDropdown').classList.toggle('show');
         }
         
-        // Reset popup state when logging out
         function resetPopupState() {
             localStorage.removeItem('adminPopupShown');
         }
         
-        // Close dropdown when clicking outside
         window.onclick = function(event) {
-            if (!event.target.matches('.user-image')) {
+            if (!event.target.matches('.rounded-circle')) {
                 var dropdowns = document.getElementsByClassName('dropdown-content');
                 for (var i = 0; i < dropdowns.length; i++) {
                     var openDropdown = dropdowns[i];
@@ -351,57 +223,53 @@
             }
         }
         
-        // Password strength checker
         function checkPasswordStrength() {
             const password = document.getElementById('new_password').value;
             const strengthDiv = document.getElementById('password-strength');
             
-            // Clear the div
-            strengthDiv.className = 'password-strength';
-            
             if (password.length === 0) {
-                strengthDiv.textContent = '';
+                strengthDiv.innerHTML = '';
                 return;
             }
             
-            // Check password strength
             let strength = 0;
+            let feedback = [];
             
-            // Length check
-            if (password.length >= 8) {
-                strength += 1;
+            if (password.length >= 8) strength += 1;
+            else feedback.push('At least 8 characters');
+            
+            if (/[A-Z]/.test(password)) strength += 1;
+            else feedback.push('One uppercase letter');
+            
+            if (/[a-z]/.test(password)) strength += 1;
+            else feedback.push('One lowercase letter');
+            
+            if (/\d/.test(password)) strength += 1;
+            else feedback.push('One number');
+            
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength += 1;
+            else feedback.push('One special character');
+            
+            let strengthText = '';
+            let strengthClass = '';
+            
+            if (strength < 3) {
+                strengthText = 'Weak';
+                strengthClass = 'strength-weak';
+            } else if (strength < 5) {
+                strengthText = 'Medium';
+                strengthClass = 'strength-medium';
+            } else {
+                strengthText = 'Strong';
+                strengthClass = 'strength-strong';
             }
             
-            // Character variety check
-            if (/[A-Z]/.test(password)) {
-                strength += 1;
+            let message = `Password Strength: <span class="${strengthClass}">${strengthText}</span>`;
+            if (feedback.length > 0) {
+                message += `<br>Missing: ${feedback.join(', ')}`;
             }
             
-            if (/[0-9]/.test(password)) {
-                strength += 1;
-            }
-            
-            if (/[^A-Za-z0-9]/.test(password)) {
-                strength += 1;
-            }
-            
-            // Update the strength indicator
-            switch (strength) {
-                case 0:
-                case 1:
-                    strengthDiv.textContent = 'Weak password';
-                    strengthDiv.classList.add('strength-weak');
-                    break;
-                case 2:
-                case 3:
-                    strengthDiv.textContent = 'Medium password';
-                    strengthDiv.classList.add('strength-medium');
-                    break;
-                case 4:
-                    strengthDiv.textContent = 'Strong password';
-                    strengthDiv.classList.add('strength-strong');
-                    break;
-            }
+            strengthDiv.innerHTML = message;
         }
     </script>
     
